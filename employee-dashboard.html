@@ -11,19 +11,26 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
+    /* 100% Identical CSS to the original dashboard */
     * { box-sizing: border-box; }
     body { font-family: 'Poppins', 'Noto Sans Tamil', 'Noto Sans Devanagari', Arial, sans-serif; background: #f4f7f9; color: #2d3748; margin: 0; padding: 0; line-height: 1.5; }
     button { font-family: inherit; }
     
     .navbar { position: sticky; top: 0; z-index: 500; background: #ffffff; color: #3182ce; padding: 16px 84px 16px 16px; font-size: clamp(11px, 3.6vw, 22px); font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .session-timer { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: #edf2f7; color: #3182ce; border-radius: 14px; padding: 3px 10px; font-size: 13px; font-weight: 600; }
+    .session-timer.low { background: #fed7d7; color: #c53030; }
     
+    .lang-switch { display: inline-flex; align-items: center; gap: 20px; }
+    .lang-btn { border: none; background: none; color: #718096; padding: 4px 2px; font-size: 15px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
+    .lang-btn.active { color: #3182ce; border-bottom-color: #3182ce; }
+    .dashboard-lang-bar { display: flex; justify-content: flex-end; margin-bottom: 15px; }
+
     .dashboard-section { padding: 30px 20px; max-width: 1100px; margin: 0 auto; display: none; }
     .dashboard-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
     .welcome-text { font-size: 28px; font-weight: 600; margin: 0; } .welcome-text .name { color: #004080; }
     .current-date { color: #718096; font-size: 15px; font-weight: 500; margin: 8px 0 0 0; }
     
-    .action-buttons { display: flex; flex-wrap: wrap; gap: 20px; }
+    .action-buttons { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
     .btn { background: transparent; border: none; padding: 4px 2px; font-weight: 600; font-size: 15px; cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s;}
     .btn-primary, .btn-secondary { color: #3182ce; } .btn-primary:hover, .btn-secondary:hover { border-bottom-color: #3182ce; }
     .btn-light { color: #718096; } .btn-light:hover { color: #e53e3e; border-bottom-color: #e53e3e; }
@@ -31,7 +38,7 @@
     .about-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 30px; border-top: 4px solid #004080; }
     .about-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
     .about-details { display: flex; flex-wrap: wrap; gap: 40px; }
-    .detail-item { display: flex; flex-direction: column; }
+    .detail-item { display: flex; flex-direction: column; min-width:0; }
     .detail-label { font-size: 13px; color: #718096; font-weight: 500; margin-bottom: 4px; }
     .detail-value { font-size: 16px; font-weight: 600; word-break: break-word; }
     
@@ -42,122 +49,226 @@
     .progress-bar-bg { background: #edf2f7; height: 6px; border-radius: 10px; margin-top: 8px; overflow: hidden; } .progress-bar-fill { background: #004080; height: 100%; width: 0%; transition: width 1s; }
     
     .section-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; }
-    .month-tabs-container { display: flex; gap: 24px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 6px; }
+    .month-tabs-container { display: flex; gap: 24px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 6px; scrollbar-width: thin; }
     .month-tab { background: none; border: none; border-bottom: 2px solid transparent; font-size: 15px; font-weight: 600; color: #718096; cursor: pointer; white-space: nowrap; }
     .month-tab.active { color: #3182ce; border-bottom-color: #3182ce; }
     
     .calendar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; }
-    .day-card { background: white; padding: 15px 10px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); text-align: center; border-bottom: 4px solid #cbd5e1; }
+    .day-card { background: white; padding: 15px 10px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); text-align: center; border-bottom: 4px solid #cbd5e1; min-width:0; }
     .day-card.present { border-bottom-color: #38a169; } .day-card.absent { border-bottom-color: #e53e3e; }
     .day-card.half { border-bottom-color: #d69e2e; } .day-card.leave { border-bottom-color: #3182ce; } .day-card.off { border-bottom-color: #a0aec0; }
-    .day-card .date-text { font-size: 13px; color: #718096; margin-bottom: 8px; font-weight: 500; }
+    .day-card .date-text { font-size: 13px; color: #718096; margin-bottom: 8px; font-weight: 500; overflow-wrap: anywhere; }
     .day-card .status-text { font-size: 18px; font-weight: 700; }
-    .day-card .status-label { font-size: 12px; font-weight: 500; margin-top: 2px; }
+    .day-card .status-label { font-size: 12px; font-weight: 500; margin-top: 2px; min-height: 18px; line-height: 1.25; overflow-wrap: anywhere; }
     .day-card.present .status-text, .day-card.present .status-label { color: #38a169; } .day-card.absent .status-text, .day-card.absent .status-label { color: #e53e3e; }
     .day-card.half .status-text, .day-card.half .status-label { color: #b7791f; } .day-card.leave .status-text, .day-card.leave .status-label { color: #2b6cb0; } .day-card.off .status-text, .day-card.off .status-label { color: #718096; }
+    .empty-note { grid-column: 1 / -1; color: #718096; margin:0; }
     
     .hr-footer { margin-top: 40px; padding: 15px 20px; background: #fffaf0; border-left: 5px solid #dd6b20; border-radius: 8px; color: #9c4221; font-size: 14px; font-weight: 500; }
     
     /* Modals */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
     .modal-content { background: white; width: 90%; max-width: 650px; border-radius: 12px; padding: 30px; max-height: 90vh; overflow-y: auto; position: relative; }
-    .close-modal { position: absolute; top: 20px; right: 20px; background: #edf2f7; border: none; border-radius: 50%; width: 35px; height: 35px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;}
-    .modal-header { font-size: 22px; color: #004080; font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
-    .modal-section-title { font-size: 16px; font-weight: 600; margin-bottom: 15px; background: #f7fafc; padding: 8px 12px; border-radius: 6px; }
-    .modal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px;}
-    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: 600; } .status-active { background: #c6f6d5; color: #22543d; } .status-inactive { background: #fed7d7; color: #822727; }
+    .close-modal { position: absolute; top: 20px; right: 20px; background: #edf2f7; border: none; border-radius: 50%; width: 35px; height: 35px; font-size: 18px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; color: #4a5568;}
+    .close-modal:hover { background: #e2e8f0; color: #e53e3e; }
+    .modal-header { font-size: 22px; color: #004080; font-weight: 700; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; padding-right: 45px;}
+    .modal-section { margin-bottom: 25px; }
+    .modal-section-title { font-size: 16px; font-weight: 600; color: #4a5568; margin-bottom: 15px; background: #f7fafc; padding: 8px 12px; border-radius: 6px; }
+    .modal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-block;} .status-active { background: #c6f6d5; color: #22543d; } .status-inactive { background: #fed7d7; color: #822727; }
     
-    .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+    .value-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .copy-btn { background: none; border: none; padding: 3px; color: #718096; cursor: pointer; display: inline-flex; align-items: center; border-radius: 4px; transition: color 0.2s, background 0.2s; }
+    .copy-btn:hover { color: #3182ce; background: #edf2f7; }
+    .copy-btn svg { width: 16px; height: 16px; display: block; }
+    .copy-btn .ic-check { display: none; }
+    .copy-btn.copied { color: #38a169; background: #c6f6d5; }
+    .copy-btn.copied .ic-copy { display: none; }
+    .copy-btn.copied .ic-check { display: block; }
+    .link-btn { background: none; border: none; color: #3182ce; font-size: 12px; font-weight: 600; cursor: pointer; padding: 0; margin-top: 4px; text-align: left; }
+
+    /* Loading Overlay */
+    .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 2000; background: #ffffff; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease; }
+    .loading-overlay.show { opacity: 1; visibility: visible; }
     .rainbow-ring { width: 96px; height: 96px; border-radius: 50%; background: conic-gradient(#ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px)); mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px)); animation: ringSpin 1.1s linear infinite; }
     @keyframes ringSpin { to { transform: rotate(360deg); } }
-    .loading-name { margin-top: 20px; font-size: 24px; font-weight: 300; color: #004080; letter-spacing: 1.5px; }
+    .loading-welcome { position: absolute; top: calc(50% + 78px); left: 0; right: 0; text-align: center; padding: 0 20px; opacity: 0; transform: translateY(10px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .loading-welcome.in { opacity: 1; transform: translateY(0); }
+    .lw-small { font-size: 15px; font-weight: 500; letter-spacing: 3px; color: #718096; margin-bottom: 6px; }
+    .lw-name { font-size: clamp(28px, 6vw, 42px); font-weight: 300; letter-spacing: 1.5px; line-height: 1.3; background: linear-gradient(90deg, #004080, #3182ce); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; overflow-wrap: anywhere; }
 
     /* PDF Layout */
     .pdf-root { width: 900px; padding: 8px 12px; background: #ffffff; color: #2d3748; }
-    .pdf-choice { max-width: 440px; } .pdf-option { display: block; width: 100%; text-align: left; padding: 14px 2px; border: none; border-bottom: 1px solid #e2e8f0; background: none; font-size: 15px; font-weight: 600; cursor: pointer; }
-    @media (max-width: 600px) { .calendar-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; } .day-card { padding: 8px 2px; } .day-card .date-text { font-size: 10px; } .day-card .status-text { font-size: 15px; } .modal-grid { grid-template-columns: 1fr; } }
+    .pdf-choice { max-width: 440px; } .pdf-option { display: block; width: 100%; text-align: left; padding: 14px 2px; border: none; border-bottom: 1px solid #e2e8f0; background: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+    .pdf-option:hover { border-bottom-color: #3182ce; color: #3182ce; }
+    
+    .pdf-root .pdf-head { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #3182ce; }
+    .pdf-root .pdf-company { font-size: 22px; font-weight: 700; color: #3182ce; }
+    .pdf-root .pdf-generated { font-size: 13px; color: #718096; margin-top: 2px; }
+    .pdf-root .dashboard-header { flex-direction: row; align-items: flex-start; }
+    .pdf-root .about-details { flex-direction: row; gap: 40px; }
+    .pdf-root .analytics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .pdf-root .calendar-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 15px; }
+    .pdf-root .day-card { padding: 15px 10px; border-radius: 10px; border-bottom-width: 4px; }
+    .pdf-root .day-card .date-text { font-size: 13px; margin-bottom: 8px; letter-spacing: 0; }
+    .pdf-root .day-card .status-text { font-size: 18px; }
+    .pdf-root .day-card .status-label { font-size: 12px; margin-top: 2px; min-height: 18px; letter-spacing: 0; }
+    .pdf-root .modal-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pdf-root .stat-card, .pdf-root .day-card, .pdf-root .detail-item { min-width: 0; }
+    .pdf-root .stat-title, .pdf-root .stat-number, .pdf-root .detail-value { overflow-wrap: anywhere; }
+    .pdf-root .modal-header { padding-right: 0; }
+    .pdf-root .about-card, .pdf-root .stat-card, .pdf-root .day-card { box-shadow: 0 0 0 1px #e2e8f0; }
+    .pdf-root .progress-bar-fill { transition: none; }
+
+    /* Cycle Notes & Pending Animation */
+    .cycle-info { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: #718096; font-weight: 500; margin: -8px 0 14px 0; }
+    .attendance-note { font-size: 13px; color: #718096; line-height: 1.6; margin: 0 0 10px 0; }
+    .stat-sub { font-size: 11px; color: #a0aec0; margin-top: 6px; }
+    .day-card .wd { display: block; font-size: 11px; font-weight: 500; color: #a0aec0; margin-top: 1px; }
+    .day-card.today { box-shadow: 0 0 0 2px #3182ce; }
+    .day-card.pending { background: linear-gradient(90deg, #f7fafc 25%, #edf2f7 50%, #f7fafc 75%); background-size: 200% 100%; animation: shimmer 2.2s ease-in-out infinite; border-bottom: 4px dashed #cbd5e0; opacity: 0.9; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .day-card.pending .status-text, .day-card.pending .status-label, .day-card.norecord .status-text, .day-card.norecord .status-label { color: #a0aec0; }
+    .day-card.pending .status-text svg { width: 20px; height: 20px; vertical-align: middle; }
+    .day-card.norecord { background: #f7fafc; border-bottom: 4px dashed #cbd5e0; }
+    .day-card.na, .day-card.future { opacity: 0.4; background: #f7fafc; box-shadow: none; }
+    .day-card.na .status-text { color: #a0aec0; }
+    .pdf-root .day-card.pending { animation: none; }
+    
+    @media (prefers-reduced-motion: reduce) { .rainbow-ring { animation-duration: 3s; } .day-card.pending { animation: none; } }
+    @media (max-width: 600px) { 
+      .session-timer { right: 8px; padding: 3px 8px; font-size: 12px; }
+      .dashboard-header { flex-direction: column; align-items: flex-start; }
+      .action-buttons { width: 100%; gap: 14px; }
+      .analytics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .calendar-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; } 
+      .day-card { padding: 8px 2px; border-radius: 6px; border-bottom-width: 3px; } 
+      .day-card .date-text { font-size: 10px; margin-bottom: 4px; letter-spacing: -0.2px; } 
+      .day-card .status-text { font-size: 15px; } 
+      .day-card .status-label { font-size: 10px; line-height: 1.2; margin-top: 4px; min-height: 12px; }
+      .day-card .wd { display: none; }
+      .day-card.pending .status-text svg { width: 16px; height: 16px; }
+      .about-details { flex-direction: column; gap: 15px; }
+      .modal-grid { grid-template-columns: 1fr; } 
+      .dashboard-lang-bar { justify-content: flex-start; }
+    }
   </style>
 </head>
 <body>
   
-  <div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
     <div class="rainbow-ring"></div>
-    <div class="loading-name" id="loadingName">Loading your dashboard...</div>
+    <div class="loading-welcome" id="loadingWelcome">
+      <div class="lw-small" data-i18n="welcomeLoading">Welcome</div>
+      <div class="lw-name" id="loadingName"></div>
+    </div>
   </div>
 
-  <div class="navbar">Geekay Human Resources Pvt. Ltd.<span class="session-timer" id="sessionTimer">02:00</span></div>
+  <div class="navbar" id="mainNavbar">Geekay Human Resources Pvt. Ltd.<span class="session-timer" id="sessionTimer" data-i18n-title="sessionLeft" style="display:none;">02:00</span></div>
 
   <div class="dashboard-section" id="dashboardSection">
+    <div class="dashboard-lang-bar">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" data-lang="en">E</button>
+        <button type="button" class="lang-btn" data-lang="ta">த</button>
+        <button type="button" class="lang-btn" data-lang="hi">हि</button>
+      </div>
+    </div>
+
     <div id="printArea">
       <div class="dashboard-header">
         <div>
-          <h2 class="welcome-text">Welcome, <span class="name" id="displayName"></span></h2>
-          <p class="current-date" id="currentDate"></p>
+          <h2 class="welcome-text"><span data-i18n="welcome">Welcome,</span> <span class="name" id="displayName">Employee</span></h2>
+          <p class="current-date" id="currentDate">...</p>
         </div>
         <div class="action-buttons" id="actionButtons">
-          <button class="btn btn-primary" onclick="document.getElementById('staffModal').style.display='flex'">View Staff Details</button>
-          <button class="btn btn-secondary" onclick="document.getElementById('pdfModal').style.display='flex'">Download PDF</button>
-          <button class="btn btn-light" onclick="logout()">Logout</button>
+          <button type="button" class="btn btn-primary" onclick="openStaffModal()" data-i18n="viewStaff">View Staff Details</button>
+          <button type="button" class="btn btn-secondary" id="pdfBtn" onclick="openPdfChoice()" data-i18n="downloadPdf">Download PDF</button>
+          <button type="button" class="btn btn-light" onclick="logout()" data-i18n="logout">Logout</button>
         </div>
       </div>
 
       <div class="about-card">
-        <div class="about-title">About Employee</div>
+        <div class="about-title" data-i18n="aboutEmployee">About Employee</div>
         <div class="about-details">
-          <div class="detail-item"><span class="detail-label">Status</span><span class="detail-value"><span class="status-badge status-active" id="displayStatus">Active</span></span></div>
-          <div class="detail-item"><span class="detail-label">Employee ID</span><span class="detail-value" id="displayId">---</span></div>
-          <div class="detail-item"><span class="detail-label">Date of Joining (DOJ)</span><span class="detail-value" id="displayDoj">-</span></div>
-          <div class="detail-item"><span class="detail-label">Last Working Day (LWD)</span><span class="detail-value" id="displayLwd">-</span></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="status">Status</span><span class="detail-value"><span class="status-badge status-active" id="displayStatus">Active</span></span></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="employeeId">Employee ID</span><span class="detail-value" id="displayId">---</span></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="doj">Date of Joining (DOJ)</span><span class="detail-value" id="displayDoj">-</span></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="lwd">Last Working Day (LWD)</span><span class="detail-value" id="displayLwd">-</span></div>
         </div>
       </div>
 
       <div class="analytics-grid">
-        <div class="stat-card"><div class="stat-title">Total Working Days</div><div class="stat-number" id="statTotal">0</div></div>
-        <div class="stat-card present-stat"><div class="stat-title">Total Present</div><div class="stat-number" id="statPresent">0</div></div>
-        <div class="stat-card absent-stat"><div class="stat-title">Total Absent</div><div class="stat-number" id="statAbsent">0</div></div>
-        <div class="stat-card percent-stat"><div class="stat-title">Attendance Percentage</div><div class="stat-number" id="statPercent">0%</div><div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div></div>
+        <div class="stat-card"><div class="stat-title" data-i18n="totalWorking">Total Working Days</div><div class="stat-number" id="statTotal">0</div></div>
+        <div class="stat-card present-stat"><div class="stat-title" data-i18n="totalPresent">Total Present</div><div class="stat-number" id="statPresent">0</div></div>
+        <div class="stat-card absent-stat"><div class="stat-title" data-i18n="totalAbsent">Total Absent</div><div class="stat-number" id="statAbsent">0</div></div>
+        <div class="stat-card percent-stat">
+          <div class="stat-title" data-i18n="attPercent">Attendance Percentage</div>
+          <div class="stat-number" id="statPercent">0%</div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+          <div class="stat-sub" data-i18n="percentBasis">Based on updated days</div>
+        </div>
       </div>
 
-      <div class="section-title">Attendance Overview</div>
-      <div id="monthTabsContainer" class="month-tabs-container"></div>
+      <div class="section-title" data-i18n="attOverview">Attendance Overview</div>
+      <div class="cycle-info"><span id="cycleRange"></span><span id="updatedUpTo"></span></div>
+
+      <div id="monthTabsContainer" class="month-tabs-container" style="display: none;"></div>
+      <div id="attendanceNotes"></div>
+
       <div class="calendar-grid" id="calendarGrid"></div>
       
-      <div class="hr-footer"><strong>Note:</strong> In case of any discrepancies in your attendance, please contact the HR / Admin Department.</div>
+      <div class="hr-footer"><strong data-i18n="noteLabel">Note:</strong> <span data-i18n="noteText">In case of any discrepancies in your attendance or for further inquiries, please contact the HR / Admin Department.</span></div>
     </div>
   </div>
 
   <!-- Staff Modal -->
-  <div class="modal-overlay" id="staffModal" onclick="if(event.target.id==='staffModal') this.style.display='none'">
+  <div class="modal-overlay" id="staffModal" onclick="overlayClick(event)">
     <div class="modal-content">
-      <button class="close-modal" onclick="document.getElementById('staffModal').style.display='none'">&times;</button>
-      <div class="modal-header">Staff Personal Details</div>
+      <button type="button" class="close-modal" onclick="closeStaffModal()" aria-label="Close">&times;</button>
+      <div class="modal-header" data-i18n="staffTitle">Staff Personal Details</div>
+
       <div class="modal-section">
-        <div class="modal-section-title">1. Basic Information</div>
+        <div class="modal-section-title" data-i18n="secBasic">1. Basic Information</div>
         <div class="modal-grid">
-          <div class="detail-item"><span class="detail-label">Employee Name</span><span class="detail-value" id="modalName">---</span></div>
-          <div class="detail-item"><span class="detail-label">Employee ID</span><span class="detail-value" id="modalId">---</span></div>
-          <div class="detail-item"><span class="detail-label">Date of Birth (DOB)</span><span class="detail-value" id="modalDob">---</span></div>
-          <div class="detail-item"><span class="detail-label">Blood Group</span><span class="detail-value" id="modalBlood">---</span></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="empName">Employee Name</span><div class="value-row"><span class="detail-value" id="modalName">---</span><button type="button" class="copy-btn" data-copy="modalName" style="display:none;"></button></div></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="employeeId">Employee ID</span><div class="value-row"><span class="detail-value" id="modalId">---</span><button type="button" class="copy-btn" data-copy="modalId" style="display:none;"></button></div></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="status">Status</span><span class="detail-value"><span class="status-badge status-active" id="modalStatus">Active</span></span></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="dob">Date of Birth (DOB)</span><div class="value-row"><span class="detail-value" id="modalDob">---</span><button type="button" class="copy-btn" data-copy="modalDob" style="display:none;"></button></div></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="bloodGroup">Blood Group</span><div class="value-row"><span class="detail-value" id="modalBlood">---</span><button type="button" class="copy-btn" data-copy="modalBlood" style="display:none;"></button></div></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="doj">Date of Joining (DOJ)</span><div class="value-row"><span class="detail-value" id="modalDoj">---</span><button type="button" class="copy-btn" data-copy="modalDoj" style="display:none;"></button></div></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="lwd">Last Working Day (LWD)</span><div class="value-row"><span class="detail-value" id="modalLwd">---</span><button type="button" class="copy-btn" data-copy="modalLwd" style="display:none;"></button></div></div>
         </div>
       </div>
       <div class="modal-section">
-        <div class="modal-section-title">2. Contact & Statutory</div>
+        <div class="modal-section-title" data-i18n="secContact">2. Contact Information</div>
         <div class="modal-grid">
-          <div class="detail-item"><span class="detail-label">Mobile</span><span class="detail-value" id="modalMobile">---</span></div>
-          <div class="detail-item"><span class="detail-label">Email</span><span class="detail-value" id="modalEmail">---</span></div>
-          <div class="detail-item"><span class="detail-label">UAN Number</span><span class="detail-value" id="modalUan">---</span></div>
-          <div class="detail-item"><span class="detail-label">PF Account</span><span class="detail-value" id="modalPf">---</span></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="mobile">Mobile Number</span><div class="value-row"><span class="detail-value" id="modalMobile">---</span><button type="button" class="copy-btn" data-copy="modalMobile" style="display:none;"></button></div></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="email">Email ID</span><div class="value-row"><span class="detail-value" id="modalEmail">---</span><button type="button" class="copy-btn" data-copy="modalEmail" style="display:none;"></button></div></div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <div class="modal-section-title" data-i18n="secStatutory">3. Bank & Statutory Details</div>
+        <div class="modal-grid">
+          <div class="detail-item"><span class="detail-label" data-i18n="bankName">Bank Name</span><div class="value-row"><span class="detail-value" id="modalBankName">---</span><button type="button" class="copy-btn" data-copy="modalBankName" style="display:none;"></button></div></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="accNo">Account Number</span><div class="value-row"><span class="detail-value" id="modalAccNo">---</span><button type="button" class="copy-btn" data-copy="account" style="display:none;"></button></div><button type="button" class="link-btn" id="toggleAccBtn" onclick="toggleAccount()" style="display:none;">Show full number</button></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="ifsc">IFSC Code</span><div class="value-row"><span class="detail-value" id="modalIfsc">---</span><button type="button" class="copy-btn" data-copy="modalIfsc" style="display:none;"></button></div></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="uan">UAN Number</span><div class="value-row"><span class="detail-value" id="modalUan">---</span><button type="button" class="copy-btn" data-copy="modalUan" style="display:none;"></button></div></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="esi">ESI Number</span><div class="value-row"><span class="detail-value" id="modalEsi">---</span><button type="button" class="copy-btn" data-copy="modalEsi" style="display:none;"></button></div></div>
+          <div class="detail-item"><span class="detail-label" data-i18n="pf">PF Account Number</span><div class="value-row"><span class="detail-value" id="modalPf">---</span><button type="button" class="copy-btn" data-copy="modalPf" style="display:none;"></button></div></div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- PDF Modal -->
-  <div class="modal-overlay" id="pdfModal" onclick="if(event.target.id==='pdfModal') this.style.display='none'">
+  <div class="modal-overlay" id="pdfModal" onclick="pdfOverlayClick(event)">
     <div class="modal-content pdf-choice">
-      <button class="close-modal" onclick="document.getElementById('pdfModal').style.display='none'">&times;</button>
-      <div class="modal-header">Download PDF</div>
-      <button class="pdf-option" onclick="generatePDF()">Download Report</button>
+      <button type="button" class="close-modal" onclick="closePdfChoice()" aria-label="Close">&times;</button>
+      <div class="modal-header" data-i18n="pdfChooseTitle">What do you want to download?</div>
+      <button type="button" class="pdf-option" onclick="generatePDF('attendance')" data-i18n="pdfAttendance">Attendance only</button>
+      <button type="button" class="pdf-option" onclick="generatePDF('staff')" data-i18n="pdfStaff">Staff details only</button>
+      <button type="button" class="pdf-option" onclick="generatePDF('all')" data-i18n="pdfAll">Overall details (Attendance + Staff details)</button>
     </div>
   </div>
 
@@ -166,163 +277,1272 @@
     const loggedInId = sessionStorage.getItem('geekay_emp_id');
     if(!loggedInId) { window.location.href = 'index.html'; }
 
+    // ============================================================
+    // Settings & Globals
+    // ============================================================
     const MASTER_FILE = 'master_data/master_data.xlsx';
     const ATTENDANCE_FOLDER = 'attendance_records/';
-    
-    const COLS = {
-      id: ['epmlid', 'useremployeeid', 'employeeid', 'empid', 'userid', 'employeecode'],
-      name: ['empname', 'displayname', 'employeename', 'name'],
-      status: ['status', 'employeestatus'], doj: ['dojddmmyyyy', 'doj', 'dateofjoining'], lwd: ['lwd', 'lastworkingday'],
-      dob: ['dobddmmyyyy', 'dob', 'dateofbirth'], blood: ['bloodgroup', 'blood'],
-      uan: ['uannumber', 'uan', 'uanno'], pf: ['pfaccountnumber', 'pfnumber', 'pfaccountno', 'pf', 'epf'],
-      mobile: ['personalcontactno', 'mobilenumber', 'mobile', 'mobileno'], email: ['personalemailid', 'emailid', 'email']
+    const LANG_STORAGE_KEY = 'geekayPortalLang';
+    const SESSION_SECONDS = 120;
+    const MASTER_TTL_MS = 10 * 60 * 1000; 
+    const MONTH_LOOKBACK = 12;
+    const CYCLE_START_DAY = 21;
+    const OLD_CYCLE_DAYS = 15;
+    const ENG_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // ============================================================
+    // Translations
+    // ============================================================
+    const I18N = {
+      en: {
+        locale: 'en-US',
+        months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        viewProfile: 'Continue',
+        welcome: 'Welcome,',
+        viewStaff: 'View Staff Details',
+        downloadPdf: 'Download PDF',
+        logout: 'Logout',
+        aboutEmployee: 'About Employee',
+        doj: 'Date of Joining (DOJ)',
+        lwd: 'Last Working Day (LWD)',
+        bloodGroup: 'Blood Group',
+        uan: 'UAN Number',
+        pf: 'PF Account Number',
+        resigned: 'Resigned',
+        totalWorking: 'Total Working Days',
+        totalPresent: 'Total Present',
+        totalAbsent: 'Total Absent',
+        attPercent: 'Attendance Percentage',
+        attOverview: 'Attendance Overview',
+        noteLabel: 'Note:',
+        noteText: 'In case of any discrepancies in your attendance or for further inquiries, please contact the HR / Admin Department.',
+        staffTitle: 'Staff Personal Details',
+        secBasic: '1. Basic Information',
+        empName: 'Employee Name',
+        status: 'Status',
+        dob: 'Date of Birth (DOB)',
+        esi: 'ESI Number',
+        secContact: '2. Contact Information',
+        mobile: 'Mobile Number',
+        email: 'Email ID',
+        secStatutory: '3. Bank & Statutory Details',
+        bankName: 'Bank Name',
+        accNo: 'Account Number',
+        ifsc: 'IFSC Code',
+        showAcc: 'Show full number',
+        hideAcc: 'Hide number',
+        copy: 'Copy',
+        copied: 'Copied',
+        pdfChooseTitle: 'What do you want to download?',
+        pdfAttendance: 'Attendance only',
+        pdfStaff: 'Staff details only',
+        pdfAll: 'Overall details (Attendance + Staff details)',
+        generatedOn: 'Generated on',
+        monthLabel: 'Month',
+        welcomeLoading: 'Welcome',
+        sessionLeft: 'Session time left',
+        msgSessionEnded: 'Your session has ended. Please log in again.',
+        active: 'Active',
+        inactive: 'Inactive',
+        lblPresent: 'Present',
+        lblAbsent: 'Absent',
+        lblHalf: 'Half Day',
+        lblLeave: 'Leave',
+        lblWeeklyOff: 'Weekly Off',
+        lblHoliday: 'Holiday',
+        lblOff: 'Off Day',
+        noAttendance: 'No attendance dates recorded yet.',
+        lblSoon: 'Soon',
+        lblToday: 'Today',
+        lblNoRecord: 'No record',
+        percentBasis: 'Based on updated days',
+        updatedUpTo: 'Updated up to',
+        notUpdatedYet: 'not updated yet',
+        pendingNote: 'Attendance for days marked "Soon" is being processed and will appear here as soon as it is updated. Today\'s attendance is added after the day is completed.',
+        noRecordNote: 'Days marked "No record" have no attendance entry for you. Please contact the HR / Admin Department.',
+        msgCycleMismatch: 'The dates in this attendance file do not match this period. Please contact HR.',
+        msgFileProtocol: 'Open this page from a web server.',
+        msgSystem: 'System error. Data could not be loaded.',
+        msgLoadMonth: 'This month could not be loaded. Please try again.',
+        msgPdf: 'PDF could not be created. Please try again.'
+      },
+      ta: {
+        locale: 'ta-IN',
+        months: ['ஜன', 'பிப்', 'மார்', 'ஏப்', 'மே', 'ஜூன்', 'ஜூலை', 'ஆக', 'செப்', 'அக்', 'நவ', 'டிச'],
+        viewProfile: 'தொடரவும்',
+        welcome: 'வரவேற்கிறோம்,',
+        viewStaff: 'ஊழியர் விவரங்கள்',
+        downloadPdf: 'PDF பதிவிறக்கம்',
+        logout: 'வெளியேறு',
+        aboutEmployee: 'ஊழியர் பற்றிய தகவல்',
+        doj: 'பணியில் சேர்ந்த தேதி (DOJ)',
+        lwd: 'கடைசி பணி நாள் (LWD)',
+        bloodGroup: 'இரத்த வகை (Blood Group)',
+        uan: 'UAN எண்',
+        pf: 'PF கணக்கு எண்',
+        resigned: 'ராஜினாமா (Resigned)',
+        totalWorking: 'மொத்த பணி நாட்கள்',
+        totalPresent: 'மொத்த வருகை நாட்கள்',
+        totalAbsent: 'மொத்த வராத நாட்கள்',
+        attPercent: 'வருகை சதவீதம்',
+        attOverview: 'வருகைப் பதிவு விவரம்',
+        noteLabel: 'குறிப்பு:',
+        noteText: 'உங்கள் வருகைப் பதிவில் ஏதேனும் வேறுபாடு இருந்தாலோ, மேலும் விவரங்கள் தேவைப்பட்டாலோ, தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
+        staffTitle: 'ஊழியர் தனிப்பட்ட விவரங்கள்',
+        secBasic: '1. அடிப்படைத் தகவல்',
+        empName: 'ஊழியர் பெயர்',
+        status: 'நிலை',
+        dob: 'பிறந்த தேதி (DOB)',
+        esi: 'ESI எண்',
+        secContact: '2. தொடர்புத் தகவல்',
+        mobile: 'மொபைல் எண்',
+        email: 'மின்னஞ்சல் முகவரி',
+        secStatutory: '3. வங்கி & சட்டரீதியான விவரங்கள்',
+        bankName: 'வங்கியின் பெயர்',
+        accNo: 'வங்கிக் கணக்கு எண்',
+        ifsc: 'IFSC குறியீடு',
+        showAcc: 'முழு எண்ணைக் காட்டு',
+        hideAcc: 'எண்ணை மறை',
+        copy: 'நகலெடு',
+        copied: 'நகலெடுக்கப்பட்டது',
+        pdfChooseTitle: 'எதைப் பதிவிறக்க வேண்டும்?',
+        pdfAttendance: 'வருகைப் பதிவு மட்டும்',
+        pdfStaff: 'ஊழியர் விவரங்கள் மட்டும்',
+        pdfAll: 'முழு விவரங்கள் (வருகை + ஊழியர் விவரங்கள்)',
+        generatedOn: 'உருவாக்கிய தேதி',
+        monthLabel: 'மாதம்',
+        welcomeLoading: 'வரவேற்கிறோம்',
+        sessionLeft: 'மீதமுள்ள நேரம்',
+        msgSessionEnded: 'உங்கள் அமர்வு நேரம் முடிந்தது. மீண்டும் உள்நுழையவும்.',
+        active: 'பணியில் உள்ளார்',
+        inactive: 'பணியில் இல்லை',
+        lblPresent: 'வருகை',
+        lblAbsent: 'வரவில்லை',
+        lblHalf: 'அரை நாள்',
+        lblLeave: 'விடுப்பு',
+        lblWeeklyOff: 'வார விடுமுறை',
+        lblHoliday: 'விடுமுறை நாள்',
+        lblOff: 'ஓய்வு நாள்',
+        noAttendance: 'இந்த மாதத்திற்கான வருகைப் பதிவுகள் இன்னும் இல்லை.',
+        lblSoon: 'விரைவில்',
+        lblToday: 'இன்று',
+        lblNoRecord: 'பதிவு இல்லை',
+        percentBasis: 'புதுப்பித்த நாட்களின் அடிப்படையில்',
+        updatedUpTo: 'இதுவரை புதுப்பிக்கப்பட்டது',
+        notUpdatedYet: 'இன்னும் புதுப்பிக்கப்படவில்லை',
+        pendingNote: '"விரைவில்" என்று குறிக்கப்பட்ட நாட்களின் வருகைப் பதிவு செயலாக்கத்தில் உள்ளது. இன்றைய வருகைப் பதிவு, இன்றைய நாள் முடிந்த பிறகே சேர்க்கப்படும்.',
+        noRecordNote: '"பதிவு இல்லை" என்று குறிக்கப்பட்ட நாட்களுக்கு உங்கள் வருகைப் பதிவு இல்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
+        msgCycleMismatch: 'இந்த வருகைக் கோப்பில் உள்ள தேதிகள் இந்தக் காலத்துடன் பொருந்தவில்லை.',
+        msgFileProtocol: 'இந்தப் பக்கத்தை இணையதள சேவையகம் (hosting) வழியாகத் திறக்கவும்.',
+        msgSystem: 'கணினிப் பிழை. தரவை ஏற்ற முடியவில்லை.',
+        msgLoadMonth: 'இந்த மாதத்தின் பதிவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+        msgPdf: 'PDF உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.'
+      },
+      hi: {
+        locale: 'hi-IN',
+        months: ['जन॰', 'फ़र॰', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुल॰', 'अग॰', 'सित॰', 'अक्टू॰', 'नव॰', 'दिस॰'],
+        viewProfile: 'जारी रखें',
+        welcome: 'स्वागत है,',
+        viewStaff: 'कर्मचारी विवरण',
+        downloadPdf: 'PDF डाउनलोड करें',
+        logout: 'लॉगआउट',
+        aboutEmployee: 'कर्मचारी के बारे में जानकारी',
+        doj: 'कार्यग्रहण की तारीख (DOJ)',
+        lwd: 'अंतिम कार्य दिवस (LWD)',
+        bloodGroup: 'रक्त समूह (Blood Group)',
+        uan: 'UAN नंबर',
+        pf: 'PF खाता संख्या',
+        resigned: 'इस्तीफ़ा (Resigned)',
+        totalWorking: 'कुल कार्य दिवस',
+        totalPresent: 'कुल उपस्थित दिन',
+        totalAbsent: 'कुल अनुपस्थित दिन',
+        attPercent: 'उपस्थिति प्रतिशत',
+        attOverview: 'उपस्थिति का विवरण',
+        noteLabel: 'नोट:',
+        noteText: 'अपनी उपस्थिति में किसी भी गड़बड़ी के लिए या अधिक जानकारी के लिए कृपया HR / एडमिन विभाग से संपर्क करें।',
+        staffTitle: 'कर्मचारी के व्यक्तिगत विवरण',
+        secBasic: '1. बुनियादी जानकारी',
+        empName: 'कर्मचारी का नाम',
+        status: 'स्थिति',
+        dob: 'जन्म तिथि (DOB)',
+        esi: 'ESI नंबर',
+        secContact: '2. संपर्क जानकारी',
+        mobile: 'मोबाइल नंबर',
+        email: 'ईमेल पता',
+        secStatutory: '3. बैंक और वैधानिक विवरण',
+        bankName: 'बैंक का नाम',
+        accNo: 'बैंक खाता संख्या',
+        ifsc: 'IFSC कोड',
+        showAcc: 'पूरा नंबर दिखाएँ',
+        hideAcc: 'नंबर छिपाएँ',
+        copy: 'कॉपी करें',
+        copied: 'कॉपी हो गया',
+        pdfChooseTitle: 'आप क्या डाउनलोड करना चाहते हैं?',
+        pdfAttendance: 'केवल उपस्थिति',
+        pdfStaff: 'केवल कर्मचारी विवरण',
+        pdfAll: 'पूरा विवरण (उपस्थिति + कर्मचारी विवरण)',
+        generatedOn: 'बनाने की तारीख',
+        monthLabel: 'महीना',
+        welcomeLoading: 'स्वागत है',
+        sessionLeft: 'शेष समय',
+        msgSessionEnded: 'आपका समय समाप्त हो गया। कृपया फिर से लॉगिन करें।',
+        active: 'कार्यरत',
+        inactive: 'कार्यरत नहीं',
+        lblPresent: 'उपस्थित',
+        lblAbsent: 'अनुपस्थित',
+        lblHalf: 'आधा दिन',
+        lblLeave: 'छुट्टी',
+        lblWeeklyOff: 'साप्ताहिक अवकाश',
+        lblHoliday: 'अवकाश दिवस',
+        lblOff: 'ऑफ़ डे',
+        noAttendance: 'इस महीने के लिए कोई उपस्थिति दर्ज नहीं है।',
+        lblSoon: 'जल्द',
+        lblToday: 'आज',
+        lblNoRecord: 'रिकॉर्ड नहीं',
+        percentBasis: 'अपडेट किए गए दिनों के आधार पर',
+        updatedUpTo: 'यहाँ तक अपडेट',
+        notUpdatedYet: 'अभी अपडेट नहीं हुआ',
+        pendingNote: '"जल्द" चिह्नित दिनों की उपस्थिति प्रक्रिया में है। आज की उपस्थिति दिन पूरा होने के बाद जोड़ी जाएगी।',
+        noRecordNote: '"रिकॉर्ड नहीं" चिह्नित दिनों के लिए आपकी उपस्थिति दर्ज नहीं है। कृपया HR से संपर्क करें।',
+        msgCycleMismatch: 'इस उपस्थिति फ़ाइल की तारीखें इस अवधि से मेल नहीं खातीं।',
+        msgFileProtocol: 'इस पेज को वेब सर्वर से खोलें।',
+        msgSystem: 'सिस्टम में त्रुटि। डेटा लोड नहीं हो सका।',
+        msgLoadMonth: 'इस महीने का डेटा लोड नहीं हो सका।',
+        msgPdf: 'PDF नहीं बन सका। कृपया फिर से प्रयास करें।'
+      }
     };
 
-    let currentData = { empId: loggedInId, masterRow: null, attRow: null, currentMonth: null };
+    let currentLang = 'en';
+    function t(key) {
+      const pack = I18N[currentLang] || I18N.en;
+      return (key in pack) ? pack[key] : (I18N.en[key] || key);
+    }
+
+    const COLS = {
+      id:      ['epmlid', 'useremployeeid', 'employeeid', 'empid', 'userid', 'employeecode'],
+      name:    ['empname', 'displayname', 'employeename', 'name'],
+      status:  ['status', 'employeestatus'],
+      doj:     ['dojddmmyyyy', 'doj', 'dateofjoining'],
+      lwd:     ['lwd', 'lastworkingday'],
+      dob:     ['dobddmmyyyy', 'dob', 'dateofbirth'],
+      blood:   ['bloodgroup', 'blood'],
+      esi:     ['esinumber', 'esino', 'esi', 'esic', 'esicnumber'],
+      uan:     ['uannumber', 'uan', 'uanno'],
+      pf:      ['pfaccountnumber', 'pfnumber', 'pfaccountno', 'pf', 'epf'],
+      mobile:  ['personalcontactno', 'mobilenumber', 'mobile', 'mobileno', 'phone', 'phonenumber', 'contactnumber'],
+      email:   ['personalemailid', 'emailid', 'email', 'emailaddress'],
+      bank:    ['bankname', 'bank'],
+      account: ['bankaccountnumber', 'accountnumber', 'accountno', 'bankaccount', 'accno'],
+      ifsc:    ['ifsccode', 'ifsc'],
+      vendor:  ['vendorname', 'vendor'],
+      serial:  ['sln0', 'slno', 'sno', 'serialnumber', 'srno']
+    };
+
+    const CODE_PRESENT    = ['PP', 'P', 'PRESENT'];
+    const CODE_ABSENT     = ['AA', 'A', 'ABSENT'];
+    const CODE_HALF       = ['HD', 'HALFDAY', 'HALF DAY', 'PA', 'AP'];
+    const CODE_LEAVE      = ['L', 'CL', 'SL', 'PL', 'EL', 'LEAVE', 'LL'];
+    const CODE_WEEKLY_OFF = ['WO', 'WOFF'];
+    const CODE_HOLIDAY    = ['H', 'HOL', 'HOLIDAY', 'PH', 'FH'];
+    const CODE_OFF        = ['OFF'];
+    const ALL_CODES = [].concat(CODE_PRESENT, CODE_ABSENT, CODE_HALF, CODE_LEAVE, CODE_WEEKLY_OFF, CODE_HOLIDAY, CODE_OFF);
+
+    let currentData = null;
+    let currentAccountFull = '';
+    let currentAccountMasked = '';
+    let accountVisible = false;
+
+    let cachedMasterData = null;
+    let masterLoadedAt = 0;
     let availableMonths = [];
+    let existingCycles = new Set();
+    let preloadPromise = null;
+    const monthCache = new Map();
 
-    // Session Timer logic
-    let sessionTime = 120;
-    setInterval(() => {
-      sessionTime--;
-      if(sessionTime <= 0) logout();
-      const m = Math.floor(sessionTime / 60); const s = sessionTime % 60;
-      document.getElementById('sessionTimer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    }, 1000);
-
-    function logout() { sessionStorage.removeItem('geekay_emp_id'); window.location.href = 'index.html'; }
-
-    function norm(k) { return String(k).toLowerCase().replace(/[^a-z0-9]/g, ''); }
-    function getField(row, aliases) {
-      if(!row) return ''; const map = {}; for(let k in row) map[norm(k)] = k;
-      for(let a of aliases) if(map[a]) return row[map[a]]; return '';
+    // ============================================================
+    // Helpers
+    // ============================================================
+    function isDateObject(v) { return Object.prototype.toString.call(v) === '[object Date]'; }
+    function normKey(k) { return String(k).toLowerCase().replace(/[^a-z0-9]/g, ''); }
+    function buildKeyMap(row) {
+      const map = {};
+      for (const key in row) {
+        const nk = normKey(key);
+        if (nk && !(nk in map)) map[nk] = key;
+      }
+      return map;
     }
-    function fmtDate(d) {
-      if(!d) return '-'; if(typeof d === 'number') d = new Date(Math.round((d-25569)*86400000));
-      if(Object.prototype.toString.call(d) === '[object Date]' && !isNaN(d)) return `${String(d.getDate()).padStart(2,'0')}-${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]}-${d.getFullYear()}`;
-      return String(d).trim();
-    }
-    function setText(id, val, isDate=false) { document.getElementById(id).textContent = val ? (isDate ? fmtDate(val) : val) : '---'; }
-
-    async function initDashboard() {
-      try {
-        // Load Master
-        let res = await fetch(MASTER_FILE + '?v=' + Date.now(), {cache:'no-store'});
-        let wb = XLSX.read(await res.arrayBuffer(), {type:'array', cellDates:true});
-        let masterData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
-        
-        for(let r of masterData) if(String(getField(r, COLS.id)).toUpperCase() === loggedInId) { currentData.masterRow = r; break; }
-        if(!currentData.masterRow) throw "ID Missing";
-
-        // Probe Attendance
-        const d = new Date(); let m = d.getMonth(); let y = d.getFullYear();
-        for(let i=0; i<12; i++) {
-          let mName = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][m] + '-' + y;
-          if((await fetch(ATTENDANCE_FOLDER + mName + '.xlsx', {method:'HEAD'})).ok) availableMonths.push(mName);
-          m--; if(m<0){m=11; y--;}
+    function getField(row, keyMap, aliases) {
+      if (!row || !keyMap) return '';
+      for (const alias of aliases) {
+        if (alias in keyMap) {
+          const v = row[keyMap[alias]];
+          if (v !== null && v !== undefined && String(v).trim() !== '') return v;
         }
-        
-        if(availableMonths.length > 0) await loadMonth(availableMonths[0]);
-        else renderUI();
-      } catch(e) { console.error(e); logout(); }
+      }
+      return '';
+    }
+    function isInfoColumn(key) {
+      const nk = normKey(key);
+      for (const group in COLS) {
+        if (COLS[group].includes(nk)) return true;
+      }
+      return false;
+    }
+    function formatDate(d) {
+      const x = new Date(d.getTime() + 60000);
+      const dd = String(x.getDate()).padStart(2, '0');
+      return dd + '-' + t('months')[x.getMonth()] + '-' + x.getFullYear();
+    }
+    function formatValue(v) {
+      if (v === null || v === undefined) return '';
+      if (isDateObject(v)) return isNaN(v.getTime()) ? '' : formatDate(v);
+      return String(v).trim();
+    }
+    function formatHeader(key) {
+      const k = String(key).trim();
+      if (/^\d{5}$/.test(k)) {
+        const serial = Number(k);
+        if (serial > 30000 && serial < 70000) {
+          const d = new Date(Math.round((serial - 25569) * 86400 * 1000));
+          return formatDate(new Date(d.getTime() + d.getTimezoneOffset() * 60000));
+        }
+      }
+      return k;
+    }
+    function fmtNum(n) {
+      return Number.isInteger(n) ? String(n) : n.toFixed(1);
+    }
+    function setText(id, value) {
+      const v = (value === '' || value === null || value === undefined) ? '---' : value;
+      document.getElementById(id).textContent = v;
+    }
+    function findRecord(rows, empId) {
+      const result = { record: null, keyMap: null, idColumnFound: false };
+      if (!rows || !rows.length) return result;
+      const firstMap = buildKeyMap(rows[0]);
+      let idKey = null;
+      for (const alias of COLS.id) {
+        if (alias in firstMap) { idKey = firstMap[alias]; break; }
+      }
+      if (idKey === null) return result;
+      result.idColumnFound = true;
+      for (let i = 0; i < rows.length; i++) {
+        const v = rows[i][idKey];
+        if (v !== null && v !== undefined && String(v).trim().toUpperCase() === empId) {
+          result.record = rows[i];
+          result.keyMap = buildKeyMap(rows[i]);
+          break;
+        }
+      }
+      return result;
     }
 
-    async function loadMonth(mName) {
-      currentData.currentMonth = mName;
+    // ============================================================
+    // Data loading
+    // ============================================================
+    async function loadMasterData() {
       try {
-        let res = await fetch(ATTENDANCE_FOLDER + mName + '.xlsx?v=' + Date.now(), {cache:'no-store'});
-        let wb = XLSX.read(await res.arrayBuffer(), {type:'array', cellDates:true});
-        let attData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:''});
-        currentData.attRow = null;
-        for(let r of attData) if(String(getField(r, COLS.id)).toUpperCase() === loggedInId) { currentData.attRow = r; break; }
-      } catch(e) {}
-      renderUI();
+        const response = await fetch(MASTER_FILE + '?v=' + Date.now(), { cache: 'no-store' });
+        if (!response.ok) { throw new Error('msgFileNotFound'); }
+        const arrayBuffer = await response.arrayBuffer();
+        const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
+        if (!workbook.SheetNames.length) { throw new Error('msgEmptyBook'); }
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
+        if (!rows.length) { throw new Error('msgEmptyBook'); }
+        cachedMasterData = rows;
+        masterLoadedAt = Date.now();
+      } catch (e) {
+        console.error('Master data load failed', e);
+        throw e;
+      }
     }
 
-    function renderUI() {
-      const row = currentData.masterRow;
-      const name = getField(row, COLS.name);
-      document.getElementById('displayName').textContent = name;
-      document.getElementById('loadingName').textContent = "Welcome, " + name;
-      document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
-      
-      const lwd = getField(row, COLS.lwd);
-      const stat = (lwd && lwd !== '-') ? 'Resigned' : (getField(row, COLS.status) || 'Active');
-      document.getElementById('displayStatus').textContent = stat;
-      document.getElementById('modalStatus').textContent = stat;
-      document.getElementById('displayStatus').className = 'status-badge ' + (stat==='Resigned'||stat==='Inactive'?'status-inactive':'status-active');
-      document.getElementById('modalStatus').className = document.getElementById('displayStatus').className;
+    async function fileExists(url) {
+      try {
+        let res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+        if (res.status === 405 || res.status === 501) {
+          res = await fetch(url, { cache: 'no-store' });
+        }
+        if (!res.ok) return false;
+        const type = (res.headers.get('content-type') || '').toLowerCase();
+        return type.indexOf('text/html') === -1;
+      } catch (e) {
+        return false;
+      }
+    }
 
-      setText('displayId', loggedInId); setText('modalId', loggedInId);
-      setText('modalName', name);
-      setText('displayDoj', getField(row, COLS.doj), true); setText('modalDoj', getField(row, COLS.doj), true);
-      setText('displayLwd', lwd, true); setText('modalLwd', lwd, true);
-      setText('modalDob', getField(row, COLS.dob), true);
-      setText('modalBlood', getField(row, COLS.blood));
-      setText('modalMobile', getField(row, COLS.mobile));
-      setText('modalEmail', getField(row, COLS.email));
-      setText('modalUan', getField(row, COLS.uan));
-      setText('modalPf', getField(row, COLS.pf));
+    const MONTH_LOOKUP = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+    const CLOCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline></svg>';
 
-      // Tabs
-      const tabs = document.getElementById('monthTabsContainer');
-      tabs.innerHTML = '';
-      availableMonths.forEach(m => {
-        let btn = document.createElement('button');
-        btn.className = 'month-tab' + (m === currentData.currentMonth ? ' active' : '');
-        btn.textContent = m;
-        btn.onclick = () => { document.getElementById('loadingOverlay').style.display='flex'; loadMonth(m); };
-        tabs.appendChild(btn);
-      });
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function makeYmd(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }
+    function ymdParts(ymd) { const p = ymd.split('-'); return { y: +p[0], m: +p[1] - 1, d: +p[2] }; }
+    function validYmd(y, m, d) {
+      const c = new Date(y, m, d);
+      return c.getFullYear() === y && c.getMonth() === m && c.getDate() === d;
+    }
+    function daysBetween(a, b) {
+      const pa = ymdParts(a), pb = ymdParts(b);
+      return Math.round((Date.UTC(pb.y, pb.m, pb.d) - Date.UTC(pa.y, pa.m, pa.d)) / 86400000);
+    }
+    function getTodayYmd() {
+      try {
+        const s = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      } catch (e) { }
+      const n = new Date();
+      return makeYmd(n.getFullYear(), n.getMonth(), n.getDate());
+    }
+    function cycleKey(y, m) { return ENG_MONTHS[m] + '-' + y; }
+    function currentCycleStart() {
+      const p = ymdParts(getTodayYmd());
+      let y = p.y, m = p.m;
+      if (p.d < CYCLE_START_DAY) { m--; if (m < 0) { m = 11; y--; } }
+      return { y: y, m: m };
+    }
+    function cycleInfo(cycleStr) {
+      const parts = cycleStr.split('-');
+      const sm = ENG_MONTHS.indexOf(parts[0]);
+      const sy = parseInt(parts[1], 10);
+      const start = new Date(sy, sm, CYCLE_START_DAY);
+      const end = new Date(sy, sm + 1, CYCLE_START_DAY - 1);
+      const days = [];
+      for (let cur = start; cur.getTime() <= end.getTime(); cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1)) {
+        days.push({ ymd: makeYmd(cur.getFullYear(), cur.getMonth(), cur.getDate()), y: cur.getFullYear(), m: cur.getMonth(), d: cur.getDate() });
+      }
+      return {
+        cycleStr: cycleStr, days: days,
+        startYmd: days[0].ymd, endYmd: days[days.length - 1].ymd,
+        startMonth: sm, startYear: sy, endMonth: end.getMonth(), endYear: end.getFullYear()
+      };
+    }
+    function cycleLabel(cycleStr, withYear) {
+      const c = cycleInfo(cycleStr);
+      const first = c.days[0], last = c.days[c.days.length - 1];
+      const months = t('months');
+      return first.d + ' ' + months[first.m] + (withYear ? ' ' + first.y : '') + ' \u2013 ' +
+             last.d + ' ' + months[last.m] + (withYear ? ' ' + last.y : '');
+    }
+    function inCycleRange(ymd, cycle) { return ymd >= cycle.startYmd && ymd <= cycle.endYmd; }
+    function dayNumberToYmd(day, cycle) {
+      let y = cycle.startYear, m = cycle.startMonth;
+      if (CYCLE_START_DAY > 1 && day < CYCLE_START_DAY) { m = cycle.endMonth; y = cycle.endYear; }
+      if (!validYmd(y, m, day)) return '';
+      return makeYmd(y, m, day);
+    }
+    function yearCandidates(yearText, month, day, cycle) {
+      if (yearText) {
+        let y = +yearText;
+        if (yearText.length === 2) y += 2000;
+        return [[y, month, day]];
+      }
+      return [[cycle.startYear, month, day], [cycle.endYear, month, day]];
+    }
+    function parseHeaderDate(key, cycle) {
+      const k = String(key).trim();
+      const none = { ymd: '', outside: false };
+      if (!k) return none;
 
-      // Grid
-      const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
-      let p=0, a=0, h=0;
-      if(currentData.attRow) {
-        Object.keys(currentData.attRow).forEach(k => {
-          if(!k || k.toLowerCase().includes('emp') || k.toLowerCase().includes('name')) return;
-          const val = String(currentData.attRow[k]).trim().toUpperCase();
-          if(!val || val==='-') return;
-          
-          let cls = 'off', lbl = 'Off';
-          if(['PP','P','PRESENT'].includes(val)) { cls='present'; lbl='Present'; p++; }
-          else if(['AA','A','ABSENT'].includes(val)) { cls='absent'; lbl='Absent'; a++; }
-          else if(['HD','HALF DAY','PA'].includes(val)) { cls='half'; lbl='Half Day'; h++; }
-          else if(['L','CL','SL','LEAVE'].includes(val)) { cls='leave'; lbl='Leave'; }
+      function result(candidates) {
+        let outside = false;
+        for (let i = 0; i < candidates.length; i++) {
+          const c = candidates[i];
+          if (!validYmd(c[0], c[1], c[2])) continue;
+          const ymd = makeYmd(c[0], c[1], c[2]);
+          if (inCycleRange(ymd, cycle)) return { ymd: ymd, outside: false };
+          outside = true;
+        }
+        return { ymd: '', outside: outside };
+      }
+      let m;
+      if (/^\d{1,2}$/.test(k)) {
+        const day = parseInt(k, 10);
+        if (day < 1 || day > 31) return none;
+        return { ymd: dayNumberToYmd(day, cycle), outside: false };
+      }
+      if (/^\d{5}$/.test(k)) {
+        const serial = Number(k);
+        if (serial > 30000 && serial < 70000) {
+          const dt = new Date(Math.round((serial - 25569) * 86400 * 1000));
+          return result([[dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate()]]);
+        }
+        return none;
+      }
+      if ((m = k.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) {
+        return result([[+m[1], +m[2] - 1, +m[3]]]);
+      }
+      if ((m = k.match(/^(\d{1,2})[\s\-\/.]*([A-Za-z]{3})[A-Za-z]*\.?(?:[\s\-\/.,]*(\d{2,4}))?/)) && m[2].toLowerCase() in MONTH_LOOKUP) {
+        return result(yearCandidates(m[3], MONTH_LOOKUP[m[2].toLowerCase()], +m[1], cycle));
+      }
+      if ((m = k.match(/^([A-Za-z]{3})[A-Za-z]*\.?[\s\-\/.]*(\d{1,2})(?:[\s\-\/.,]*(\d{2,4}))?/)) && m[1].toLowerCase() in MONTH_LOOKUP) {
+        return result(yearCandidates(m[3], MONTH_LOOKUP[m[1].toLowerCase()], +m[2], cycle));
+      }
+      if ((m = k.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))) {
+        let y = +m[3];
+        if (m[3].length === 2) y += 2000;
+        return result([[y, +m[2] - 1, +m[1]], [y, +m[1] - 1, +m[2]]]); 
+      }
+      if ((m = k.match(/^(\d{1,2})[-\/.](\d{1,2})$/))) {
+        const list = [];
+        [cycle.startYear, cycle.endYear].forEach(function (yr) {
+          list.push([yr, +m[2] - 1, +m[1]]);
+          list.push([yr, +m[1] - 1, +m[2]]);
+        });
+        return result(list);
+      }
+      return none;
+    }
+    function rawToYmd(raw) {
+      if (raw === '' || raw === null || raw === undefined) return '';
+      if (isDateObject(raw)) {
+        if (isNaN(raw.getTime())) return '';
+        const x = new Date(raw.getTime() + 60000);
+        return makeYmd(x.getFullYear(), x.getMonth(), x.getDate());
+      }
+      if (typeof raw === 'number') {
+        const dt = new Date(Math.round((raw - 25569) * 86400 * 1000));
+        return isNaN(dt.getTime()) ? '' : makeYmd(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
+      }
+      const str = String(raw).trim();
+      if (/^\d{5}$/.test(str)) return rawToYmd(Number(str));
+      let m;
+      if ((m = str.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) {
+        return validYmd(+m[1], +m[2] - 1, +m[3]) ? makeYmd(+m[1], +m[2] - 1, +m[3]) : '';
+      }
+      if ((m = str.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))) {
+        let y = +m[3];
+        if (m[3].length === 2) y += 2000;
+        return validYmd(y, +m[2] - 1, +m[1]) ? makeYmd(y, +m[2] - 1, +m[1]) : '';
+      }
+      if ((m = str.match(/^(\d{1,2})[\s\-\/.]*([A-Za-z]{3})[A-Za-z]*\.?[\s\-\/.,]*(\d{2,4})/)) && m[2].toLowerCase() in MONTH_LOOKUP) {
+        let y = +m[3];
+        if (m[3].length === 2) y += 2000;
+        const mo = MONTH_LOOKUP[m[2].toLowerCase()];
+        return validYmd(y, mo, +m[1]) ? makeYmd(y, mo, +m[1]) : '';
+      }
+      return '';
+    }
 
-          let dDate = k;
-          if(/^\d{5}$/.test(k)) { dDate = fmtDate(Number(k)); }
-
-          grid.innerHTML += `<div class="day-card ${cls}"><div class="date-text">${dDate}</div><div class="status-text">${val}</div><div class="status-label">${lbl}</div></div>`;
+    function hasAttendanceValue(v) {
+      const s = formatValue(v);
+      return s !== '' && s !== '-';
+    }
+    function buildCycleColumns(rows, cycle) {
+      const dateKey = new Map();
+      let outsideCount = 0;
+      if (rows.length) {
+        Object.keys(rows[0]).forEach(function (key) {
+          const r = parseHeaderDate(key, cycle);
+          if (r.ymd) { if (!dateKey.has(r.ymd)) dateKey.set(r.ymd, key); }
+          else if (r.outside) outsideCount++;
         });
       }
-      
-      const tot = p+a+h; const tp = p+(h*0.5); const ta = a+(h*0.5);
-      const pct = tot > 0 ? Math.round((tp/tot)*100) : 0;
-      document.getElementById('statTotal').textContent = tot;
-      document.getElementById('statPresent').textContent = tp;
-      document.getElementById('statAbsent').textContent = ta;
-      document.getElementById('statPercent').textContent = pct + '%';
-      document.getElementById('progressFill').style.width = pct + '%';
-
-      setTimeout(() => { document.getElementById('loadingOverlay').style.display='none'; document.getElementById('dashboardSection').style.display='block'; }, 500);
+      const updated = new Set();
+      dateKey.forEach(function (key, ymd) {
+        for (let i = 0; i < rows.length; i++) {
+          if (hasAttendanceValue(rows[i][key])) { updated.add(ymd); break; }
+        }
+      });
+      return { dateKey: dateKey, updated: updated, mismatch: dateKey.size === 0 && outsideCount > 0 };
+    }
+    function emptyCycleData(failed) {
+      return { rows: [], hasFile: false, dateKey: new Map(), updated: new Set(), mismatch: false, failed: !!failed };
+    }
+    async function probeAttendanceMonths() {
+      const cur = currentCycleStart();
+      const names = [];
+      let m = cur.m;
+      let y = cur.y;
+      for (let i = 0; i < MONTH_LOOKBACK; i++) {
+        names.push(cycleKey(y, m));
+        m--;
+        if (m < 0) { m = 11; y--; }
+      }
+      const found = new Set();
+      await Promise.all(names.map(async function (name) {
+        if (await fileExists(ATTENDANCE_FOLDER + name + '.xlsx')) found.add(name);
+      }));
+      existingCycles = found;
+      availableMonths = names.filter(function (name, i) { return i === 0 || found.has(name); });
     }
 
-    async function generatePDF() {
-      document.getElementById('pdfModal').style.display='none';
-      const root = document.createElement('div'); root.className='pdf-root';
-      root.innerHTML = `<div class="modal-header">Geekay Human Resources Pvt. Ltd. <br><span style="font-size:14px;color:#718096">Attendance Report - ${currentData.currentMonth}</span></div>`;
-      const att = document.getElementById('printArea').cloneNode(true);
-      att.querySelector('#actionButtons').remove(); att.querySelector('#monthTabsContainer').remove();
-      root.appendChild(att);
-      document.body.appendChild(root);
+    async function getCycleData(cycleStr) {
+      if (monthCache.has(cycleStr)) return monthCache.get(cycleStr);
+      const cycle = cycleInfo(cycleStr);
+      let rows = [];
+      let hasFile = false;
+      if (existingCycles.has(cycleStr)) {
+        const response = await fetch(ATTENDANCE_FOLDER + cycleStr + '.xlsx?v=' + Date.now(), { cache: 'no-store' });
+        if (!response.ok) throw new Error('MONTH_NOT_FOUND');
+        const buffer = await response.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
+        if (!workbook.SheetNames.length) throw new Error('MONTH_EMPTY');
+        rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
+        hasFile = true;
+      }
+      const cols = buildCycleColumns(rows, cycle);
+      const data = { rows: rows, hasFile: hasFile, dateKey: cols.dateKey, updated: cols.updated, mismatch: cols.mismatch, failed: false };
+      monthCache.set(cycleStr, data);
+      return data;
+    }
+
+    // ============================================================
+    // Language Settings
+    // ============================================================
+    function applyStaticTranslations() {
+      document.documentElement.lang = currentLang;
+      document.querySelectorAll('[data-i18n]').forEach(function (el) {
+        el.innerHTML = t(el.getAttribute('data-i18n'));
+      });
+      document.querySelectorAll('[data-i18n-title]').forEach(function (el) {
+        const txt = t(el.getAttribute('data-i18n-title'));
+        el.setAttribute('title', txt);
+        el.setAttribute('aria-label', txt);
+      });
+      document.querySelectorAll('.lang-btn').forEach(function (btn) {
+        const active = btn.getAttribute('data-lang') === currentLang;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+
+      setDate();
+
+      const toggleBtn = document.getElementById('toggleAccBtn');
+      if (toggleBtn) toggleBtn.textContent = accountVisible ? t('hideAcc') : t('showAcc');
+
+      if (currentData) {
+        renderMonthTabs();
+        renderDashboard();
+      }
+    }
+
+    function setLanguage(lang) {
+      if (!I18N[lang]) lang = 'en';
+      currentLang = lang;
+      try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch (e) { }
+      applyStaticTranslations();
+    }
+
+    function loadSavedLanguage() {
+      let saved = 'en';
+      try { saved = localStorage.getItem(LANG_STORAGE_KEY) || 'en'; } catch (e) { }
+      currentLang = I18N[saved] ? saved : 'en';
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const lang = btn.getAttribute('data-lang');
+        if (lang !== currentLang) setLanguage(lang);
+      });
+    });
+
+    function setDate() {
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      let text;
       try {
-        await html2pdf().set({ margin:0.3, filename: `Attendance_${loggedInId}.pdf`, image: {type:'jpeg', quality:1}, html2canvas: {scale:2}, jsPDF: {unit:'in', format:'a4', orientation:'portrait'} }).from(root).save();
-      } catch(e) {}
-      root.remove();
+        text = new Date().toLocaleDateString(t('locale'), options);
+      } catch (e) {
+        text = new Date().toLocaleDateString('en-US', options);
+      }
+      document.getElementById('currentDate').textContent = text;
     }
 
-    initDashboard();
+    // ============================================================
+    // Pop-ups
+    // ============================================================
+    function openStaffModal() { document.getElementById('staffModal').style.display = 'flex'; }
+    function closeStaffModal() { document.getElementById('staffModal').style.display = 'none'; }
+    function overlayClick(e) { if (e.target.id === 'staffModal') closeStaffModal(); }
+    function openPdfChoice() { document.getElementById('pdfModal').style.display = 'flex'; }
+    function closePdfChoice() { document.getElementById('pdfModal').style.display = 'none'; }
+    function pdfOverlayClick(e) { if (e.target.id === 'pdfModal') closePdfChoice(); }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') { closeStaffModal(); closePdfChoice(); }
+    });
+
+    function toggleAccount() {
+      accountVisible = !accountVisible;
+      document.getElementById('modalAccNo').textContent = accountVisible ? currentAccountFull : currentAccountMasked;
+      document.getElementById('toggleAccBtn').textContent = accountVisible ? t('hideAcc') : t('showAcc');
+    }
+
+    const COPY_ICON =
+      '<svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
+      '<svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+    function getCopyText(btn) {
+      const src = btn.getAttribute('data-copy');
+      if (src === 'account') return currentAccountFull;
+      const el = document.getElementById(src);
+      const txt = el ? el.textContent.trim() : '';
+      return txt === '---' ? '' : txt;
+    }
+
+    function updateCopyButtons() {
+      document.querySelectorAll('.copy-btn').forEach(function (btn) {
+        btn.style.display = getCopyText(btn) ? 'inline-flex' : 'none';
+      });
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      return ok;
+    }
+
+    async function copyText(text) {
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch (e) { }
+      return fallbackCopy(text);
+    }
+
+    document.querySelectorAll('.copy-btn').forEach(function (btn) {
+      btn.innerHTML = COPY_ICON;
+      btn.addEventListener('click', async function () {
+        const text = getCopyText(btn);
+        if (!text) return;
+        const ok = await copyText(text);
+        if (!ok) return;
+        btn.classList.add('copied');
+        btn.setAttribute('title', t('copied'));
+        btn.setAttribute('aria-label', t('copied'));
+        setTimeout(function () {
+          btn.classList.remove('copied');
+          btn.setAttribute('title', t('copy'));
+          btn.setAttribute('aria-label', t('copy'));
+        }, 1500);
+      });
+    });
+
+    function showLoadingOverlay() {
+      document.getElementById('loadingWelcome').classList.remove('in');
+      document.getElementById('loadingName').textContent = '';
+      document.getElementById('loadingOverlay').classList.add('show');
+    }
+    function showLoadingName(name) {
+      document.getElementById('loadingName').textContent = name;
+      document.getElementById('loadingWelcome').classList.add('in');
+    }
+    function hideLoadingOverlay() {
+      document.getElementById('loadingOverlay').classList.remove('show');
+    }
+
+
+    // ============================================================
+    // Cycle tabs
+    // ============================================================
+    function renderMonthTabs() {
+      const container = document.getElementById('monthTabsContainer');
+      container.textContent = '';
+      if (!currentData || availableMonths.length <= 1) {
+        container.style.display = 'none';
+        return;
+      }
+      container.style.display = 'flex';
+
+      availableMonths.forEach(function (m) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'month-tab' + (currentData.currentMonth === m ? ' active' : '');
+        btn.id = 'tab-' + m;
+        btn.textContent = cycleLabel(m, false);
+        btn.addEventListener('click', function () { loadSpecificMonth(m); });
+        container.appendChild(btn);
+      });
+    }
+
+    async function loadSpecificMonth(monthStr) {
+      const owner = currentData;
+      if (!owner || owner.currentMonth === monthStr) return;
+
+      document.querySelectorAll('.month-tab').forEach(function (b) { b.classList.remove('active'); });
+      const tab = document.getElementById('tab-' + monthStr);
+      if (tab) tab.classList.add('active');
+
+      const grid = document.getElementById('calendarGrid');
+      grid.textContent = '';
+      const loadingNote = document.createElement('p');
+      loadingNote.className = 'empty-note';
+      loadingNote.textContent = t('checking');
+      grid.appendChild(loadingNote);
+
+      try {
+        const cd = await getCycleData(monthStr);
+        if (currentData !== owner) return;   
+        const found = findRecord(cd.rows, owner.empId);
+        owner.currentMonth = monthStr;
+        owner.cycleData = cd;
+        owner.attRow = found.record;
+        owner.attKeyMap = found.keyMap;
+        renderDashboard();
+      } catch (e) {
+        if (currentData !== owner) return;
+        grid.textContent = '';
+        const err = document.createElement('p');
+        err.className = 'empty-note';
+        err.textContent = t('msgLoadMonth');
+        grid.appendChild(err);
+        renderMonthTabs();   
+      }
+    }
+
+    // ============================================================
+    // Dashboard Rendering
+    // ============================================================
+    function pick(group) {
+      const d = currentData;
+      if (!d) return '';
+      let v = '';
+      if (d.masterRow) v = getField(d.masterRow, d.masterKeyMap, COLS[group]);
+      if (v === '' && d.attRow) v = getField(d.attRow, d.attKeyMap, COLS[group]);
+      return formatValue(v);
+    }
+    
+    function pickRaw(group) {
+      const d = currentData;
+      if (!d) return '';
+      let v = '';
+      if (d.masterRow) v = getField(d.masterRow, d.masterKeyMap, COLS[group]);
+      if (v === '' && d.attRow) v = getField(d.attRow, d.attKeyMap, COLS[group]);
+      return v;
+    }
+
+    function showDashboard() {
+      document.getElementById('dashboardSection').style.display = 'block';
+      document.getElementById('mainNavbar').style.display = 'block';
+      window.scrollTo(0, 0);
+      renderMonthTabs();
+      renderDashboard();
+      startSessionTimer();
+    }
+
+    function renderDashboard() {
+      const d = currentData;
+      if (!d) return;
+
+      const empName = pick('name') || 'Employee';
+      const doj     = pick('doj');
+      const lwd     = pick('lwd');
+      const dob     = pick('dob');
+      const blood   = pick('blood');
+      const esi     = pick('esi');
+      const uan     = pick('uan');
+      const pf      = pick('pf');
+      const mobile  = pick('mobile');
+      const email   = pick('email');
+      const bank    = pick('bank');
+      const account = pick('account');
+      const ifsc    = pick('ifsc');
+      const statusRaw = pick('status');
+
+      document.getElementById('displayName').textContent = empName;
+      document.getElementById('displayId').textContent = d.empId;
+      document.getElementById('displayDoj').textContent = doj || '-';
+      document.getElementById('displayLwd').textContent = lwd || '-';
+
+      setText('modalName', empName);
+      setText('modalId', d.empId);
+      setText('modalDoj', doj);
+      setText('modalLwd', lwd);
+      setText('modalDob', dob);
+      setText('modalBlood', blood);
+      setText('modalUan', uan);
+      setText('modalPf', pf);
+      setText('modalEsi', esi);
+      setText('modalMobile', mobile);
+      setText('modalEmail', email);
+      setText('modalBankName', bank);
+      setText('modalIfsc', ifsc);
+
+      // Status
+      let statusKey = null;
+      let statusShown = statusRaw;
+      if (lwd && lwd !== '-') {
+        statusKey = 'resigned';
+      } else {
+        const su = statusRaw.toUpperCase();
+        if (statusRaw === '' || ['ACTIVE', 'WORKING', 'CONTINUING'].includes(su)) {
+          statusKey = 'active';
+        } else if (['INACTIVE', 'IN-ACTIVE', 'IN ACTIVE'].includes(su)) {
+          statusKey = 'inactive';
+        }
+      }
+      if (statusKey) statusShown = t(statusKey);
+
+      const badgeClass = 'status-badge ' + (statusKey === 'active' ? 'status-active' : 'status-inactive');
+      const badge = document.getElementById('modalStatus');
+      badge.textContent = statusShown;
+      badge.className = badgeClass;
+      const aboutBadge = document.getElementById('displayStatus');
+      aboutBadge.textContent = statusShown;
+      aboutBadge.className = badgeClass;
+
+      currentAccountFull = account;
+      currentAccountMasked = account.length > 4 ? '*'.repeat(account.length - 4) + account.slice(-4) : account;
+      const toggleBtn = document.getElementById('toggleAccBtn');
+      if (account) {
+        document.getElementById('modalAccNo').textContent = accountVisible ? currentAccountFull : currentAccountMasked;
+        toggleBtn.style.display = 'inline-block';
+        toggleBtn.textContent = accountVisible ? t('hideAcc') : t('showAcc');
+      } else {
+        document.getElementById('modalAccNo').textContent = '---';
+        toggleBtn.style.display = 'none';
+      }
+
+      updateCopyButtons();
+
+      // ---------- Attendance Grid ----------
+      const cycle = cycleInfo(d.currentMonth);
+      const cd = d.cycleData || emptyCycleData(false);
+      const todayYmd = getTodayYmd();
+      const dojYmd = rawToYmd(pickRaw('doj'));
+      const lwdYmd = rawToYmd(pickRaw('lwd'));
+      const oldCycle = daysBetween(cycle.endYmd, todayYmd) > OLD_CYCLE_DAYS;
+      const months = t('months');
+
+      const grid = document.getElementById('calendarGrid');
+      grid.textContent = '';
+
+      let cntPresent = 0, cntAbsent = 0, cntHalf = 0;
+      let hasPending = false, hasNoRecord = false;
+
+      cycle.days.forEach(function (day) {
+        const key = cd.dateKey.get(day.ymd);
+        const raw = (d.attRow && key !== undefined) ? d.attRow[key] : '';
+        const val = formatValue(raw).toUpperCase();
+        const hasValue = val !== '' && val !== '-';
+        const isToday = day.ymd === todayYmd;
+
+        let cardClass = '';
+        let labelKey = '';
+        let statusText = val;
+        let showClock = false;
+
+        if (hasValue) {
+          if (CODE_PRESENT.includes(val))         { cardClass = 'present'; labelKey = 'lblPresent';   cntPresent++; }
+          else if (CODE_ABSENT.includes(val))     { cardClass = 'absent';  labelKey = 'lblAbsent';    cntAbsent++; }
+          else if (CODE_HALF.includes(val))       { cardClass = 'half';    labelKey = 'lblHalf';      cntHalf++; }
+          else if (CODE_LEAVE.includes(val))      { cardClass = 'leave';   labelKey = 'lblLeave'; }
+          else if (CODE_WEEKLY_OFF.includes(val)) { cardClass = 'off';     labelKey = 'lblWeeklyOff'; }
+          else if (CODE_HOLIDAY.includes(val))    { cardClass = 'off';     labelKey = 'lblHoliday'; }
+          else if (CODE_OFF.includes(val))        { cardClass = 'off';     labelKey = 'lblOff'; }
+        } else if ((dojYmd && day.ymd < dojYmd) || (lwdYmd && day.ymd > lwdYmd)) {
+          cardClass = 'na';                      
+          statusText = '\u2014';
+        } else if (day.ymd > todayYmd) {
+          cardClass = 'future';                  
+          statusText = '\u00A0';
+        } else if (isToday) {
+          cardClass = 'pending';                 
+          labelKey = 'lblToday';
+          showClock = true;
+          hasPending = true;
+        } else if (cd.updated.has(day.ymd) || oldCycle) {
+          cardClass = 'norecord';                
+          labelKey = 'lblNoRecord';
+          statusText = '\u2014';
+          hasNoRecord = true;
+        } else {
+          cardClass = 'pending';                 
+          labelKey = 'lblSoon';
+          showClock = true;
+          hasPending = true;
+        }
+        if (isToday) cardClass += ' today';
+
+        const card = document.createElement('div');
+        card.className = 'day-card' + (cardClass ? ' ' + cardClass : '');
+
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'date-text';
+        dateDiv.textContent = day.d + ' ' + months[day.m];
+        const wd = document.createElement('span');
+        wd.className = 'wd';
+        try {
+          wd.textContent = new Date(day.y, day.m, day.d).toLocaleDateString(t('locale'), { weekday: 'short' });
+        } catch (e) { wd.textContent = ''; }
+        dateDiv.appendChild(wd);
+
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'status-text';
+        if (showClock) statusDiv.innerHTML = CLOCK_ICON;
+        else statusDiv.textContent = statusText;
+
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'status-label';
+        labelDiv.textContent = labelKey ? t(labelKey) : '';
+
+        card.appendChild(dateDiv);
+        card.appendChild(statusDiv);
+        card.appendChild(labelDiv);
+        grid.appendChild(card);
+      });
+
+      document.getElementById('cycleRange').textContent = cycleLabel(d.currentMonth, true);
+      let lastUpdated = '';
+      cycle.days.forEach(function (day) { if (cd.updated.has(day.ymd)) lastUpdated = day.ymd; });
+      let upToText = t('notUpdatedYet');
+      if (lastUpdated) {
+        const lp = ymdParts(lastUpdated);
+        upToText = pad2(lp.d) + '-' + months[lp.m] + '-' + lp.y;
+      }
+      document.getElementById('updatedUpTo').textContent = t('updatedUpTo') + ': ' + upToText;
+
+      const notes = document.getElementById('attendanceNotes');
+      notes.textContent = '';
+      function addNote(key) {
+        const p = document.createElement('p');
+        p.className = 'attendance-note';
+        p.textContent = t(key);
+        notes.appendChild(p);
+      }
+      if (cd.failed) addNote('msgLoadMonth');
+      if (cd.mismatch) addNote('msgCycleMismatch');
+      if (hasPending) addNote('pendingNote');
+      if (hasNoRecord) addNote('noRecordNote');
+
+      const totalCount = cntPresent + cntAbsent + cntHalf;
+      const presentCount = cntPresent + cntHalf * 0.5;
+      const absentCount = cntAbsent + cntHalf * 0.5;
+      const percent = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
+
+      document.getElementById('statTotal').textContent = fmtNum(totalCount);
+      document.getElementById('statPresent').textContent = fmtNum(presentCount);
+      document.getElementById('statAbsent').textContent = fmtNum(absentCount);
+      document.getElementById('statPercent').textContent = percent + '%';
+      document.getElementById('progressFill').style.width = percent + '%';
+    }
+
+    // ============================================================
+    // PDF
+    // ============================================================
+    function currentMonthLabel() {
+      if (!currentData || !currentData.currentMonth) return '';
+      return cycleLabel(currentData.currentMonth, true);
+    }
+
+    function buildPdfRoot(mode) {
+      const root = document.createElement('div');
+      root.className = 'pdf-root';
+
+      const head = document.createElement('div');
+      head.className = 'pdf-head';
+      const company = document.createElement('div');
+      company.className = 'pdf-company';
+      company.textContent = 'Geekay Human Resources Pvt. Ltd.';
+      const generated = document.createElement('div');
+      generated.className = 'pdf-generated';
+      let line = t('generatedOn') + ': ' + document.getElementById('currentDate').textContent;
+      if (mode !== 'staff' && currentMonthLabel()) {
+        line += '   |   ' + t('monthLabel') + ': ' + currentMonthLabel();
+        const upTo = document.getElementById('updatedUpTo');
+        if (upTo && upTo.textContent) line += '   |   ' + upTo.textContent;
+      }
+      generated.textContent = line;
+      head.appendChild(company);
+      head.appendChild(generated);
+      root.appendChild(head);
+
+      if (mode === 'attendance' || mode === 'all') {
+        const att = document.getElementById('printArea').cloneNode(true);
+        const btns = att.querySelector('#actionButtons');
+        if (btns) btns.remove();
+        const tabs = att.querySelector('#monthTabsContainer');
+        if (tabs) tabs.remove();
+        root.appendChild(att);
+      }
+
+      if (mode === 'all') {
+        const br = document.createElement('div');
+        br.className = 'html2pdf__page-break';
+        root.appendChild(br);
+      }
+
+      if (mode === 'staff' || mode === 'all') {
+        const staff = document.createElement('div');
+        const source = document.querySelector('#staffModal .modal-content');
+        Array.prototype.forEach.call(source.children, function (child) {
+          staff.appendChild(child.cloneNode(true));
+        });
+        staff.querySelectorAll('.close-modal, .copy-btn, .link-btn').forEach(function (el) { el.remove(); });
+        root.appendChild(staff);
+      }
+
+      root.querySelectorAll('[id]').forEach(function (el) { el.removeAttribute('id'); });
+      return root;
+    }
+
+    async function generatePDF(mode) {
+      closePdfChoice();
+      if (!currentData) return;
+
+      const pdfBtn = document.getElementById('pdfBtn');
+      const empId = currentData.empId;
+      const monthPart = currentData.currentMonth ? '_' + currentData.currentMonth : '';
+      const names = {
+        attendance: 'Attendance_Report' + monthPart + '_',
+        staff: 'Staff_Details_',
+        all: 'Full_Report' + monthPart + '_'
+      };
+
+      pdfBtn.disabled = true;
+
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'position:fixed;top:0;left:-10000px;width:900px;overflow:hidden;';
+      const root = buildPdfRoot(mode);
+      wrapper.appendChild(root);
+      document.body.appendChild(wrapper);
+
+      try {
+        if (document.fonts && document.fonts.ready) await document.fonts.ready;
+
+        const opt = {
+          margin: [0.3, 0.25, 0.3, 0.25],
+          filename: (names[mode] || 'Report_') + empId + '.pdf',
+          image: { type: 'jpeg', quality: 1 },
+          html2canvas: { scale: 3, scrollX: 0, scrollY: 0, windowWidth: 900, useCORS: true, backgroundColor: '#ffffff' },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait', compress: true },
+          pagebreak: {
+            mode: ['css', 'legacy'],
+            avoid: ['.pdf-head', '.about-card', '.stat-card', '.day-card', '.hr-footer', '.modal-section']
+          }
+        };
+        await html2pdf().set(opt).from(root).save();
+      } catch (err) {
+        console.error(err);
+        alert(t('msgPdf'));
+      } finally {
+        wrapper.remove();
+        pdfBtn.disabled = false;
+      }
+    }
+
+    // ============================================================
+    // Session timer and logout
+    // ============================================================
+    let sessionTimerId = null;
+    let sessionEndTime = 0;
+
+    function formatTimer(totalSeconds) {
+      const m = Math.floor(totalSeconds / 60);
+      const sec = totalSeconds % 60;
+      return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+    }
+
+    function tickSessionTimer() {
+      const remaining = Math.max(0, Math.ceil((sessionEndTime - Date.now()) / 1000));
+      const el = document.getElementById('sessionTimer');
+      el.textContent = formatTimer(remaining);
+      el.classList.toggle('low', remaining <= 30);
+      if (remaining <= 0) expireSession();
+    }
+
+    function startSessionTimer() {
+      stopSessionTimer();
+      sessionEndTime = Date.now() + SESSION_SECONDS * 1000;
+      document.getElementById('sessionTimer').style.display = 'inline-block';
+      tickSessionTimer();
+      sessionTimerId = setInterval(tickSessionTimer, 250);
+    }
+
+    function stopSessionTimer() {
+      if (sessionTimerId !== null) {
+        clearInterval(sessionTimerId);
+        sessionTimerId = null;
+      }
+      const el = document.getElementById('sessionTimer');
+      el.style.display = 'none';
+      el.classList.remove('low');
+    }
+
+    function expireSession() {
+      logout();
+    }
+
+    function logout() {
+      stopSessionTimer();
+      closeStaffModal();
+      closePdfChoice();
+      sessionStorage.removeItem('geekay_emp_id');
+      window.location.href = 'index.html';
+    }
+
+    // ============================================================
+    // Startup Process for Dashboard
+    // ============================================================
+    async function startDashboard() {
+        const storedId = sessionStorage.getItem('geekay_emp_id');
+        if (!storedId) {
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        loadSavedLanguage();
+        applyStaticTranslations();
+        
+        // Show initial loading screen
+        document.getElementById('loadingWelcome').classList.add('in');
+        document.getElementById('loadingOverlay').classList.add('show');
+        
+        try {
+            await loadMasterData();
+            await probeAttendanceMonths();
+            
+            // Re-find the record from loaded data
+            const found = findRecord(cachedMasterData, storedId);
+            
+            if (!found.record) {
+                throw new Error("Invalid Session ID");
+            }
+            
+            currentData = {
+                masterRow: found.record,
+                masterKeyMap: found.keyMap,
+                empId: storedId,
+                attRow: null,
+                attKeyMap: null,
+                cycleData: null,
+                currentMonth: availableMonths.length > 0 ? availableMonths[0] : null
+            };
+            
+            showLoadingName(pick('name') || 'Employee');
+            
+            if (currentData.currentMonth) {
+                currentData.cycleData = await getCycleData(currentData.currentMonth);
+                const attFound = findRecord(currentData.cycleData.rows, storedId);
+                currentData.attRow = attFound.record;
+                currentData.attKeyMap = attFound.keyMap;
+            }
+            
+            // Brief wait for UX
+            await sleep(500); 
+            
+            showDashboard();
+            hideLoadingOverlay();
+            
+        } catch(e) {
+            console.error("Dashboard init error:", e);
+            logout(); // Kick out if data tampering or missing files
+        }
+    }
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', startDashboard);
+
   </script>
 </body>
 </html>
