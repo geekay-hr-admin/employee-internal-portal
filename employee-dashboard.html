@@ -275,7 +275,6 @@
     // Security Check: Redirect to login if opened directly without session
     const loggedInId = sessionStorage.getItem('geekay_emp_id');
     if(!loggedInId) { 
-        alert("Security Alert: Direct access blocked or Session Expired. Going back to Login.");
         window.location.href = './index.html'; 
     }
 
@@ -873,17 +872,24 @@
       const cycle = cycleInfo(cycleStr);
       let rows = [];
       let hasFile = false;
+      let failed = false;
+      
       if (existingCycles.has(cycleStr)) {
-        const response = await fetch(ATTENDANCE_FOLDER + cycleStr + '.xlsx?v=' + Date.now(), { cache: 'no-store' });
-        if (!response.ok) throw new Error('MONTH_NOT_FOUND');
-        const buffer = await response.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
-        if (!workbook.SheetNames.length) throw new Error('MONTH_EMPTY');
-        rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
-        hasFile = true;
+        try {
+            const response = await fetch(ATTENDANCE_FOLDER + cycleStr + '.xlsx?v=' + Date.now(), { cache: 'no-store' });
+            if (!response.ok) throw new Error('MONTH_NOT_FOUND');
+            const buffer = await response.arrayBuffer();
+            const workbook = XLSX.read(buffer, { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
+            if (!workbook.SheetNames.length) throw new Error('MONTH_EMPTY');
+            rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
+            hasFile = true;
+        } catch (e) {
+            console.error("Attendance file missing or could not be parsed for:", cycleStr);
+            failed = true;
+        }
       }
       const cols = buildCycleColumns(rows, cycle);
-      const data = { rows: rows, hasFile: hasFile, dateKey: cols.dateKey, updated: cols.updated, mismatch: cols.mismatch, failed: false };
+      const data = { rows: rows, hasFile: hasFile, dateKey: cols.dateKey, updated: cols.updated, mismatch: cols.mismatch, failed: failed };
       monthCache.set(cycleStr, data);
       return data;
     }
@@ -1471,7 +1477,6 @@
     }
 
     function expireSession() {
-      alert("Session Expired. Going back to Login.");
       logout();
     }
 
@@ -1489,7 +1494,6 @@
     async function startDashboard() {
         const storedId = sessionStorage.getItem('geekay_emp_id');
         if (!storedId) {
-            alert("Security Alert: Direct access blocked or Session Expired. Please login first.");
             window.location.href = './index.html';
             return;
         }
@@ -1509,8 +1513,8 @@
             const found = findRecord(cachedMasterData, storedId);
             
             if (!found.record) {
-                document.getElementById('loadingName').innerHTML = `<span style="color:#e53e3e; font-size:16px;">Error: Employee ID not found in Master Data.</span>`;
-                setTimeout(() => { logout(); }, 3500);
+                // If ID somehow got deleted from master data during session
+                logout();
                 return;
             }
             
@@ -1526,11 +1530,17 @@
             
             showLoadingName(pick('name') || 'Employee');
             
+            // Try fetching attendance securely without crashing the dashboard
             if (currentData.currentMonth) {
-                currentData.cycleData = await getCycleData(currentData.currentMonth);
-                const attFound = findRecord(currentData.cycleData.rows, storedId);
-                currentData.attRow = attFound.record;
-                currentData.attKeyMap = attFound.keyMap;
+                try {
+                    currentData.cycleData = await getCycleData(currentData.currentMonth);
+                    const attFound = findRecord(currentData.cycleData.rows, storedId);
+                    currentData.attRow = attFound.record;
+                    currentData.attKeyMap = attFound.keyMap;
+                } catch (attError) {
+                    console.error("Attendance data for the current month is not ready:", attError);
+                    currentData.cycleData = emptyCycleData(true);
+                }
             }
             
             // Brief wait for UX
@@ -1542,7 +1552,7 @@
         } catch(e) {
             console.error("Dashboard init error:", e);
             document.getElementById('loadingName').innerHTML = `<span style="color:#e53e3e; font-size:16px;">System Error: Check Master Data file.</span>`;
-            setTimeout(() => { logout(); }, 3500);
+            setTimeout(() => { logout(); }, 4000);
         }
     }
 
