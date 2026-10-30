@@ -159,7 +159,7 @@
     <div class="rainbow-ring"></div>
     <div class="loading-welcome" id="loadingWelcome">
       <div class="lw-small" data-i18n="welcomeLoading">Welcome</div>
-      <div class="lw-name" id="loadingName">Authenticating...</div>
+      <div class="lw-name" id="loadingName"></div>
     </div>
   </div>
 
@@ -272,6 +272,13 @@
   </div>
 
   <script>
+    // Security Check: Redirect to login if opened directly without session
+    const loggedInId = sessionStorage.getItem('geekay_emp_id');
+    if(!loggedInId) { 
+        alert("Security Alert: Direct access blocked or Session Expired. Going back to Login.");
+        window.location.href = './index.html'; 
+    }
+
     // ============================================================
     // Settings & Globals
     // ============================================================
@@ -1464,6 +1471,7 @@
     }
 
     function expireSession() {
+      alert("Session Expired. Going back to Login.");
       logout();
     }
 
@@ -1472,7 +1480,7 @@
       closeStaffModal();
       closePdfChoice();
       sessionStorage.removeItem('geekay_emp_id');
-      window.location.href = 'index.html';
+      window.location.href = './index.html';
     }
 
     // ============================================================
@@ -1481,7 +1489,8 @@
     async function startDashboard() {
         const storedId = sessionStorage.getItem('geekay_emp_id');
         if (!storedId) {
-            window.location.href = 'index.html';
+            alert("Security Alert: Direct access blocked or Session Expired. Please login first.");
+            window.location.href = './index.html';
             return;
         }
         
