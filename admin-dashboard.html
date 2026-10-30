@@ -10,50 +10,33 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
-    /* Premium CSS System */
     * { box-sizing: border-box; }
     body { font-family: 'Poppins', 'Noto Sans Tamil', 'Noto Sans Devanagari', Arial, sans-serif; background: #f4f7f9; color: #2d3748; margin: 0; padding: 0; line-height: 1.5; overflow-x: hidden;}
     button { font-family: inherit; }
     
-    /* Navbar: Left Admin Badge, Right Workforce & Logout */
+    /* Navbar */
     .navbar { 
-      position: sticky; 
-      top: 0; 
-      z-index: 500; 
-      background: #ffffff; 
-      padding: 12px 24px; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
+      position: sticky; top: 0; z-index: 500; background: #ffffff; padding: 12px 24px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; 
       transition: filter 0.3s ease;
     }
     
-    /* Left Side: Admin Badge, Welcome & Date */
     .nav-left-container { display: flex; flex-direction: column; gap: 4px; }
     .nav-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     
     .admin-badge { 
-      background: #e53e3e; 
-      color: white; 
-      padding: 3px 10px; 
-      border-radius: 6px; 
-      font-size: 11.5px; 
-      font-weight: 700; 
-      letter-spacing: 0.5px; 
-      text-transform: uppercase; 
+      background: #e53e3e; color: white; padding: 3px 10px; border-radius: 6px; 
+      font-size: 11.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; 
     }
     
     .nav-welcome-text { display: flex; align-items: baseline; gap: 5px; }
     .welcome-tiny { font-size: 12px; color: #718096; font-weight: 500; }
     .welcome-admin-name { font-size: 16px; font-weight: 700; color: #1a202c; }
-    
     .nav-date-text { font-size: 12.5px; color: #4a5568; font-weight: 500; margin-left: 2px; }
 
-    /* Right Side: Workforce Menu & Logout */
     .nav-right-container { display: flex; align-items: center; gap: 20px; }
 
-    /* Workforce Dropdown Menu */
+    /* Workforce Dropdown */
     .workforce-dropdown { position: relative; display: inline-block; }
     .workforce-btn {
       background: #edf2f7; border: none; color: #2d3748; padding: 6px 14px;
@@ -63,32 +46,26 @@
     .workforce-btn:hover { background: #e2e8f0; }
     .workforce-content {
       display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff;
-      min-width: 170px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px;
+      min-width: 190px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px;
       z-index: 1000; overflow: hidden; border: 1px solid #e2e8f0; margin-top: 5px;
     }
-    .workforce-content button {
+    .workforce-content button, .workforce-content .wf-header {
       color: #2d3748; padding: 10px 16px; text-decoration: none; display: block;
       width: 100%; text-align: left; background: none; border: none; font-size: 13px; font-weight: 500; cursor: pointer;
     }
+    .workforce-content .wf-header { font-weight: 700; color: #718096; background: #f7fafc; font-size: 11px; text-transform: uppercase; padding: 6px 16px; cursor: default;}
     .workforce-content button:hover { background-color: #f7fafc; color: #3182ce; }
     .workforce-dropdown.show .workforce-content { display: block; }
 
-    /* Logout Button */
     .nav-logout-btn { 
-      background: transparent; 
-      border: none; 
-      color: #e53e3e; 
-      font-weight: 700; 
-      font-size: 15px; 
-      cursor: pointer; 
-      padding: 5px 10px; 
-      transition: color 0.2s, transform 0.2s; 
+      background: transparent; border: none; color: #e53e3e; font-weight: 700; font-size: 15px; 
+      cursor: pointer; padding: 5px 10px; transition: color 0.2s, transform 0.2s; 
     }
     .nav-logout-btn:hover { color: #c53030; text-decoration: underline; transform: scale(1.02); }
 
     .dashboard-section { padding: 30px 20px; max-width: 1100px; margin: 0 auto; display: none; transition: filter 0.3s ease; }
     
-    /* Global Search Box (Underline Style) */
+    /* Global Search Box */
     .global-search-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 30px; position: relative; }
     .search-bar-row { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; }
     .search-input-wrap { flex: 1; min-width: 250px; position: relative; }
@@ -99,13 +76,12 @@
     
     .search-select { padding: 10px 12px; font-size: 14px; font-weight: 600; color: #2d3748; background: #edf2f7; border: none; border-radius: 6px; cursor: pointer; outline: none; }
     
-    /* Live Search Dropdown Results */
     .search-results-dropdown { display: none; position: absolute; top: 100%; left: 25px; right: 25px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 8px; z-index: 100; max-height: 250px; overflow-y: auto; border: 1px solid #e2e8f0; margin-top: 5px; }
     .search-result-item { padding: 12px 15px; border-bottom: 1px solid #edf2f7; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
     .search-result-item:hover { background: #f7fafc; color: #3182ce; }
     .search-result-item:last-child { border-bottom: none; }
 
-    /* 4 Grid Stats */
+    /* Analytics Stats */
     .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 35px; }
     .stat-card { background: white; padding: 25px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border-left: 5px solid #cbd5e1; }
     .stat-card.total-stat { border-left-color: #3182ce; } 
@@ -115,11 +91,10 @@
     .stat-title { font-size: 13.5px; color: #718096; font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;} 
     .stat-number { font-size: 32px; font-weight: 700; color: #1a202c; line-height: 1;}
     
-    .section-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #2d3748; display: flex; align-items: center; justify-content: space-between;}
+    .section-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #2d3748; }
     
-    /* Control Cards */
     .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-    .control-card { background: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); text-align: center; border: 1px solid #e2e8f0; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; overflow: hidden;}
+    .control-card { background: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); text-align: center; border: 1px solid #e2e8f0; position: relative; overflow: hidden;}
     .control-card.disabled { opacity: 0.7; cursor: not-allowed; }
     .control-card.disabled::after { content: 'Coming Soon'; position: absolute; top: 15px; right: -30px; background: #e2e8f0; color: #4a5568; font-size: 11px; font-weight: 700; padding: 4px 30px; transform: rotate(45deg); letter-spacing: 1px;}
     .control-icon { font-size: 36px; margin-bottom: 15px; color: #a0aec0; }
@@ -147,7 +122,43 @@
     .btn-primary:hover { background: #2b6cb0; }
     .btn-primary:disabled { background: #a0aec0; cursor: not-allowed; opacity: 0.6; }
 
-    /* Wide Rectangle Modal for Security Lock & Live Table View */
+    /* Full Screen Live View Modal */
+    .fullscreen-modal { 
+      display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+      background: #ffffff; z-index: 2500; flex-direction: column; animation: fadeIn 0.2s ease; 
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    .fs-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .fs-title { font-size: 20px; font-weight: 700; color: #1a202c; display: flex; align-items: center; gap: 15px; }
+    .fs-close-btn { background: #e53e3e; color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+    .fs-close-btn:hover { background: #c53030; }
+    
+    .fs-toolbar { padding: 15px 30px; background: #ffffff; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; }
+    .fs-search-box { padding: 8px 15px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 6px; width: 300px; outline: none; }
+    .fs-search-box:focus { border-color: #3182ce; }
+    
+    .fs-body { flex: 1; overflow: auto; padding: 20px 30px; background: #f4f7f9; }
+    
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-radius: 8px; overflow: hidden; }
+    .data-table th, .data-table td { padding: 12px 15px; border-bottom: 1px solid #edf2f7; text-align: left; }
+    .data-table th { background: #edf2f7; color: #2d3748; font-weight: 600; position: sticky; top: 0; z-index: 10; }
+    .data-table tr:hover { background: #f8fafc; }
+
+    /* Bio-Data / Form View Mode */
+    .biodata-container { background: white; max-width: 900px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    .biodata-section-title { font-size: 16px; font-weight: 700; color: #004080; border-bottom: 2px solid #edf2f7; padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .biodata-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px 30px; }
+    .biodata-item { display: flex; flex-direction: column; }
+    .biodata-label { font-size: 12px; color: #718096; font-weight: 600; text-transform: uppercase; }
+    .biodata-value { font-size: 15px; color: #1a202c; font-weight: 600; margin-top: 2px; }
+
+    /* Mode Switcher Tabs */
+    .mode-tabs { display: flex; background: #edf2f7; padding: 4px; border-radius: 8px; gap: 4px; }
+    .mode-tab-btn { background: transparent; border: none; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #4a5568; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+    .mode-tab-btn.active { background: white; color: #3182ce; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+    /* Wide Rectangle Modal for Security Lock */
     .lock-modal { max-width: 600px; padding: 35px 40px; text-align: left; }
     .lock-flex { display: flex; align-items: flex-start; gap: 25px; }
     .lock-icon-wrapper { flex-shrink: 0; width: 64px; height: 64px; background: #fff5f5; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; }
@@ -155,14 +166,6 @@
     .lock-text-content { flex: 1; }
     .lock-actions { display: flex; gap: 15px; justify-content: flex-end; margin-top: 25px; }
     .lock-actions .btn-modal { flex: none; padding: 10px 25px; }
-
-    /* Data Table Modal (For Live Web View) */
-    .table-modal { max-width: 900px; width: 95%; max-height: 85vh; display: flex; flex-direction: column; text-align: left; padding: 30px; }
-    .table-container { flex: 1; overflow-y: auto; margin-top: 15px; margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 8px; }
-    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .data-table th, .data-table td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; text-align: left; white-space: nowrap; }
-    .data-table th { background: #f7fafc; color: #4a5568; font-weight: 600; position: sticky; top: 0; z-index: 10; }
-    .data-table tr:hover { background: #f8fafc; }
 
     /* Custom Inputs inside Modal */
     .floating-input-group { position: relative; margin-bottom: 25px; text-align: left; }
@@ -192,18 +195,11 @@
       .lock-flex { flex-direction: column; align-items: center; text-align: center; gap: 15px; }
       .lock-actions { justify-content: center; }
     }
-    @media (max-width: 600px) { 
-      .navbar { padding: 12px 15px; }
-      .nav-title-row { align-items: flex-start; gap: 6px; flex-direction: column; }
-      .admin-badge { font-size: 10px; padding: 3px 8px; margin-bottom: 2px;}
-      .analytics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .controls-grid { grid-template-columns: 1fr; }
-    }
   </style>
 </head>
 <body>
   
-  <!-- Initial Loading Screen -->
+  <!-- Loading Screen -->
   <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
     <div class="rainbow-ring"></div>
     <div class="loading-welcome" id="loadingWelcome">
@@ -212,10 +208,8 @@
     </div>
   </div>
 
-  <!-- Minimal Navbar -->
+  <!-- Navbar -->
   <div class="navbar" id="mainNavbar">
-    
-    <!-- Left Side: Badge, Welcome & Date -->
     <div class="nav-left-container">
       <div class="nav-title-row">
         <span class="admin-badge">Admin Panel</span>
@@ -227,31 +221,33 @@
       <div class="nav-date-text" id="currentDate">...</div>
     </div>
 
-    <!-- Right Side: Workforce Menu & Logout -->
+    <!-- Right Side: Workforce & Logout -->
     <div class="nav-right-container">
       <div class="workforce-dropdown" id="workforceDropdown">
         <button type="button" class="workforce-btn" onclick="toggleWorkforceMenu(event)">
           Workforce ▾
         </button>
-        <div class="workforce-content">
+        <div class="workforce-content" id="workforceDropdownContent">
           <button type="button" onclick="openMasterDataPrompt()">Master Data</button>
-          <button type="button" onclick="openAttendancePrompt()">Attendance</button>
+          <div class="wf-header">Attendance Months</div>
+          <button type="button" onclick="openAttendanceFile('Oct-2026')">Oct-2026</button>
+          <button type="button" onclick="openAttendanceFile('Sep-2026')">Sep-2026</button>
+          <button type="button" onclick="openAttendanceFile('Aug-2026')">Aug-2026</button>
         </div>
       </div>
       <button type="button" class="nav-logout-btn" onclick="openLogoutModal()">Logout</button>
     </div>
-
   </div>
 
   <!-- Dashboard Content -->
   <div class="dashboard-section" id="dashboardSection">
     
-    <!-- Global Search Box (New Feature) -->
+    <!-- Global Search Box -->
     <div class="global-search-container">
       <div class="search-bar-row">
         <div class="search-input-wrap">
           <input type="text" id="globalSearchInput" placeholder=" " autocomplete="off" oninput="handleGlobalSearch(this.value)">
-          <label>Search Staff (ID, Name, ESI, UAN, Mobile)...</label>
+          <label>Search anything... (ID, Name, ESI, UAN... Type to find)</label>
           <div class="search-results-dropdown" id="searchResultsDropdown"></div>
         </div>
         <select class="search-select" id="searchModeSelect">
@@ -283,32 +279,27 @@
 
     <div class="section-title">Management Controls</div>
     
-    <!-- Admin Feature Placeholders -->
     <div class="controls-grid">
-      
       <div class="control-card disabled">
         <div class="control-icon">📅</div>
         <div class="control-title">Attendance Upload</div>
         <div class="control-desc">Upload monthly attendance Excel files securely to the server.</div>
       </div>
-
       <div class="control-card disabled">
         <div class="control-icon">👥</div>
         <div class="control-title">Master Data Settings</div>
         <div class="control-desc">Add new employees, edit details, or update resignations.</div>
       </div>
-
       <div class="control-card disabled">
         <div class="control-icon">📊</div>
         <div class="control-title">Generate Reports</div>
         <div class="control-desc">Download complete data and attendance PDFs for all staff.</div>
       </div>
-
     </div>
 
   </div>
 
-  <!-- Standard Logout Confirmation Modal -->
+  <!-- Logout Modal -->
   <div class="modal-overlay" id="logoutModal" onclick="if(event.target.id==='logoutModal') closeLogoutModal()">
     <div class="modal-content">
       <div class="modal-icon">⚠️</div>
@@ -321,37 +312,44 @@
     </div>
   </div>
 
-  <!-- Workforce Choice Modal (Live Web View vs Download) -->
+  <!-- Workforce Choice Modal (Live View vs Download) -->
   <div class="modal-overlay" id="workforceChoiceModal" onclick="if(event.target.id==='workforceChoiceModal') closeWorkforceChoiceModal()">
     <div class="modal-content">
       <div class="modal-icon" id="choiceModalIcon">📂</div>
       <div class="modal-title dark" id="choiceModalTitle">Open File</div>
       <div class="modal-desc" id="choiceModalDesc">How would you like to view this file?</div>
       <div class="modal-actions" style="flex-direction: column; gap: 10px;">
-        <button class="btn-modal btn-primary" onclick="executeWorkforceAction('live')">View Live Data (Web Table)</button>
+        <button class="btn-modal btn-primary" onclick="executeWorkforceAction('live')">View Live Data (Full Screen)</button>
         <button class="btn-modal btn-cancel" onclick="executeWorkforceAction('download')">Download Excel File</button>
       </div>
     </div>
   </div>
 
-  <!-- Live Data Table Modal -->
-  <div class="modal-overlay" id="liveTableModal" onclick="if(event.target.id==='liveTableModal') closeLiveTableModal()">
-    <div class="modal-content table-modal">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
-        <div class="modal-title dark" id="liveTableTitle" style="margin-bottom:0;">Live Data Viewer</div>
-        <button type="button" class="btn-modal btn-cancel" style="padding: 5px 12px; flex:none;" onclick="closeLiveTableModal()">Close</button>
+  <!-- Full Screen Live Data Viewer -->
+  <div class="fullscreen-modal" id="fullscreenViewer">
+    <div class="fs-header">
+      <div class="fs-title">
+        <span id="fsViewerTitle">Live Viewer</span>
       </div>
-      <div class="table-container" id="liveTableContainer">
-        <!-- Dynamic Table inserted here -->
+      <button class="fs-close-btn" onclick="closeFullscreenViewer()" title="Close">&times;</button>
+    </div>
+    
+    <div class="fs-toolbar">
+      <input type="text" class="fs-search-box" id="fsSearchInput" placeholder="Filter current data..." oninput="filterFullscreenTable(this.value)">
+      <div class="mode-tabs" id="fsModeTabs" style="display: none;">
+        <button class="mode-tab-btn active" onclick="switchViewMode('table')">Table Mode</button>
+        <button class="mode-tab-btn" onclick="switchViewMode('biodata')">Bio-Data / Form Mode</button>
       </div>
+    </div>
+
+    <div class="fs-body" id="fsBodyContainer">
+      <!-- Dynamic Content (Table or Bio-Data) -->
     </div>
   </div>
 
   <!-- Security Inactivity Lock Modal -->
   <div class="modal-overlay" id="inactivityLockModal" style="background: rgba(0,0,0,0.5);">
     <div class="modal-content lock-modal">
-      
-      <!-- Step 1: Session Locked Message -->
       <div id="lockStep1">
         <div class="lock-flex">
           <div class="lock-icon-wrapper">🔒</div>
@@ -366,7 +364,6 @@
         </div>
       </div>
 
-      <!-- Step 2: Password Verification -->
       <div id="lockStep2" style="display: none;">
         <div class="lock-flex">
           <div class="lock-icon-wrapper blue">🔑</div>
@@ -387,14 +384,10 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
   <script>
-    // ============================================================
-    // Security & Globals
-    // ============================================================
     const ADMIN_ID = "000000123";
     const ADMIN_PWD = "Admin0000"; 
     const loggedInId = sessionStorage.getItem('geekay_emp_id');
@@ -409,8 +402,10 @@
     const ATTENDANCE_FOLDER = 'attendance_records/';
 
     let cachedMasterRows = [];
-    let currentWorkforceType = ''; // 'master' or 'attendance'
+    let currentWorkforceType = ''; 
     let selectedAttendanceMonth = '';
+    let currentFsRows = [];
+    let currentSelectedStaffRow = null;
 
     const COLS = {
       id:      ['epmlid', 'useremployeeid', 'employeeid', 'empid', 'userid', 'employeecode'],
@@ -439,9 +434,7 @@
       return '';
     }
 
-    // ============================================================
-    // Workforce Menu Actions (Live View vs Download)
-    // ============================================================
+    // Workforce Menu
     function toggleWorkforceMenu(e) {
       e.stopPropagation();
       document.getElementById('workforceDropdown').classList.toggle('show');
@@ -450,7 +443,6 @@
     window.addEventListener('click', function() {
       const dropdown = document.getElementById('workforceDropdown');
       if (dropdown.classList.contains('show')) dropdown.classList.remove('show');
-      
       const searchDrop = document.getElementById('searchResultsDropdown');
       if (searchDrop) searchDrop.style.display = 'none';
     });
@@ -463,16 +455,13 @@
       document.getElementById('workforceChoiceModal').style.display = 'flex';
     }
 
-    function openAttendancePrompt() {
-      const monthInput = prompt("Enter attendance month and year (e.g., Oct-2026):", "Oct-2026");
-      if (monthInput && monthInput.trim()) {
-        selectedAttendanceMonth = monthInput.trim();
-        currentWorkforceType = 'attendance';
-        document.getElementById('choiceModalIcon').textContent = '📅';
-        document.getElementById('choiceModalTitle').textContent = 'Attendance (' + selectedAttendanceMonth + ')';
-        document.getElementById('choiceModalDesc').textContent = 'How would you like to access this attendance file?';
-        document.getElementById('workforceChoiceModal').style.display = 'flex';
-      }
+    function openAttendanceFile(monthName) {
+      selectedAttendanceMonth = monthName;
+      currentWorkforceType = 'attendance';
+      document.getElementById('choiceModalIcon').textContent = '📅';
+      document.getElementById('choiceModalTitle').textContent = 'Attendance (' + selectedAttendanceMonth + ')';
+      document.getElementById('choiceModalDesc').textContent = 'How would you like to access this attendance file?';
+      document.getElementById('workforceChoiceModal').style.display = 'flex';
     }
 
     function closeWorkforceChoiceModal() {
@@ -489,7 +478,6 @@
       if (action === 'download') {
         window.open(fileUrl, '_blank');
       } else {
-        // Live Web View inside Table Modal
         showLoadingOverlay();
         try {
           const res = await fetch(fileUrl + '?v=' + Date.now(), { cache: 'no-store' });
@@ -498,7 +486,10 @@
           const wb = XLSX.read(buf, { type: 'array', cellDates: true });
           const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
           
-          renderLiveTable(rows, currentWorkforceType === 'master' ? 'Master Data Viewer' : 'Attendance: ' + selectedAttendanceMonth);
+          currentFsRows = rows;
+          currentSelectedStaffRow = null;
+          document.getElementById('fsModeTabs').style.display = 'none';
+          renderFullscreenTable(rows, currentWorkforceType === 'master' ? 'Master Data Viewer' : 'Attendance: ' + selectedAttendanceMonth);
         } catch (e) {
           alert("Error: Could not load file. Please check if the file exists.");
         } finally {
@@ -507,19 +498,21 @@
       }
     }
 
-    function renderLiveTable(rows, titleText) {
-      document.getElementById('liveTableTitle').textContent = titleText;
-      const container = document.getElementById('liveTableContainer');
+    function renderFullscreenTable(rows, titleText) {
+      document.getElementById('fsViewerTitle').textContent = titleText;
+      document.getElementById('fsSearchInput').value = '';
+      const container = document.getElementById('fsBodyContainer');
       container.textContent = '';
 
       if(!rows || rows.length === 0) {
-        container.innerHTML = '<div style="padding:20px; text-align:center; color:#718096;">No records found in this file.</div>';
-        document.getElementById('liveTableModal').style.display = 'flex';
+        container.innerHTML = '<div style="padding:40px; text-align:center; color:#718096; font-size:16px;">No records found in this file.</div>';
+        document.getElementById('fullscreenViewer').style.display = 'flex';
         return;
       }
 
       const table = document.createElement('table');
       table.className = 'data-table';
+      table.id = 'fsDataTable';
       
       const thead = document.createElement('thead');
       const headerRow = document.createElement('tr');
@@ -547,16 +540,32 @@
       table.appendChild(tbody);
       container.appendChild(table);
 
-      document.getElementById('liveTableModal').style.display = 'flex';
+      document.getElementById('fullscreenViewer').style.display = 'flex';
     }
 
-    function closeLiveTableModal() {
-      document.getElementById('liveTableModal').style.display = 'none';
+    function closeFullscreenViewer() {
+      document.getElementById('fullscreenViewer').style.display = 'none';
     }
 
-    // ============================================================
-    // Global Live Search Feature (NEW)
-    // ============================================================
+    function filterFullscreenTable(query) {
+      const q = query.toLowerCase();
+      const table = document.getElementById('fsDataTable');
+      if(!table) return;
+      const trs = table.getElementsByTagName('tr');
+      for(let i = 1; i < trs.length; i++) {
+        const tds = trs[i].getElementsByTagName('td');
+        let found = false;
+        for(let j = 0; j < tds.length; j++) {
+          if(tds[j].textContent.toLowerCase().includes(q)) {
+            found = true;
+            break;
+          }
+        }
+        trs[i].style.display = found ? '' : 'none';
+      }
+    }
+
+    // Global Search Feature
     function handleGlobalSearch(query) {
       const dropdown = document.getElementById('searchResultsDropdown');
       const q = query.trim().toLowerCase();
@@ -575,7 +584,6 @@
         const id = getField(row, km, COLS.id);
         const name = getField(row, km, COLS.name);
         
-        // Search across all row values
         let matchFound = false;
         for(let key in row) {
           if(String(row[key]).toLowerCase().includes(q)) {
@@ -586,7 +594,7 @@
 
         if(matchFound && id) {
           matches.push({ id: id, name: name || 'Staff', row: row });
-          if(matches.length >= 10) break; // Limit to 10 results
+          if(matches.length >= 10) break;
         }
       }
 
@@ -601,16 +609,19 @@
         matches.forEach(m => {
           const div = document.createElement('div');
           div.className = 'search-result-item';
-          div.innerHTML = `<span><strong>${m.name}</strong> (${m.id})</span> <span style="font-size:12px; color:#3182ce;">View &rarr;</span>`;
+          div.innerHTML = `<span><strong>${m.name}</strong> (${m.id})</span> <span style="font-size:12px; color:#3182ce;">View Profile &rarr;</span>`;
           div.onclick = function(e) {
             e.stopPropagation();
             dropdown.style.display = 'none';
             document.getElementById('globalSearchInput').value = m.id;
             
             if(mode === 'master') {
-              renderLiveTable([m.row], 'Staff Details: ' + m.name + ' (' + m.id + ')');
+              currentSelectedStaffRow = m.row;
+              currentFsRows = [m.row];
+              document.getElementById('fsModeTabs').style.display = 'flex';
+              switchViewMode('biodata');
             } else {
-              alert("Attendance lookup for ID: " + m.id + " (Feature connecting in next update)");
+              alert("Attendance lookup for ID: " + m.id);
             }
           };
           dropdown.appendChild(div);
@@ -619,38 +630,76 @@
       dropdown.style.display = 'block';
     }
 
-    // ============================================================
-    // Inactivity Lock System (15 Minutes)
-    // ============================================================
-    let idleTime = 0;
-    let idleInterval = null;
-    const IDLE_LIMIT = 900; // 15 minutes (900 seconds)
-
-    function resetIdleTimer() {
-      idleTime = 0;
+    function switchViewMode(mode) {
+      const tabs = document.querySelectorAll('.mode-tab-btn');
+      tabs.forEach(t => t.classList.remove('active'));
+      
+      if(mode === 'biodata') {
+        tabs[1].classList.add('active');
+        renderBioDataView(currentSelectedStaffRow);
+      } else {
+        tabs[0].classList.add('active');
+        renderFullscreenTable(currentFsRows, 'Staff Record');
+      }
     }
 
+    function renderBioDataView(row) {
+      document.getElementById('fsViewerTitle').textContent = 'Staff Profile & Bio-Data';
+      const container = document.getElementById('fsBodyContainer');
+      container.textContent = '';
+
+      if(!row) return;
+
+      const biodataDiv = document.createElement('div');
+      biodataDiv.className = 'biodata-container';
+
+      // Categorize fields
+      let html = `<div style="font-size:24px; font-weight:700; color:#1a202c; margin-bottom:20px;">${row['Emp Name'] || row['Name'] || 'Staff Profile'} <span style="font-size:14px; color:#718096; font-weight:500;">(ID: ${row['Emp L ID'] || row['Employee ID'] || 'N/A'})</span></div>`;
+
+      html += `<div class="biodata-section-title">Personal & Employment Details</div>`;
+      html += `<div class="biodata-grid">`;
+      for(let key in row) {
+        if(!['bank', 'account', 'ifsc', 'phone', 'mobile', 'email', 'address'].some(k => key.toLowerCase().includes(k))) {
+          html += `<div class="biodata-item"><span class="biodata-label">${key}</span><span class="biodata-value">${row[key] !== '' ? row[key] : '-'}</span></div>`;
+        }
+      }
+      html += `</div>`;
+
+      html += `<div class="biodata-section-title">Bank & Contact Details</div>`;
+      html += `<div class="biodata-grid">`;
+      for(let key in row) {
+        if(['bank', 'account', 'ifsc', 'phone', 'mobile', 'email', 'address'].some(k => key.toLowerCase().includes(k))) {
+          html += `<div class="biodata-item"><span class="biodata-label">${key}</span><span class="biodata-value">${row[key] !== '' ? row[key] : '-'}</span></div>`;
+        }
+      }
+      html += `</div>`;
+
+      biodataDiv.innerHTML = html;
+      container.appendChild(biodataDiv);
+      document.getElementById('fullscreenViewer').style.display = 'flex';
+    }
+
+    // Inactivity Lock System
+    let idleTime = 0;
+    let idleInterval = null;
+    const IDLE_LIMIT = 900; 
+
+    function resetIdleTimer() { idleTime = 0; }
     function timerIncrement() {
       idleTime++;
-      if (idleTime >= IDLE_LIMIT) {
-        triggerLockScreen();
-      }
+      if (idleTime >= IDLE_LIMIT) triggerLockScreen();
     }
 
     function triggerLockScreen() {
       clearInterval(idleInterval); 
-      
       document.getElementById('dashboardSection').style.filter = 'blur(8px)';
       document.getElementById('dashboardSection').style.pointerEvents = 'none';
       document.getElementById('mainNavbar').style.filter = 'blur(8px)';
       document.getElementById('mainNavbar').style.pointerEvents = 'none';
-      
       document.getElementById('inactivityLockModal').style.display = 'flex';
-      
       document.getElementById('lockStep1').style.display = 'block';
       document.getElementById('lockStep2').style.display = 'none';
       document.getElementById('unlockPwd').value = '';
-      
       renderUnlockStatus(null);
     }
 
@@ -664,34 +713,22 @@
       const el = document.getElementById('unlockStatus');
       const btn = document.getElementById('btnUnlockContinue');
       el.textContent = '';
-      if (!state) {
-        el.className = 'input-status';
-        btn.disabled = true;
-        return;
-      }
+      if (!state) { el.className = 'input-status'; btn.disabled = true; return; }
       const icons = { valid: '\u2714 ', invalid: '\u2716 ' };
       el.className = 'input-status ' + state + ' show';
       el.textContent = icons[state] + (state === 'valid' ? 'Verified' : 'Invalid');
-      
-      if(state === 'valid') btn.disabled = false;
-      else btn.disabled = true;
+      btn.disabled = (state !== 'valid');
     }
 
     document.getElementById('unlockPwd').addEventListener('input', function() {
         const pwd = this.value.trim();
-        if (!pwd) {
-            renderUnlockStatus(null);
-        } else if (pwd === ADMIN_PWD) {
-            renderUnlockStatus('valid');
-        } else {
-            renderUnlockStatus('invalid');
-        }
+        if (!pwd) renderUnlockStatus(null);
+        else if (pwd === ADMIN_PWD) renderUnlockStatus('valid');
+        else renderUnlockStatus('invalid');
     });
 
     document.getElementById('unlockPwd').addEventListener('keydown', function(e) {
-      if(e.key === 'Enter' && !document.getElementById('btnUnlockContinue').disabled) {
-        unlockSession();
-      }
+      if(e.key === 'Enter' && !document.getElementById('btnUnlockContinue').disabled) unlockSession();
     });
 
     function unlockSession() {
@@ -700,17 +737,12 @@
         document.getElementById('dashboardSection').style.pointerEvents = 'auto';
         document.getElementById('mainNavbar').style.filter = 'none';
         document.getElementById('mainNavbar').style.pointerEvents = 'auto';
-        
         document.getElementById('inactivityLockModal').style.display = 'none';
-        
         resetIdleTimer();
         idleInterval = setInterval(timerIncrement, 1000);
       }
     }
 
-    // ============================================================
-    // Load Master Data to show stats
-    // ============================================================
     async function loadMasterData() {
       try {
         const response = await fetch(MASTER_FILE + '?v=' + Date.now(), { cache: 'no-store' });
@@ -728,16 +760,10 @@
 
     function calculateStats(rows) {
       if (!rows || rows.length === 0) return;
-      
-      let total = 0;
-      let active = 0;
-      let inactive = 0;
-      let resigned = 0;
-
+      let total = 0, active = 0, inactive = 0, resigned = 0;
       const firstMap = buildKeyMap(rows[0]);
       let idKey = null;
       for (const alias of COLS.id) { if (alias in firstMap) { idKey = firstMap[alias]; break; } }
-      
       if (!idKey) return; 
 
       for (let i = 0; i < rows.length; i++) {
@@ -747,20 +773,14 @@
           const km = buildKeyMap(row);
           const lwd = getField(row, km, COLS.lwd);
           const statusRaw = getField(row, km, COLS.status);
-          
-          if (lwd && lwd !== '-') {
-            resigned++;
-          } else {
+          if (lwd && lwd !== '-') resigned++;
+          else {
             const su = statusRaw.toUpperCase();
-            if (['INACTIVE', 'IN-ACTIVE', 'IN ACTIVE'].includes(su)) {
-              inactive++;
-            } else {
-              active++; 
-            }
+            if (['INACTIVE', 'IN-ACTIVE', 'IN ACTIVE'].includes(su)) inactive++;
+            else active++; 
           }
         }
       }
-
       animateValue("statTotalEmp", 0, total, 1000);
       animateValue("statActiveEmp", 0, active, 1000);
       animateValue("statInactiveEmp", 0, inactive, 1000);
@@ -775,28 +795,18 @@
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
         obj.innerHTML = Math.floor(progress * (end - start) + start);
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
-        }
+        if (progress < 1) window.requestAnimationFrame(step);
       };
       window.requestAnimationFrame(step);
     }
 
-    // ============================================================
-    // UI Updates & Logout Logic
-    // ============================================================
     function setDate() {
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', options);
     }
 
-    function openLogoutModal() {
-      document.getElementById('logoutModal').style.display = 'flex';
-    }
-    
-    function closeLogoutModal() {
-      document.getElementById('logoutModal').style.display = 'none';
-    }
+    function openLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
+    function closeLogoutModal() { document.getElementById('logoutModal').style.display = 'none'; }
 
     function executeLogout() {
       if(idleInterval) clearInterval(idleInterval);
@@ -805,28 +815,19 @@
     }
     
     document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && document.getElementById('logoutModal').style.display === 'flex') {
-        closeLogoutModal();
-      }
+      if (e.key === 'Escape' && document.getElementById('logoutModal').style.display === 'flex') closeLogoutModal();
     });
 
     function showLoadingOverlay() {
       document.getElementById('loadingWelcome').classList.add('in');
       document.getElementById('loadingOverlay').classList.add('show');
     }
-    function hideLoadingOverlay() {
-      document.getElementById('loadingOverlay').classList.remove('show');
-    }
+    function hideLoadingOverlay() { document.getElementById('loadingOverlay').classList.remove('show'); }
 
-    // ============================================================
-    // Startup Process
-    // ============================================================
     window.addEventListener('DOMContentLoaded', async function () {
       setDate();
       showLoadingOverlay();
-
       const rows = await loadMasterData();
-      
       setTimeout(() => {
         hideLoadingOverlay();
         document.getElementById('dashboardSection').style.display = 'block';
@@ -837,10 +838,8 @@
         document.onclick = resetIdleTimer;
         document.onscroll = resetIdleTimer;
         idleInterval = setInterval(timerIncrement, 1000);
-
       }, 1000);
     });
-
   </script>
 </body>
 </html>
