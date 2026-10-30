@@ -8,6 +8,8 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- jsPDF for A4 Bio-Data PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -68,12 +70,15 @@
     /* Global Search Box */
     .global-search-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 30px; position: relative; }
     .search-bar-row { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; }
-    .search-input-wrap { flex: 1; min-width: 250px; position: relative; }
-    .search-input-wrap input { width: 100%; padding: 10px 5px 8px 5px; font-size: 16px; font-weight: 600; color: #1a202c; border: none; border-bottom: 2px solid #cbd5e1; background: transparent; outline: none; transition: border-color 0.3s; }
-    .search-input-wrap input:focus { border-bottom-color: #3182ce; }
+    .search-input-wrap { flex: 1; min-width: 250px; position: relative; display: flex; align-items: flex-end; border-bottom: 2px solid #cbd5e1; }
+    .search-input-wrap input { width: 100%; padding: 10px 40px 8px 5px; font-size: 16px; font-weight: 600; color: #1a202c; border: none; background: transparent; outline: none; }
     .search-input-wrap label { position: absolute; top: 10px; left: 5px; font-size: 15px; color: #718096; pointer-events: none; transition: all 0.3s ease; }
     .search-input-wrap input:focus ~ label, .search-input-wrap input:not(:placeholder-shown) ~ label { top: -10px; font-size: 12px; color: #3182ce; font-weight: 600; }
+    .global-search-container:focus-within .search-input-wrap { border-bottom-color: #3182ce; }
     
+    .clear-search-btn { background: #3182ce; color: white; border: none; padding: 4px 10px; font-size: 12px; font-weight: 600; border-radius: 4px; cursor: pointer; margin-bottom: 8px; transition: background 0.2s; display: none; }
+    .clear-search-btn:hover { background: #2b6cb0; }
+
     .search-select { padding: 10px 12px; font-size: 14px; font-weight: 600; color: #2d3748; background: #edf2f7; border: none; border-radius: 6px; cursor: pointer; outline: none; }
     
     .search-results-dropdown { display: none; position: absolute; top: 100%; left: 25px; right: 25px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 8px; z-index: 100; max-height: 250px; overflow-y: auto; border: 1px solid #e2e8f0; margin-top: 5px; }
@@ -135,14 +140,22 @@
     .fs-close-btn:hover { background: #c53030; }
     
     .fs-toolbar { padding: 15px 30px; background: #ffffff; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; }
-    .fs-search-box { padding: 8px 15px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 6px; width: 300px; outline: none; }
+    .fs-search-wrap { position: relative; display: flex; align-items: center; }
+    .fs-search-box { padding: 8px 35px 8px 12px; font-size: 14px; border: 1px solid #cbd5e1; border-radius: 6px; width: 300px; outline: none; }
     .fs-search-box:focus { border-color: #3182ce; }
+    .fs-clear-btn { position: absolute; right: 8px; background: #3182ce; color: white; border: none; padding: 2px 6px; font-size: 11px; border-radius: 4px; cursor: pointer; display: none; }
     
+    .zoom-controls { display: flex; gap: 8px; align-items: center; }
+    .zoom-btn { background: #edf2f7; border: 1px solid #cbd5e1; padding: 6px 12px; font-weight: 600; font-size: 13px; border-radius: 6px; cursor: pointer; }
+    .zoom-btn:hover { background: #e2e8f0; }
+
     .fs-body { flex: 1; overflow: auto; padding: 20px 30px; background: #f4f7f9; }
     
-    .data-table { width: 100%; border-collapse: collapse; font-size: 13.5px; background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-radius: 8px; overflow: hidden; }
-    .data-table th, .data-table td { padding: 12px 15px; border-bottom: 1px solid #edf2f7; text-align: left; }
-    .data-table th { background: #edf2f7; color: #2d3748; font-weight: 600; position: sticky; top: 0; z-index: 10; }
+    /* Excel-like Compact Table */
+    .data-table-wrap { background: white; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border-radius: 8px; overflow: hidden; display: inline-block; min-width: 100%; transition: transform 0.2s; transform-origin: top left; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 12.5px; white-space: nowrap; }
+    .data-table th, .data-table td { padding: 8px 12px; border: 1px solid #e2e8f0; text-align: left; }
+    .data-table th { background: #f1f5f9; color: #1e293b; font-weight: 600; position: sticky; top: 0; z-index: 10; }
     .data-table tr:hover { background: #f8fafc; }
 
     /* Bio-Data / Form View Mode */
@@ -153,10 +166,12 @@
     .biodata-label { font-size: 12px; color: #718096; font-weight: 600; text-transform: uppercase; }
     .biodata-value { font-size: 15px; color: #1a202c; font-weight: 600; margin-top: 2px; }
 
-    /* Mode Switcher Tabs */
     .mode-tabs { display: flex; background: #edf2f7; padding: 4px; border-radius: 8px; gap: 4px; }
     .mode-tab-btn { background: transparent; border: none; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #4a5568; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
     .mode-tab-btn.active { background: white; color: #3182ce; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+    .pdf-download-btn { background: #38a169; color: white; border: none; padding: 6px 14px; font-size: 13px; font-weight: 600; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
+    .pdf-download-btn:hover { background: #2f855a; }
 
     /* Wide Rectangle Modal for Security Lock */
     .lock-modal { max-width: 600px; padding: 35px 40px; text-align: left; }
@@ -229,7 +244,7 @@
         </button>
         <div class="workforce-content" id="workforceDropdownContent">
           <button type="button" onclick="openMasterDataPrompt()">Master Data</button>
-          <div class="wf-header">Attendance Months</div>
+          <div class="wf-header">Attendance</div>
           <button type="button" onclick="openAttendanceFile('Oct-2026')">Oct-2026</button>
           <button type="button" onclick="openAttendanceFile('Sep-2026')">Sep-2026</button>
           <button type="button" onclick="openAttendanceFile('Aug-2026')">Aug-2026</button>
@@ -247,7 +262,8 @@
       <div class="search-bar-row">
         <div class="search-input-wrap">
           <input type="text" id="globalSearchInput" placeholder=" " autocomplete="off" oninput="handleGlobalSearch(this.value)">
-          <label>Search anything... (ID, Name, ESI, UAN... Type to find)</label>
+          <label>Search anything...</label>
+          <button type="button" class="clear-search-btn" id="clearGlobalSearchBtn" onclick="clearGlobalSearchInput()">Clear</button>
           <div class="search-results-dropdown" id="searchResultsDropdown"></div>
         </div>
         <select class="search-select" id="searchModeSelect">
@@ -319,7 +335,7 @@
       <div class="modal-title dark" id="choiceModalTitle">Open File</div>
       <div class="modal-desc" id="choiceModalDesc">How would you like to view this file?</div>
       <div class="modal-actions" style="flex-direction: column; gap: 10px;">
-        <button class="btn-modal btn-primary" onclick="executeWorkforceAction('live')">View Live Data (Full Screen)</button>
+        <button class="btn-modal btn-primary" onclick="executeWorkforceAction('live')">View Live Data (Excel Sheet View)</button>
         <button class="btn-modal btn-cancel" onclick="executeWorkforceAction('download')">Download Excel File</button>
       </div>
     </div>
@@ -335,15 +351,29 @@
     </div>
     
     <div class="fs-toolbar">
-      <input type="text" class="fs-search-box" id="fsSearchInput" placeholder="Filter current data..." oninput="filterFullscreenTable(this.value)">
+      <div class="fs-search-wrap">
+        <input type="text" class="fs-search-box" id="fsSearchInput" placeholder="Search current data..." oninput="filterFullscreenTable(this.value)">
+        <button type="button" class="fs-clear-btn" id="fsClearBtn" onclick="clearFsSearch()">Clear</button>
+      </div>
+      
+      <div class="zoom-controls" id="zoomControls">
+        <button class="zoom-btn" onclick="adjustZoom(-0.1)">Zoom -</button>
+        <button class="zoom-btn" onclick="resetZoom()">Reset</button>
+        <button class="zoom-btn" onclick="adjustZoom(0.1)">Zoom +</button>
+      </div>
+
       <div class="mode-tabs" id="fsModeTabs" style="display: none;">
         <button class="mode-tab-btn active" onclick="switchViewMode('table')">Table Mode</button>
         <button class="mode-tab-btn" onclick="switchViewMode('biodata')">Bio-Data / Form Mode</button>
       </div>
+
+      <div id="pdfExportWrapper" style="display: none;">
+        <button class="pdf-download-btn" onclick="downloadStaffBioPDF()">📥 Download as PDF</button>
+      </div>
     </div>
 
     <div class="fs-body" id="fsBodyContainer">
-      <!-- Dynamic Content (Table or Bio-Data) -->
+      <!-- Dynamic Content -->
     </div>
   </div>
 
@@ -406,6 +436,7 @@
     let selectedAttendanceMonth = '';
     let currentFsRows = [];
     let currentSelectedStaffRow = null;
+    let currentZoom = 1.0;
 
     const COLS = {
       id:      ['epmlid', 'useremployeeid', 'employeeid', 'empid', 'userid', 'employeecode'],
@@ -488,7 +519,10 @@
           
           currentFsRows = rows;
           currentSelectedStaffRow = null;
+          currentZoom = 1.0;
           document.getElementById('fsModeTabs').style.display = 'none';
+          document.getElementById('zoomControls').style.display = 'flex';
+          document.getElementById('pdfExportWrapper').style.display = 'none';
           renderFullscreenTable(rows, currentWorkforceType === 'master' ? 'Master Data Viewer' : 'Attendance: ' + selectedAttendanceMonth);
         } catch (e) {
           alert("Error: Could not load file. Please check if the file exists.");
@@ -501,6 +535,7 @@
     function renderFullscreenTable(rows, titleText) {
       document.getElementById('fsViewerTitle').textContent = titleText;
       document.getElementById('fsSearchInput').value = '';
+      document.getElementById('fsClearBtn').style.display = 'none';
       const container = document.getElementById('fsBodyContainer');
       container.textContent = '';
 
@@ -509,6 +544,10 @@
         document.getElementById('fullscreenViewer').style.display = 'flex';
         return;
       }
+
+      const wrapDiv = document.createElement('div');
+      wrapDiv.className = 'data-table-wrap';
+      wrapDiv.id = 'fsTableWrap';
 
       const table = document.createElement('table');
       table.className = 'data-table';
@@ -538,7 +577,8 @@
         tbody.appendChild(tr);
       });
       table.appendChild(tbody);
-      container.appendChild(table);
+      wrapDiv.appendChild(table);
+      container.appendChild(wrapDiv);
 
       document.getElementById('fullscreenViewer').style.display = 'flex';
     }
@@ -549,6 +589,7 @@
 
     function filterFullscreenTable(query) {
       const q = query.toLowerCase();
+      document.getElementById('fsClearBtn').style.display = q ? 'block' : 'none';
       const table = document.getElementById('fsDataTable');
       if(!table) return;
       const trs = table.getElementsByTagName('tr');
@@ -565,11 +606,31 @@
       }
     }
 
+    function clearFsSearch() {
+      document.getElementById('fsSearchInput').value = '';
+      filterFullscreenTable('');
+    }
+
+    function adjustZoom(amount) {
+      currentZoom = Math.max(0.6, Math.min(1.8, currentZoom + amount));
+      const wrap = document.getElementById('fsTableWrap');
+      if(wrap) wrap.style.transform = `scale(${currentZoom})`;
+    }
+
+    function resetZoom() {
+      currentZoom = 1.0;
+      const wrap = document.getElementById('fsTableWrap');
+      if(wrap) wrap.style.transform = `scale(1)`;
+    }
+
     // Global Search Feature
     function handleGlobalSearch(query) {
-      const dropdown = document.getElementById('searchResultsDropdown');
       const q = query.trim().toLowerCase();
+      const dropdown = document.getElementById('searchResultsDropdown');
+      const clearBtn = document.getElementById('clearGlobalSearchBtn');
       
+      clearBtn.style.display = q ? 'block' : 'none';
+
       if(!q || cachedMasterRows.length === 0) {
         dropdown.style.display = 'none';
         return;
@@ -614,11 +675,14 @@
             e.stopPropagation();
             dropdown.style.display = 'none';
             document.getElementById('globalSearchInput').value = m.id;
+            clearBtn.style.display = 'block';
             
             if(mode === 'master') {
               currentSelectedStaffRow = m.row;
               currentFsRows = [m.row];
               document.getElementById('fsModeTabs').style.display = 'flex';
+              document.getElementById('zoomControls').style.display = 'none';
+              document.getElementById('pdfExportWrapper').style.display = 'block';
               switchViewMode('biodata');
             } else {
               alert("Attendance lookup for ID: " + m.id);
@@ -630,15 +694,25 @@
       dropdown.style.display = 'block';
     }
 
+    function clearGlobalSearchInput() {
+      document.getElementById('globalSearchInput').value = '';
+      document.getElementById('clearGlobalSearchBtn').style.display = 'none';
+      document.getElementById('searchResultsDropdown').style.display = 'none';
+    }
+
     function switchViewMode(mode) {
       const tabs = document.querySelectorAll('.mode-tab-btn');
       tabs.forEach(t => t.classList.remove('active'));
       
       if(mode === 'biodata') {
         tabs[1].classList.add('active');
+        document.getElementById('zoomControls').style.display = 'none';
+        document.getElementById('pdfExportWrapper').style.display = 'block';
         renderBioDataView(currentSelectedStaffRow);
       } else {
         tabs[0].classList.add('active');
+        document.getElementById('zoomControls').style.display = 'flex';
+        document.getElementById('pdfExportWrapper').style.display = 'none';
         renderFullscreenTable(currentFsRows, 'Staff Record');
       }
     }
@@ -652,8 +726,8 @@
 
       const biodataDiv = document.createElement('div');
       biodataDiv.className = 'biodata-container';
+      biodataDiv.id = 'staffBioDataCard';
 
-      // Categorize fields
       let html = `<div style="font-size:24px; font-weight:700; color:#1a202c; margin-bottom:20px;">${row['Emp Name'] || row['Name'] || 'Staff Profile'} <span style="font-size:14px; color:#718096; font-weight:500;">(ID: ${row['Emp L ID'] || row['Employee ID'] || 'N/A'})</span></div>`;
 
       html += `<div class="biodata-section-title">Personal & Employment Details</div>`;
@@ -677,6 +751,41 @@
       biodataDiv.innerHTML = html;
       container.appendChild(biodataDiv);
       document.getElementById('fullscreenViewer').style.display = 'flex';
+    }
+
+    function downloadStaffBioPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'mm', 'a4');
+      
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("Geekay Human Resources Pvt. Ltd.", 15, 20);
+      
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text("Staff Profile & Bio-Data Record", 15, 28);
+      
+      doc.setLineWidth(0.5);
+      doc.line(15, 32, 195, 32);
+
+      let y = 40;
+      if(currentSelectedStaffRow) {
+        for(let key in currentSelectedStaffRow) {
+          if(y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(10);
+          doc.text(key + ":", 15, y);
+          
+          doc.setFont("helvetica", "normal");
+          doc.text(String(currentSelectedStaffRow[key] || '-'), 65, y);
+          y += 8;
+        }
+      }
+
+      doc.save("Staff_BioData_" + (currentSelectedStaffRow['Emp L ID'] || 'Record') + ".pdf");
     }
 
     // Inactivity Lock System
