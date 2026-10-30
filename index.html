@@ -7,7 +7,7 @@
   <title>Geekay Human Resources Pvt. Ltd. - Employee Portal</title>
 
   <!-- Fonts: Poppins for English, Noto Sans Tamil for Tamil, Noto Sans Devanagari for Hindi -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 
   <!-- Libraries: Excel reading and PDF generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -77,7 +77,7 @@
     .lang-btn:focus-visible { outline: 2px solid #3182ce; outline-offset: 2px; }
     .dashboard-lang-bar { display: flex; justify-content: flex-end; margin-bottom: 15px; }
 
-    /* ---------- Login ---------- */
+    /* ---------- Login Section ---------- */
     .login-section {
       display: flex;
       justify-content: center;
@@ -92,26 +92,82 @@
     .login-split-container {
       display: flex;
       width: 100%;
-      max-width: 1000px;
+      max-width: 1100px;
       background: white;
-      border-radius: 16px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
       overflow: hidden;
       position: relative;
       z-index: 10;
     }
+    
+    /* Left Brand Panel - Updated for Premium Look */
     .login-brand-panel {
-      flex: 1;
-      background: linear-gradient(135deg, #004080 0%, #3182ce 100%);
+      flex: 1.2;
+      background: linear-gradient(135deg, #002f6c 0%, #1e60a3 100%);
       color: white;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 50px;
-      text-align: left;
+      align-items: center;
+      padding: 60px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
     }
-    .login-brand-panel h1 { font-size: 32px; font-weight: 700; line-height: 1.3; margin: 0 0 20px 0; }
-    .login-brand-panel p { font-size: 16px; font-weight: 400; opacity: 0.9; line-height: 1.6; margin: 0; }
+    /* Subtle geometric overlay for brand panel */
+    .login-brand-panel::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%; width: 200%; height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%);
+      animation: slowSpin 30s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes slowSpin { 100% { transform: rotate(360deg); } }
+
+    .brand-welcome-sub {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      color: #ffd700; /* Gold accent */
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+    .login-brand-panel h1 { 
+      font-size: clamp(24px, 3vw, 36px); 
+      font-weight: 700; 
+      line-height: 1.2; 
+      margin: 0 0 30px 0;
+      white-space: nowrap; /* Forces single line */
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    
+    /* Professional Core Values List */
+    .brand-core-values {
+      text-align: left;
+      font-size: 15px;
+      font-weight: 300;
+      line-height: 1.7;
+      opacity: 0.95;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      max-width: 400px;
+    }
+    .brand-core-values li {
+      margin-bottom: 15px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .brand-core-values li::before {
+      content: '✦';
+      color: #63b3ed;
+      font-size: 16px;
+      margin-top: -2px;
+    }
 
     /* Background animation (sun / moon glow) */
     .celestial-container {
@@ -161,34 +217,39 @@
       50% { opacity: 0.8; transform: scale(1); }
     }
 
+    /* Right Form Panel */
     .login-form-panel {
       flex: 1;
-      padding: 50px;
+      padding: 60px 50px;
       display: flex;
       flex-direction: column;
       justify-content: center;
       background: #ffffff;
     }
-    .login-form-inner { max-width: 360px; width: 100%; margin: 0 auto; }
+    .login-form-inner { max-width: 380px; width: 100%; margin: 0 auto; }
     .login-lang { display: flex; justify-content: flex-end; margin-bottom: 25px; }
-    .login-form-inner h2 { margin: 0 0 6px 0; color: #1a202c; font-size: 26px; font-weight: 700; letter-spacing: 0.2px; }
-    .login-accent { width: 44px; height: 4px; background: #3182ce; border-radius: 2px; margin-bottom: 14px; }
-    .login-subtitle { margin: 0 0 30px 0; font-size: 14px; color: #718096; line-height: 1.6; }
+    .login-form-inner h2 { margin: 0 0 6px 0; color: #1a202c; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+    .login-accent { width: 50px; height: 4px; background: #3182ce; border-radius: 2px; margin-bottom: 14px; }
+    .login-subtitle { margin: 0 0 35px 0; font-size: 14px; color: #718096; line-height: 1.6; }
 
     /* Underline-style inputs with floating label and inline status */
-    .floating-input-group { position: relative; margin-bottom: 25px; }
+    .floating-input-group { position: relative; margin-bottom: 30px; }
+    
+    /* Fancy Input Typography for premium feel */
     .floating-input-group input {
       width: 100%;
-      padding: 15px 95px 10px 5px;
-      font-size: 18px;
-      font-weight: 500;
-      color: #1a202c;
+      padding: 15px 120px 10px 5px; /* Extra padding for status and eye icon */
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      color: #004080; /* Deep corporate blue */
       border: none;
       border-bottom: 2px solid #cbd5e1;
       border-radius: 0;
       background: transparent;
       outline: none;
-      transition: border-color 0.3s;
+      transition: all 0.3s ease;
+      font-family: 'JetBrains Mono', 'Poppins', sans-serif; /* Monospace-like feel for IDs/Passwords */
     }
     .floating-input-group label {
       position: absolute;
@@ -198,58 +259,102 @@
       color: #718096;
       transition: all 0.3s ease;
       pointer-events: none;
+      font-family: 'Poppins', sans-serif;
+      letter-spacing: 0;
     }
-    .floating-input-group input:focus { border-bottom-color: #3182ce; }
+    .floating-input-group input:focus { 
+      border-bottom-color: #3182ce; 
+      box-shadow: 0 1px 0 0 #3182ce; /* Subtle glow on focus */
+    }
     .floating-input-group input:focus ~ label,
     .floating-input-group input:not(:placeholder-shown) ~ label {
-      top: -10px;
+      top: -12px;
       font-size: 12px;
       color: #3182ce;
       font-weight: 600;
+      letter-spacing: 0.5px;
     }
+    
+    /* Input Status (Right aligned on underline) */
     .input-status {
       position: absolute;
       right: 0;
-      bottom: 10px;
+      bottom: 12px;
       font-size: 13.5px;
       font-weight: 600;
       pointer-events: none;
       transition: opacity 0.3s ease;
       opacity: 0;
       white-space: nowrap;
+      font-family: 'Poppins', sans-serif;
+      letter-spacing: 0;
     }
     .input-status.show { opacity: 1; }
     .input-status.valid { color: #38a169; }
     .input-status.invalid { color: #e53e3e; }
     .input-status.checking { color: #3182ce; }
 
+    /* Password Eye Icon */
+    .toggle-password {
+      position: absolute;
+      right: 90px; /* Positioned left of the status text */
+      bottom: 12px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #a0aec0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+    }
+    .toggle-password:hover { color: #3182ce; }
+    .toggle-password svg { width: 20px; height: 20px; }
+    
     #pwdGroup { display: none; animation: fadeInDown 0.4s ease forwards; }
     @keyframes fadeInDown {
       0% { opacity: 0; transform: translateY(-10px); }
       100% { opacity: 1; transform: translateY(0); }
     }
-    .password-hint { font-size: 12.5px; color: #4a5568; font-weight: 500; margin: -10px 0 25px 0; line-height: 1.6; }
+    
+    /* Enhanced Highlighted Hint Box */
+    .password-hint { 
+      font-size: 12.5px; 
+      color: #2d3748; 
+      font-weight: 500; 
+      margin: -10px 0 30px 0; 
+      line-height: 1.6; 
+      background: #ebf8ff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border-left: 4px solid #3182ce;
+      box-shadow: 0 2px 6px rgba(49,130,206,0.08);
+      font-family: 'Poppins', sans-serif;
+    }
+    .hint-highlight { font-weight: 700; color: #004080; }
 
     .login-btn {
       width: 100%;
-      padding: 14px;
+      padding: 15px;
       background: #3182ce;
       color: white;
       border: none;
       border-radius: 8px;
       font-size: 16px;
       font-weight: 600;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
       cursor: pointer;
       opacity: 0;
       visibility: hidden;
       transform: translateY(-10px);
       transition: all 0.4s ease;
+      box-shadow: 0 4px 12px rgba(49,130,206,0.3);
     }
     .login-btn.show-btn { opacity: 1; visibility: visible; transform: translateY(0); }
-    .login-btn:hover { background: #2b6cb0; }
+    .login-btn:hover { background: #2b6cb0; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(49,130,206,0.4); }
     .login-btn:active { transform: scale(0.98); }
-    .login-btn:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+    .login-btn:disabled { background: #94a3b8; cursor: not-allowed; transform: none; box-shadow: none; }
 
     #loginError { margin-top: 15px; font-size: 14px; font-weight: 500; min-height: 20px; text-align: center; }
     #loginError.error { color: #e53e3e; }
@@ -505,7 +610,7 @@
     .pdf-option:hover { border-bottom-color: #3182ce; color: #3182ce; }
     .pdf-option:focus-visible { outline: 2px solid #3182ce; outline-offset: 2px; }
 
-    /* PDF page layout (fixed width so the PDF looks the same on phone and laptop) */
+    /* PDF page layout */
     .pdf-root { width: 900px; padding: 8px 12px; background: #ffffff; color: #2d3748; }
     .pdf-root .pdf-head { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #3182ce; }
     .pdf-root .pdf-company { font-size: 22px; font-weight: 700; color: #3182ce; }
@@ -525,7 +630,7 @@
     .pdf-root .about-card, .pdf-root .stat-card, .pdf-root .day-card { box-shadow: 0 0 0 1px #e2e8f0; }
     .pdf-root .progress-bar-fill { transition: none; }
 
-    /* ---------- Attendance cycle: info line, notes and template cards ---------- */
+    /* ---------- Attendance cycle ---------- */
     .cycle-info { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: #718096; font-weight: 500; margin: -8px 0 14px 0; }
     .attendance-note { font-size: 13px; color: #718096; line-height: 1.6; margin: 0 0 10px 0; }
     .stat-sub { font-size: 11px; color: #a0aec0; margin-top: 6px; }
@@ -600,22 +705,27 @@
 
     @media (prefers-reduced-motion: reduce) {
       .rainbow-ring { animation-duration: 3s; }
-      .celestial-orb, .twinkle-star { animation: none !important; }
+      .celestial-orb, .twinkle-star, .login-brand-panel::before { animation: none !important; }
     }
 
     /* ---------- Responsive ---------- */
+    @media (max-width: 900px) {
+      .login-brand-panel h1 { white-space: normal; } /* Allow wrapping on smaller tablets */
+    }
     @media (max-width: 768px) {
       .login-split-container { flex-direction: column; }
-      .login-brand-panel { padding: 40px 20px; text-align: center; }
-      .login-form-panel { padding: 40px 20px; }
+      .login-brand-panel { padding: 50px 20px; }
+      .login-form-panel { padding: 40px 30px; }
+      .brand-core-values { font-size: 14px; max-width: 100%; }
     }
     @media (max-width: 600px) {
       .session-timer { right: 8px; padding: 3px 8px; font-size: 12px; }
       .dashboard-header { flex-direction: column; align-items: flex-start; }
       .action-buttons { width: 100%; gap: 14px; }
       .analytics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .login-form-panel { padding: 40px 20px; }
 
-      /* Mobile calendar: exactly 5 cards per row */
+      /* Mobile calendar */
       .calendar-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
       .day-card { padding: 8px 2px; border-radius: 6px; border-bottom-width: 3px; }
       .day-card .date-text { font-size: 10px; margin-bottom: 4px; letter-spacing: -0.2px; }
@@ -632,7 +742,7 @@
 </head>
 <body>
 
-  <!-- Top navbar (hidden on the login page) -->
+  <!-- Top navbar -->
   <div class="navbar" id="mainNavbar">Geekay Human Resources Pvt. Ltd.<span class="session-timer" id="sessionTimer" data-i18n-title="sessionLeft" style="display:none;">02:00</span></div>
 
   <!-- Login -->
@@ -643,8 +753,13 @@
     <div class="login-split-container">
 
       <div class="login-brand-panel">
+        <div class="brand-welcome-sub">Welcome To</div>
         <h1>Geekay Human Resources Pvt. Ltd.</h1>
-        <p data-i18n="brandSlogan">Empowering our workforce with seamless and secure HR solutions.</p>
+        <ul class="brand-core-values">
+          <li data-i18n="brandPoint1">Empowering our workforce with seamless and secure HR solutions.</li>
+          <li data-i18n="brandPoint2">Fostering a culture of transparency, growth, and digital excellence.</li>
+          <li data-i18n="brandPoint3">Committed to elevating your professional journey with us.</li>
+        </ul>
       </div>
 
       <div class="login-form-panel">
@@ -669,9 +784,20 @@
             <div class="floating-input-group">
               <input type="password" id="empPwd" autocomplete="off" spellcheck="false" placeholder=" ">
               <label for="empPwd" data-i18n="password">Password</label>
+              
+              <!-- Eye Icon for Password Visibility -->
+              <button type="button" class="toggle-password" id="togglePwdBtn" aria-label="Show password" tabindex="-1">
+                <svg id="eyeIconShow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                <svg id="eyeIconHide" style="display:none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+              </button>
+              
               <div id="pwdStatus" class="input-status" aria-live="polite"></div>
             </div>
-            <div class="password-hint" data-i18n="passwordHint">Hint: First 4 letters of your name + Birth Year (e.g., SIVA1995, ARUN1992)</div>
+            
+            <div class="password-hint" id="pwdHintBlock">
+              <span data-i18n="hintLine1">Hint: First 4 letters of your name + Birth Year.</span><br>
+              <span data-i18n="hintLine2">(e.g., <span class="hint-highlight">SIVA1995</span> | 3 letters: <span class="hint-highlight">RAM1992</span> | Initial: <span class="hint-highlight">MSIV1990</span>)</span>
+            </div>
           </div>
 
           <button type="button" class="login-btn" id="continueBtn" onclick="executeLogin()" data-i18n="viewProfile">Continue</button>
@@ -881,27 +1007,27 @@
     // Settings
     // ============================================================
     const MASTER_FILE = 'master_data/master_data.xlsx';
-    const ATTENDANCE_FOLDER = 'attendance_records/';   // files named like Oct-2026.xlsx
+    const ATTENDANCE_FOLDER = 'attendance_records/';
     const LANG_STORAGE_KEY = 'geekayPortalLang';
-    const SESSION_SECONDS = 120;          // dashboard stays open for 2 minutes
-    const LOADING_MIN_MS = 5000;          // loading screen: at least 5 seconds
-    const ID_CHECK_DELAY_MS = 1500;       // ID is checked this long after typing stops
-    const MASTER_TTL_MS = 10 * 60 * 1000; // master data is re-read after 10 minutes
-    const MONTH_LOOKBACK = 12;            // how many past cycles are looked for
-    const CYCLE_START_DAY = 21;           // a cycle runs from the 21st to the 20th of the next month (use 1 for calendar months)
-    const OLD_CYCLE_DAYS = 15;            // a cycle that ended more than this many days ago is not shown as "Soon" any more
+    const SESSION_SECONDS = 120;
+    const LOADING_MIN_MS = 5000;
+    const ID_CHECK_DELAY_MS = 1500;
+    const MASTER_TTL_MS = 10 * 60 * 1000; 
+    const MONTH_LOOKBACK = 12;
+    const CYCLE_START_DAY = 21;
+    const OLD_CYCLE_DAYS = 15;
     const ENG_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     // ============================================================
     // Translations
-    // To add another language: copy the "en" block, rename it, translate
-    // the values, and add a button with data-lang="..." in both switches.
     // ============================================================
     const I18N = {
       en: {
         locale: 'en-US',
         months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        brandSlogan: 'Empowering our workforce with seamless and secure HR solutions.',
+        brandPoint1: 'Empowering our workforce with seamless and secure HR solutions.',
+        brandPoint2: 'Fostering a culture of transparency, growth, and digital excellence.',
+        brandPoint3: 'Committed to elevating your professional journey with us.',
         greetingMorning: 'Good Morning',
         greetingAfternoon: 'Good Afternoon',
         greetingEvening: 'Good Evening',
@@ -909,7 +1035,8 @@
         portalSubtitle: 'Enter your Employee ID to view your attendance and details.',
         employeeId: 'Employee ID',
         password: 'Password',
-        passwordHint: 'Hint: First 4 letters of your name + Birth Year (e.g., SIVA1995, ARUN1992)',
+        hintLine1: 'Hint: First 4 letters of your name + Birth Year.',
+        hintLine2: '(e.g., <span class="hint-highlight">SIVA1995</span> | 3 letters: <span class="hint-highlight">RAM1992</span> | Initial: <span class="hint-highlight">MSIV1990</span>)',
         viewProfile: 'Continue',
         validId: 'Verified',
         invalidId: 'Invalid',
@@ -974,7 +1101,7 @@
         percentBasis: 'Based on updated days',
         updatedUpTo: 'Updated up to',
         notUpdatedYet: 'not updated yet',
-        pendingNote: 'Attendance for days marked "Soon" is being processed and will appear here as soon as it is updated. Today\'s attendance is added after the day is completed. Thank you for your patience.',
+        pendingNote: 'Attendance for days marked "Soon" is being processed and will appear here as soon as it is updated. Today\'s attendance is added after the day is completed.',
         noRecordNote: 'Days marked "No record" have no attendance entry for you. Please contact the HR / Admin Department.',
         msgCycleMismatch: 'The dates in this attendance file do not match this period. Please contact HR / Admin.',
         msgFileProtocol: 'Open this page from a web server (or hosting). Browsers block reading local files.',
@@ -989,7 +1116,9 @@
       ta: {
         locale: 'ta-IN',
         months: ['ஜன', 'பிப்', 'மார்', 'ஏப்', 'மே', 'ஜூன்', 'ஜூலை', 'ஆக', 'செப்', 'அக்', 'நவ', 'டிச'],
-        brandSlogan: 'பாதுகாப்பான மற்றும் சிறப்பான மனிதவள சேவைகளுடன் நமது ஊழியர்களை மேம்படுத்துகிறோம்.',
+        brandPoint1: 'பாதுகாப்பான மற்றும் சிறப்பான மனிதவள சேவைகளுடன் நமது ஊழியர்களை மேம்படுத்துகிறோம்.',
+        brandPoint2: 'வெளிப்படைத்தன்மை மற்றும் தொழில்நுட்ப வளர்ச்சியில் சிறந்து விளங்குகிறோம்.',
+        brandPoint3: 'உங்களின் தொழில்முறைப் பயணத்தை மென்மேலும் உயர்த்த நாங்கள் அர்ப்பணித்துள்ளோம்.',
         greetingMorning: 'காலை வணக்கம்',
         greetingAfternoon: 'மதிய வணக்கம்',
         greetingEvening: 'மாலை வணக்கம்',
@@ -997,7 +1126,8 @@
         portalSubtitle: 'உங்கள் வருகைப் பதிவு மற்றும் விவரங்களைப் பார்க்க, உங்கள் ஊழியர் ID-ஐ உள்ளிடவும்.',
         employeeId: 'ஊழியர் ID',
         password: 'பாஸ்வேர்ட்',
-        passwordHint: 'குறிப்பு: உங்கள் பெயரின் முதல் 4 எழுத்துக்கள் + பிறந்த வருடம் (உ-ம்: SIVA1995, ARUN1992)',
+        hintLine1: 'குறிப்பு: உங்கள் பெயரின் முதல் 4 எழுத்துக்கள் + பிறந்த வருடம்.',
+        hintLine2: '(உ-ம்: <span class="hint-highlight">SIVA1995</span> | 3 எழுத்து: <span class="hint-highlight">RAM1992</span> | Initial: <span class="hint-highlight">MSIV1990</span>)',
         viewProfile: 'தொடரவும்',
         validId: 'சரியானது',
         invalidId: 'தவறானது',
@@ -1062,22 +1192,24 @@
         percentBasis: 'புதுப்பித்த நாட்களின் அடிப்படையில்',
         updatedUpTo: 'இதுவரை புதுப்பிக்கப்பட்டது',
         notUpdatedYet: 'இன்னும் புதுப்பிக்கப்படவில்லை',
-        pendingNote: '"விரைவில்" என்று குறிக்கப்பட்ட நாட்களின் வருகைப் பதிவு செயலாக்கத்தில் உள்ளது; புதுப்பித்தவுடன் இங்கே தெரியும். இன்றைய வருகைப் பதிவு, இன்றைய நாள் முடிந்த பிறகே சேர்க்கப்படும். உங்கள் பொறுமைக்கு நன்றி.',
+        pendingNote: '"விரைவில்" என்று குறிக்கப்பட்ட நாட்களின் வருகைப் பதிவு செயலாக்கத்தில் உள்ளது. இன்றைய வருகைப் பதிவு, இன்றைய நாள் முடிந்த பிறகே சேர்க்கப்படும்.',
         noRecordNote: '"பதிவு இல்லை" என்று குறிக்கப்பட்ட நாட்களுக்கு உங்கள் வருகைப் பதிவு இல்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
         msgCycleMismatch: 'இந்த வருகைக் கோப்பில் உள்ள தேதிகள் இந்தக் காலத்துடன் பொருந்தவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
-        msgFileProtocol: 'இந்தப் பக்கத்தை இணையதள சேவையகம் (hosting) வழியாகத் திறக்கவும். கணினியில் உள்ள கோப்பாகத் திறந்தால் தரவைப் படிக்க முடியாது.',
+        msgFileProtocol: 'இந்தப் பக்கத்தை இணையதள சேவையகம் (hosting) வழியாகத் திறக்கவும்.',
         msgIdColumn: 'Master Data கோப்பில் ஊழியர் ID column கிடைக்கவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
         msgFileNotFound: 'Master Data கோப்பு கிடைக்கவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
-        msgEmptyBook: 'Master Data கோப்பு காலியாக உள்ளது. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
+        msgEmptyBook: 'Master Data கோப்பு காலியாக உள்ளது.',
         msgSystem: 'கணினிப் பிழை. தரவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
-        msgNoPassword: 'உங்கள் பெயர் அல்லது பிறந்த தேதி இல்லாததால் password உருவாக்க முடியவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
+        msgNoPassword: 'உங்கள் பெயர் அல்லது பிறந்த தேதி இல்லாததால் password உருவாக்க முடியவில்லை.',
         msgLoadMonth: 'இந்த மாதத்தின் பதிவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
         msgPdf: 'PDF உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.'
       },
       hi: {
         locale: 'hi-IN',
         months: ['जन॰', 'फ़र॰', 'मार्च', 'अप्रैल', 'मई', 'जून', 'जुल॰', 'अग॰', 'सित॰', 'अक्टू॰', 'नव॰', 'दिस॰'],
-        brandSlogan: 'निर्बाध और सुरक्षित मानव संसाधन समाधानों के साथ हमारे कर्मचारियों को सशक्त बनाना।',
+        brandPoint1: 'निर्बाध और सुरक्षित मानव संसाधन समाधानों के साथ हमारे कर्मचारियों को सशक्त बनाना।',
+        brandPoint2: 'पारदर्शिता, विकास और तकनीकी उत्कृष्टता की संस्कृति को बढ़ावा देना।',
+        brandPoint3: 'हमारे साथ आपकी व्यावसायिक यात्रा को और बेहतर बनाने के लिए प्रतिबद्ध।',
         greetingMorning: 'सुप्रभात',
         greetingAfternoon: 'शुभ दोपहर',
         greetingEvening: 'शुभ संध्या',
@@ -1085,7 +1217,8 @@
         portalSubtitle: 'अपनी उपस्थिति और विवरण देखने के लिए अपना कर्मचारी ID दर्ज करें।',
         employeeId: 'कर्मचारी ID',
         password: 'पासवर्ड',
-        passwordHint: 'संकेत: आपके नाम के पहले 4 अक्षर + जन्म वर्ष (उदा: SIVA1995, ARUN1992)',
+        hintLine1: 'संकेत: आपके नाम के पहले 4 अक्षर + जन्म वर्ष।',
+        hintLine2: '(उदा: <span class="hint-highlight">SIVA1995</span> | 3 अक्षर: <span class="hint-highlight">RAM1992</span> | Initial: <span class="hint-highlight">MSIV1990</span>)',
         viewProfile: 'जारी रखें',
         validId: 'सत्यापित',
         invalidId: 'अमान्य',
@@ -1150,16 +1283,16 @@
         percentBasis: 'अपडेट किए गए दिनों के आधार पर',
         updatedUpTo: 'यहाँ तक अपडेट',
         notUpdatedYet: 'अभी अपडेट नहीं हुआ',
-        pendingNote: '"जल्द" चिह्नित दिनों की उपस्थिति प्रक्रिया में है और अपडेट होते ही यहाँ दिखाई देगी। आज की उपस्थिति दिन पूरा होने के बाद जोड़ी जाएगी। आपके धैर्य के लिए धन्यवाद।',
-        noRecordNote: '"रिकॉर्ड नहीं" चिह्नित दिनों के लिए आपकी उपस्थिति दर्ज नहीं है। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgCycleMismatch: 'इस उपस्थिति फ़ाइल की तारीखें इस अवधि से मेल नहीं खातीं। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgFileProtocol: 'इस पेज को वेब सर्वर (होस्टिंग) से खोलें। कंप्यूटर की फ़ाइल के रूप में खोलने पर डेटा पढ़ा नहीं जा सकता।',
-        msgIdColumn: 'Master Data फ़ाइल में कर्मचारी ID कॉलम नहीं मिला। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgFileNotFound: 'Master Data फ़ाइल नहीं मिली। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgEmptyBook: 'Master Data फ़ाइल खाली है। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgSystem: 'सिस्टम में त्रुटि। डेटा लोड नहीं हो सका। कृपया फिर से प्रयास करें।',
-        msgNoPassword: 'आपका नाम या जन्म तिथि उपलब्ध न होने से पासवर्ड नहीं बन सका। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgLoadMonth: 'इस महीने का डेटा लोड नहीं हो सका। कृपया फिर से प्रयास करें।',
+        pendingNote: '"जल्द" चिह्नित दिनों की उपस्थिति प्रक्रिया में है। आज की उपस्थिति दिन पूरा होने के बाद जोड़ी जाएगी।',
+        noRecordNote: '"रिकॉर्ड नहीं" चिह्नित दिनों के लिए आपकी उपस्थिति दर्ज नहीं है। कृपया HR से संपर्क करें।',
+        msgCycleMismatch: 'इस उपस्थिति फ़ाइल की तारीखें इस अवधि से मेल नहीं खातीं।',
+        msgFileProtocol: 'इस पेज को वेब सर्वर से खोलें।',
+        msgIdColumn: 'Master Data फ़ाइल में कर्मचारी ID कॉलम नहीं मिला।',
+        msgFileNotFound: 'Master Data फ़ाइल नहीं मिली।',
+        msgEmptyBook: 'Master Data फ़ाइल खाली है।',
+        msgSystem: 'सिस्टम में त्रुटि। डेटा लोड नहीं हो सका।',
+        msgNoPassword: 'आपका नाम या जन्म तिथि उपलब्ध न होने से पासवर्ड नहीं बन सका।',
+        msgLoadMonth: 'इस महीने का डेटा लोड नहीं हो सका।',
         msgPdf: 'PDF नहीं बन सका। कृपया फिर से प्रयास करें।'
       }
     };
@@ -1171,9 +1304,6 @@
       return (key in pack) ? pack[key] : (I18N.en[key] || key);
     }
 
-    // ============================================================
-    // Column names (matched after removing spaces, symbols and capitals)
-    // ============================================================
     const COLS = {
       id:      ['epmlid', 'useremployeeid', 'employeeid', 'empid', 'userid', 'employeecode'],
       name:    ['empname', 'displayname', 'employeename', 'name'],
@@ -1194,7 +1324,6 @@
       serial:  ['sln0', 'slno', 'sno', 'serialnumber', 'srno']
     };
 
-    // Attendance codes (capital letters)
     const CODE_PRESENT    = ['PP', 'P', 'PRESENT'];
     const CODE_ABSENT     = ['AA', 'A', 'ABSENT'];
     const CODE_HALF       = ['HD', 'HALFDAY', 'HALF DAY', 'PA', 'AP'];
@@ -1204,11 +1333,8 @@
     const CODE_OFF        = ['OFF'];
     const ALL_CODES = [].concat(CODE_PRESENT, CODE_ABSENT, CODE_HALF, CODE_LEAVE, CODE_WEEKLY_OFF, CODE_HOLIDAY, CODE_OFF);
 
-    // ============================================================
-    // State
-    // ============================================================
-    let currentData = null;          // set only after a successful login
-    let pendingEmployee = null;      // ID verified, waiting for the password
+    let currentData = null;
+    let pendingEmployee = null;
     let expectedPassword = '';
     let currentLoginMessage = null;
     let currentAccountFull = '';
@@ -1219,32 +1345,20 @@
     let cachedMasterData = null;
     let masterLoadedAt = 0;
     let masterError = null;
-    let availableMonths = [];        // cycle names, newest first (the current cycle is always included)
-    let existingCycles = new Set();  // cycle names that have an Excel file
+    let availableMonths = [];
+    let existingCycles = new Set();
     let preloadPromise = null;
     const monthCache = new Map();
 
-    let idState = null;              // null | 'checking' | 'valid' | 'invalid'
-    let pwdState = null;             // null | 'valid' | 'invalid'
+    let idState = null;
+    let pwdState = null;
     let lastCheckedId = '';
     let validationSeq = 0;
     let typingTimer = null;
 
-    // ============================================================
-    // Small helpers
-    // ============================================================
-    function sleep(ms) {
-      return new Promise(function (resolve) { setTimeout(resolve, ms); });
-    }
-
-    function isDateObject(v) {
-      return Object.prototype.toString.call(v) === '[object Date]';
-    }
-
-    function normKey(k) {
-      return String(k).toLowerCase().replace(/[^a-z0-9]/g, '');
-    }
-
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    function isDateObject(v) { return Object.prototype.toString.call(v) === '[object Date]'; }
+    function normKey(k) { return String(k).toLowerCase().replace(/[^a-z0-9]/g, ''); }
     function buildKeyMap(row) {
       const map = {};
       for (const key in row) {
@@ -1253,7 +1367,6 @@
       }
       return map;
     }
-
     function getField(row, keyMap, aliases) {
       if (!row || !keyMap) return '';
       for (const alias of aliases) {
@@ -1264,29 +1377,21 @@
       }
       return '';
     }
-
     function isInfoColumn(key) {
       const nk = normKey(key);
-      for (const group in COLS) {
-        if (COLS[group].includes(nk)) return true;
-      }
+      for (const group in COLS) { if (COLS[group].includes(nk)) return true; }
       return false;
     }
-
     function formatDate(d) {
-      // Small shift avoids Excel rounding showing the previous day
       const x = new Date(d.getTime() + 60000);
       const dd = String(x.getDate()).padStart(2, '0');
       return dd + '-' + t('months')[x.getMonth()] + '-' + x.getFullYear();
     }
-
     function formatValue(v) {
       if (v === null || v === undefined) return '';
       if (isDateObject(v)) return isNaN(v.getTime()) ? '' : formatDate(v);
       return String(v).trim();
     }
-
-    // Column headers that are Excel serial numbers (for example 45678) become dates
     function formatHeader(key) {
       const k = String(key).trim();
       if (/^\d{5}$/.test(k)) {
@@ -1298,25 +1403,17 @@
       }
       return k;
     }
-
-    function fmtNum(n) {
-      return Number.isInteger(n) ? String(n) : n.toFixed(1);
-    }
-
+    function fmtNum(n) { return Number.isInteger(n) ? String(n) : n.toFixed(1); }
     function setText(id, value) {
       const v = (value === '' || value === null || value === undefined) ? '---' : value;
       document.getElementById(id).textContent = v;
     }
-
-    // Finds one employee in a list of rows. The ID column is detected once.
     function findRecord(rows, empId) {
       const result = { record: null, keyMap: null, idColumnFound: false };
       if (!rows || !rows.length) return result;
       const firstMap = buildKeyMap(rows[0]);
       let idKey = null;
-      for (const alias of COLS.id) {
-        if (alias in firstMap) { idKey = firstMap[alias]; break; }
-      }
+      for (const alias of COLS.id) { if (alias in firstMap) { idKey = firstMap[alias]; break; } }
       if (idKey === null) return result;
       result.idColumnFound = true;
       for (let i = 0; i < rows.length; i++) {
@@ -1329,8 +1426,6 @@
       }
       return result;
     }
-
-    // Password = first 4 letters of the name + 4-digit birth year (empty text if it cannot be made)
     function extractYear(dobRaw) {
       if (isDateObject(dobRaw)) {
         return isNaN(dobRaw.getTime()) ? '' : String(new Date(dobRaw.getTime() + 60000).getFullYear());
@@ -1346,12 +1441,9 @@
       if (y4) return y4[0];
       const parts = str.split(/[-/.\s]+/);
       const last = parts[parts.length - 1];
-      if (last && /^\d{2}$/.test(last)) {
-        return (parseInt(last, 10) > 50 ? '19' : '20') + last;
-      }
+      if (last && /^\d{2}$/.test(last)) { return (parseInt(last, 10) > 50 ? '19' : '20') + last; }
       return '';
     }
-
     function calculatePassword(nameRaw, dobRaw) {
       const namePart = String(nameRaw).toUpperCase().replace(/[\s.\-_'’`,()]/g, '').substring(0, 4);
       const yearPart = extractYear(dobRaw);
@@ -1359,9 +1451,6 @@
       return namePart + yearPart;
     }
 
-    // ============================================================
-    // Data loading
-    // ============================================================
     async function loadMasterData() {
       try {
         const response = await fetch(MASTER_FILE + '?v=' + Date.now(), { cache: 'no-store' });
@@ -1378,60 +1467,45 @@
         masterError = 'msgSystem';
       }
     }
-
-    // True only when a real file exists (not a web page returned for a missing file)
     async function fileExists(url) {
       try {
         let res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
-        if (res.status === 405 || res.status === 501) {
-          res = await fetch(url, { cache: 'no-store' });
-        }
+        if (res.status === 405 || res.status === 501) { res = await fetch(url, { cache: 'no-store' }); }
         if (!res.ok) return false;
         const type = (res.headers.get('content-type') || '').toLowerCase();
         return type.indexOf('text/html') === -1;
-      } catch (e) {
-        return false;
-      }
+      } catch (e) { return false; }
     }
 
-    // ------------------------------------------------------------
-    // Attendance cycles (21st to 20th). A cycle is named after the month it starts in:
-    // Oct-2026.xlsx = 21 Oct 2026 to 20 Nov 2026
-    // ------------------------------------------------------------
     const MONTH_LOOKUP = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
     const CLOCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline></svg>';
 
     function pad2(n) { return String(n).padStart(2, '0'); }
-    function makeYmd(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }   // m = 0..11
+    function makeYmd(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }
     function ymdParts(ymd) { const p = ymd.split('-'); return { y: +p[0], m: +p[1] - 1, d: +p[2] }; }
     function validYmd(y, m, d) {
       const c = new Date(y, m, d);
       return c.getFullYear() === y && c.getMonth() === m && c.getDate() === d;
     }
-    function daysBetween(a, b) {   // b minus a, in days
+    function daysBetween(a, b) {
       const pa = ymdParts(a), pb = ymdParts(b);
       return Math.round((Date.UTC(pb.y, pb.m, pb.d) - Date.UTC(pa.y, pa.m, pa.d)) / 86400000);
     }
-
-    // Today in India (IST), so a wrong phone date or time zone does not change the result
     function getTodayYmd() {
       try {
         const s = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
         if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-      } catch (e) { /* use the device date below */ }
+      } catch (e) {}
       const n = new Date();
       return makeYmd(n.getFullYear(), n.getMonth(), n.getDate());
     }
-
     function cycleKey(y, m) { return ENG_MONTHS[m] + '-' + y; }
-
     function currentCycleStart() {
       const p = ymdParts(getTodayYmd());
       let y = p.y, m = p.m;
       if (p.d < CYCLE_START_DAY) { m--; if (m < 0) { m = 11; y--; } }
       return { y: y, m: m };
     }
-
     function cycleInfo(cycleStr) {
       const parts = cycleStr.split('-');
       const sm = ENG_MONTHS.indexOf(parts[0]);
@@ -1442,31 +1516,21 @@
       for (let cur = start; cur.getTime() <= end.getTime(); cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1)) {
         days.push({ ymd: makeYmd(cur.getFullYear(), cur.getMonth(), cur.getDate()), y: cur.getFullYear(), m: cur.getMonth(), d: cur.getDate() });
       }
-      return {
-        cycleStr: cycleStr, days: days,
-        startYmd: days[0].ymd, endYmd: days[days.length - 1].ymd,
-        startMonth: sm, startYear: sy, endMonth: end.getMonth(), endYear: end.getFullYear()
-      };
+      return { cycleStr: cycleStr, days: days, startYmd: days[0].ymd, endYmd: days[days.length - 1].ymd, startMonth: sm, startYear: sy, endMonth: end.getMonth(), endYear: end.getFullYear() };
     }
-
-    // Example: "21 Oct – 20 Nov" (or with years when withYear is true)
     function cycleLabel(cycleStr, withYear) {
       const c = cycleInfo(cycleStr);
       const first = c.days[0], last = c.days[c.days.length - 1];
       const months = t('months');
-      return first.d + ' ' + months[first.m] + (withYear ? ' ' + first.y : '') + ' \u2013 ' +
-             last.d + ' ' + months[last.m] + (withYear ? ' ' + last.y : '');
+      return first.d + ' ' + months[first.m] + (withYear ? ' ' + first.y : '') + ' \u2013 ' + last.d + ' ' + months[last.m] + (withYear ? ' ' + last.y : '');
     }
-
     function inCycleRange(ymd, cycle) { return ymd >= cycle.startYmd && ymd <= cycle.endYmd; }
-
     function dayNumberToYmd(day, cycle) {
       let y = cycle.startYear, m = cycle.startMonth;
       if (CYCLE_START_DAY > 1 && day < CYCLE_START_DAY) { m = cycle.endMonth; y = cycle.endYear; }
       if (!validYmd(y, m, day)) return '';
       return makeYmd(y, m, day);
     }
-
     function yearCandidates(yearText, month, day, cycle) {
       if (yearText) {
         let y = +yearText;
@@ -1475,14 +1539,10 @@
       }
       return [[cycle.startYear, month, day], [cycle.endYear, month, day]];
     }
-
-    // Reads a column header and tells which date of this cycle it is.
-    // Works for: 21 / 5 (day numbers), 45678 (Excel date number), 2026-10-21, 21-Oct, 21-Oct-2026, Oct 21, 21/10/2026, 10/21/26
     function parseHeaderDate(key, cycle) {
       const k = String(key).trim();
       const none = { ymd: '', outside: false };
       if (!k) return none;
-
       function result(candidates) {
         let outside = false;
         for (let i = 0; i < candidates.length; i++) {
@@ -1494,7 +1554,6 @@
         }
         return { ymd: '', outside: outside };
       }
-
       let m;
       if (/^\d{1,2}$/.test(k)) {
         const day = parseInt(k, 10);
@@ -1509,9 +1568,7 @@
         }
         return none;
       }
-      if ((m = k.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) {
-        return result([[+m[1], +m[2] - 1, +m[3]]]);
-      }
+      if ((m = k.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) { return result([[+m[1], +m[2] - 1, +m[3]]]); }
       if ((m = k.match(/^(\d{1,2})[\s\-\/.]*([A-Za-z]{3})[A-Za-z]*\.?(?:[\s\-\/.,]*(\d{2,4}))?/)) && m[2].toLowerCase() in MONTH_LOOKUP) {
         return result(yearCandidates(m[3], MONTH_LOOKUP[m[2].toLowerCase()], +m[1], cycle));
       }
@@ -1521,20 +1578,15 @@
       if ((m = k.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))) {
         let y = +m[3];
         if (m[3].length === 2) y += 2000;
-        return result([[y, +m[2] - 1, +m[1]], [y, +m[1] - 1, +m[2]]]);   // day-first, then month-first
+        return result([[y, +m[2] - 1, +m[1]], [y, +m[1] - 1, +m[2]]]); 
       }
       if ((m = k.match(/^(\d{1,2})[-\/.](\d{1,2})$/))) {
         const list = [];
-        [cycle.startYear, cycle.endYear].forEach(function (yr) {
-          list.push([yr, +m[2] - 1, +m[1]]);
-          list.push([yr, +m[1] - 1, +m[2]]);
-        });
+        [cycle.startYear, cycle.endYear].forEach(yr => { list.push([yr, +m[2] - 1, +m[1]]); list.push([yr, +m[1] - 1, +m[2]]); });
         return result(list);
       }
       return none;
     }
-
-    // Any date value from Excel (date cell, Excel number or text like 05-01-2020) to YYYY-MM-DD
     function rawToYmd(raw) {
       if (raw === '' || raw === null || raw === undefined) return '';
       if (isDateObject(raw)) {
@@ -1549,9 +1601,7 @@
       const str = String(raw).trim();
       if (/^\d{5}$/.test(str)) return rawToYmd(Number(str));
       let m;
-      if ((m = str.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) {
-        return validYmd(+m[1], +m[2] - 1, +m[3]) ? makeYmd(+m[1], +m[2] - 1, +m[3]) : '';
-      }
+      if ((m = str.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) { return validYmd(+m[1], +m[2] - 1, +m[3]) ? makeYmd(+m[1], +m[2] - 1, +m[3]) : ''; }
       if ((m = str.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))) {
         let y = +m[3];
         if (m[3].length === 2) y += 2000;
@@ -1565,13 +1615,10 @@
       }
       return '';
     }
-
     function hasAttendanceValue(v) {
       const s = formatValue(v);
       return s !== '' && s !== '-';
     }
-
-    // Which Excel column belongs to which date, and which dates HR has already filled for anybody
     function buildCycleColumns(rows, cycle) {
       const dateKey = new Map();
       let outsideCount = 0;
@@ -1590,11 +1637,7 @@
       });
       return { dateKey: dateKey, updated: updated, mismatch: dateKey.size === 0 && outsideCount > 0 };
     }
-
-    function emptyCycleData(failed) {
-      return { rows: [], hasFile: false, dateKey: new Map(), updated: new Set(), mismatch: false, failed: !!failed };
-    }
-
+    function emptyCycleData(failed) { return { rows: [], hasFile: false, dateKey: new Map(), updated: new Set(), mismatch: false, failed: !!failed }; }
     async function probeAttendanceMonths() {
       const cur = currentCycleStart();
       const names = [];
@@ -1606,26 +1649,19 @@
         if (m < 0) { m = 11; y--; }
       }
       const found = new Set();
-      await Promise.all(names.map(async function (name) {
-        if (await fileExists(ATTENDANCE_FOLDER + name + '.xlsx')) found.add(name);
-      }));
+      await Promise.all(names.map(async function (name) { if (await fileExists(ATTENDANCE_FOLDER + name + '.xlsx')) found.add(name); }));
       existingCycles = found;
-      // Newest first. The current cycle is always shown, even before its Excel file arrives.
       availableMonths = names.filter(function (name, i) { return i === 0 || found.has(name); });
     }
-
     function preloadSystemData() {
       if (preloadPromise) return preloadPromise;
       preloadPromise = (async function () {
         masterError = null;
         if (location.protocol === 'file:') { masterError = 'msgFileProtocol'; return; }
         await Promise.all([loadMasterData(), probeAttendanceMonths()]);
-      })().then(function () {
-        if (!cachedMasterData) preloadPromise = null;   // allow a retry next time
-      });
+      })().then(function () { if (!cachedMasterData) preloadPromise = null; });
       return preloadPromise;
     }
-
     async function getCycleData(cycleStr) {
       if (monthCache.has(cycleStr)) return monthCache.get(cycleStr);
       const cycle = cycleInfo(cycleStr);
@@ -1645,29 +1681,21 @@
       monthCache.set(cycleStr, data);
       return data;
     }
-
-    // ============================================================
-    // Language, greeting and background animation
-    // ============================================================
     function updateDynamicGreeting() {
       const hour = new Date().getHours();
       let greetKey = 'greetingNight';
       let timeClass = 'night';
-
       if (hour >= 5 && hour < 12) { greetKey = 'greetingMorning'; timeClass = 'morning'; }
       else if (hour >= 12 && hour < 17) { greetKey = 'greetingAfternoon'; timeClass = 'afternoon'; }
       else if (hour >= 17 && hour < 20) { greetKey = 'greetingEvening'; timeClass = 'evening'; }
-
       document.getElementById('dynamicGreeting').textContent = t(greetKey);
-
       const container = document.getElementById('celestialContainer');
-      if (container.getAttribute('data-time') === timeClass) return;   // already drawn
+      if (container.getAttribute('data-time') === timeClass) return;
       container.setAttribute('data-time', timeClass);
       container.textContent = '';
       const orb = document.createElement('div');
       orb.className = 'celestial-orb orb-' + timeClass;
       container.appendChild(orb);
-
       if (timeClass === 'night') {
         for (let i = 0; i < 30; i++) {
           const star = document.createElement('div');
@@ -1682,13 +1710,10 @@
         }
       }
     }
-
     function applyStaticTranslations() {
       document.documentElement.lang = currentLang;
-
-      document.querySelectorAll('[data-i18n]').forEach(function (el) {
-        el.textContent = t(el.getAttribute('data-i18n'));
-      });
+      document.querySelectorAll('[data-i18n]').forEach(function (el) { el.innerHTML = t(el.getAttribute('data-i18n')); });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(function (el) { el.setAttribute('placeholder', t(el.getAttribute('data-i18n-placeholder'))); });
       document.querySelectorAll('[data-i18n-title]').forEach(function (el) {
         const txt = t(el.getAttribute('data-i18n-title'));
         el.setAttribute('title', txt);
@@ -1699,87 +1724,56 @@
         btn.classList.toggle('active', active);
         btn.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
-
       setDate();
       updateDynamicGreeting();
       renderInputStatuses();
-
       if (currentLoginMessage) setLoginMessage(currentLoginMessage.key, currentLoginMessage.type);
-
       const toggleBtn = document.getElementById('toggleAccBtn');
       if (toggleBtn) toggleBtn.textContent = accountVisible ? t('hideAcc') : t('showAcc');
-
-      if (currentData) {
-        renderMonthTabs();
-        renderDashboard();
-      }
+      if (currentData) { renderMonthTabs(); renderDashboard(); }
     }
-
     function setLanguage(lang) {
       if (!I18N[lang]) lang = 'en';
       currentLang = lang;
-      try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch (e) { /* storage not available */ }
+      try { localStorage.setItem(LANG_STORAGE_KEY, lang); } catch (e) {}
       applyStaticTranslations();
     }
-
     function loadSavedLanguage() {
       let saved = 'en';
-      try { saved = localStorage.getItem(LANG_STORAGE_KEY) || 'en'; } catch (e) { /* ignore */ }
+      try { saved = localStorage.getItem(LANG_STORAGE_KEY) || 'en'; } catch (e) {}
       currentLang = I18N[saved] ? saved : 'en';
     }
-
     document.querySelectorAll('.lang-btn').forEach(function (btn) {
       btn.addEventListener('click', function () {
         const lang = btn.getAttribute('data-lang');
         if (lang !== currentLang) setLanguage(lang);
       });
     });
-
     function setLoginMessage(key, type) {
       const el = document.getElementById('loginError');
       currentLoginMessage = key ? { key: key, type: type } : null;
       el.textContent = key ? t(key) : '';
       el.className = type || 'info';
     }
-
     function setDate() {
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       let text;
-      try {
-        text = new Date().toLocaleDateString(t('locale'), options);
-      } catch (e) {
-        text = new Date().toLocaleDateString('en-US', options);
-      }
+      try { text = new Date().toLocaleDateString(t('locale'), options); } catch (e) { text = new Date().toLocaleDateString('en-US', options); }
       document.getElementById('currentDate').textContent = text;
     }
-
-    // ============================================================
-    // Pop-ups
-    // ============================================================
     function openStaffModal() { document.getElementById('staffModal').style.display = 'flex'; }
     function closeStaffModal() { document.getElementById('staffModal').style.display = 'none'; }
     function overlayClick(e) { if (e.target.id === 'staffModal') closeStaffModal(); }
     function openPdfChoice() { document.getElementById('pdfModal').style.display = 'flex'; }
     function closePdfChoice() { document.getElementById('pdfModal').style.display = 'none'; }
     function pdfOverlayClick(e) { if (e.target.id === 'pdfModal') closePdfChoice(); }
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { closeStaffModal(); closePdfChoice(); }
-    });
-
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeStaffModal(); closePdfChoice(); } });
     function toggleAccount() {
       accountVisible = !accountVisible;
       document.getElementById('modalAccNo').textContent = accountVisible ? currentAccountFull : currentAccountMasked;
       document.getElementById('toggleAccBtn').textContent = accountVisible ? t('hideAcc') : t('showAcc');
     }
-
-    // ============================================================
-    // Copy buttons
-    // ============================================================
-    const COPY_ICON =
-      '<svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' +
-      '<svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-
+    const COPY_ICON = '<svg class="ic-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><svg class="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
     function getCopyText(btn) {
       const src = btn.getAttribute('data-copy');
       if (src === 'account') return currentAccountFull;
@@ -1787,13 +1781,9 @@
       const txt = el ? el.textContent.trim() : '';
       return txt === '---' ? '' : txt;
     }
-
     function updateCopyButtons() {
-      document.querySelectorAll('.copy-btn').forEach(function (btn) {
-        btn.style.display = getCopyText(btn) ? 'inline-flex' : 'none';
-      });
+      document.querySelectorAll('.copy-btn').forEach(function (btn) { btn.style.display = getCopyText(btn) ? 'inline-flex' : 'none'; });
     }
-
     function fallbackCopy(text) {
       const ta = document.createElement('textarea');
       ta.value = text;
@@ -1807,17 +1797,15 @@
       document.body.removeChild(ta);
       return ok;
     }
-
     async function copyText(text) {
       try {
         if (navigator.clipboard && window.isSecureContext) {
           await navigator.clipboard.writeText(text);
           return true;
         }
-      } catch (e) { /* use fallback below */ }
+      } catch (e) {}
       return fallbackCopy(text);
     }
-
     document.querySelectorAll('.copy-btn').forEach(function (btn) {
       btn.innerHTML = COPY_ICON;
       btn.addEventListener('click', async function () {
@@ -1835,10 +1823,6 @@
         }, 1500);
       });
     });
-
-    // ============================================================
-    // Loading screen
-    // ============================================================
     function showLoadingOverlay() {
       document.getElementById('loadingWelcome').classList.remove('in');
       document.getElementById('loadingName').textContent = '';
@@ -1848,37 +1832,39 @@
       document.getElementById('loadingName').textContent = name;
       document.getElementById('loadingWelcome').classList.add('in');
     }
-    function hideLoadingOverlay() {
-      document.getElementById('loadingOverlay').classList.remove('show');
-    }
+    function hideLoadingOverlay() { document.getElementById('loadingOverlay').classList.remove('show'); }
 
-    // ============================================================
-    // Login: Employee ID check, then password check
-    // ============================================================
     const empIdInput = document.getElementById('empId');
     const idStatus = document.getElementById('idStatus');
     const pwdGroup = document.getElementById('pwdGroup');
     const empPwdInput = document.getElementById('empPwd');
     const pwdStatus = document.getElementById('pwdStatus');
     const continueBtn = document.getElementById('continueBtn');
+    
+    // Toggle Password Visibility
+    const togglePwdBtn = document.getElementById('togglePwdBtn');
+    const eyeIconShow = document.getElementById('eyeIconShow');
+    const eyeIconHide = document.getElementById('eyeIconHide');
+    togglePwdBtn.addEventListener('click', function() {
+      if (empPwdInput.type === 'password') {
+        empPwdInput.type = 'text';
+        eyeIconShow.style.display = 'none';
+        eyeIconHide.style.display = 'block';
+      } else {
+        empPwdInput.type = 'password';
+        eyeIconShow.style.display = 'block';
+        eyeIconHide.style.display = 'none';
+      }
+    });
 
     function renderStatus(el, state) {
-      if (!state) {
-        el.className = 'input-status';
-        el.textContent = '';
-        return;
-      }
+      if (!state) { el.className = 'input-status'; el.textContent = ''; return; }
       const icons = { checking: '\u23F3 ', valid: '\u2714 ', invalid: '\u2716 ' };
       const keys = { checking: 'checking', valid: 'validId', invalid: 'invalidId' };
       el.className = 'input-status ' + state + ' show';
       el.textContent = icons[state] + t(keys[state]);
     }
-
-    function renderInputStatuses() {
-      renderStatus(idStatus, idState);
-      renderStatus(pwdStatus, pwdState);
-    }
-
+    function renderInputStatuses() { renderStatus(idStatus, idState); renderStatus(pwdStatus, pwdState); }
     function hidePasswordStep() {
       pwdGroup.style.display = 'none';
       empPwdInput.value = '';
@@ -1887,85 +1873,53 @@
       pendingEmployee = null;
       continueBtn.classList.remove('show-btn');
     }
-
     async function validateId() {
       const id = empIdInput.value.trim().toUpperCase();
       if (!id) return;
       if (id === lastCheckedId && (idState === 'valid' || idState === 'invalid')) return;
-
       const seq = ++validationSeq;
       idState = 'checking';
       hidePasswordStep();
       renderInputStatuses();
       setLoginMessage(null, 'info');
-
-      // Re-read the master file if it is old
-      if (cachedMasterData && Date.now() - masterLoadedAt > MASTER_TTL_MS) {
-        cachedMasterData = null;
-        preloadPromise = null;
-      }
+      if (cachedMasterData && Date.now() - masterLoadedAt > MASTER_TTL_MS) { cachedMasterData = null; preloadPromise = null; }
       await preloadSystemData();
-      if (seq !== validationSeq) return;   // a newer check has started
-
-      if (!cachedMasterData) {
-        idState = null;
-        renderInputStatuses();
-        setLoginMessage(masterError || 'msgSystem', 'error');
-        return;
-      }
-
+      if (seq !== validationSeq) return;
+      if (!cachedMasterData) { idState = null; renderInputStatuses(); setLoginMessage(masterError || 'msgSystem', 'error'); return; }
       const found = findRecord(cachedMasterData, id);
       lastCheckedId = id;
-
-      if (!found.idColumnFound) {
-        idState = null;
-        renderInputStatuses();
-        setLoginMessage('msgIdColumn', 'error');
-        return;
-      }
-      if (!found.record) {
-        idState = 'invalid';
-        renderInputStatuses();
-        return;
-      }
-
+      if (!found.idColumnFound) { idState = null; renderInputStatuses(); setLoginMessage('msgIdColumn', 'error'); return; }
+      if (!found.record) { idState = 'invalid'; renderInputStatuses(); return; }
       const nameRaw = getField(found.record, found.keyMap, COLS.name);
       const dobRaw = getField(found.record, found.keyMap, COLS.dob);
       const password = calculatePassword(nameRaw, dobRaw);
-
-      if (!password) {
-        idState = null;
-        lastCheckedId = '';
-        renderInputStatuses();
-        setLoginMessage('msgNoPassword', 'error');
-        return;
-      }
-
+      if (!password) { idState = null; lastCheckedId = ''; renderInputStatuses(); setLoginMessage('msgNoPassword', 'error'); return; }
       expectedPassword = password;
       pendingEmployee = { masterRow: found.record, masterKeyMap: found.keyMap, empId: id };
       idState = 'valid';
+      
+      // Update Hint dynamically
+      document.getElementById('pwdHintBlock').innerHTML = 
+        `<span data-i18n="hintLine1">${t('hintLine1')}</span><br>
+         <span data-i18n="hintLine2">${t('hintLine2')}</span>`;
+      
       pwdGroup.style.display = 'block';
       renderInputStatuses();
     }
-
     empIdInput.addEventListener('input', function () {
       clearTimeout(typingTimer);
-      validationSeq++;               // cancel any check that is still running
+      validationSeq++;
       lastCheckedId = '';
       idState = null;
       hidePasswordStep();
       renderInputStatuses();
       setLoginMessage(null, 'info');
-      if (this.value.trim()) {
-        typingTimer = setTimeout(validateId, ID_CHECK_DELAY_MS);
-      }
+      if (this.value.trim()) { typingTimer = setTimeout(validateId, ID_CHECK_DELAY_MS); }
     });
-
     empIdInput.addEventListener('blur', function () {
       clearTimeout(typingTimer);
       if (this.value.trim() && pwdGroup.style.display === 'none') validateId();
     });
-
     empIdInput.addEventListener('keydown', async function (e) {
       if (e.key !== 'Enter') return;
       e.preventDefault();
@@ -1973,101 +1927,58 @@
       await validateId();
       if (pwdGroup.style.display === 'block') empPwdInput.focus();
     });
-
     empPwdInput.addEventListener('input', function () {
-      idState = null;                // the ID tick fades out while the password is typed
+      idState = null;
       renderStatus(idStatus, null);
       continueBtn.classList.remove('show-btn');
-
       const pwd = this.value.trim().toUpperCase();
-      if (!pwd || !expectedPassword) {
-        pwdState = null;
-      } else if (pwd === expectedPassword) {
-        pwdState = 'valid';
-        continueBtn.classList.add('show-btn');
-      } else if (pwd.length >= expectedPassword.length) {
-        pwdState = 'invalid';
-      } else {
-        pwdState = null;
-      }
+      if (!pwd || !expectedPassword) { pwdState = null; }
+      else if (pwd === expectedPassword) { pwdState = 'valid'; continueBtn.classList.add('show-btn'); }
+      else if (pwd.length >= expectedPassword.length) { pwdState = 'invalid'; }
+      else { pwdState = null; }
       renderStatus(pwdStatus, pwdState);
     });
-
     empPwdInput.addEventListener('keydown', function (e) {
       if (e.key !== 'Enter') return;
       e.preventDefault();
       if (continueBtn.classList.contains('show-btn')) executeLogin();
     });
-
     async function executeLogin() {
       if (loginBusy || !pendingEmployee) return;
       if (empPwdInput.value.trim().toUpperCase() !== expectedPassword) return;
-
       loginBusy = true;
       continueBtn.disabled = true;
       setLoginMessage(null, 'info');
       const startedAt = Date.now();
       let success = false;
       showLoadingOverlay();
-
       try {
-        const data = {
-          masterRow: pendingEmployee.masterRow,
-          masterKeyMap: pendingEmployee.masterKeyMap,
-          empId: pendingEmployee.empId,
-          attRow: null,
-          attKeyMap: null,
-          cycleData: null,
-          currentMonth: null
-        };
-
+        const data = { masterRow: pendingEmployee.masterRow, masterKeyMap: pendingEmployee.masterKeyMap, empId: pendingEmployee.empId, attRow: null, attKeyMap: null, cycleData: null, currentMonth: null };
         if (availableMonths.length === 0) await probeAttendanceMonths();
-
-        data.currentMonth = availableMonths[0];   // the current cycle
+        data.currentMonth = availableMonths[0];
         try {
           data.cycleData = await getCycleData(data.currentMonth);
           const found = findRecord(data.cycleData.rows, data.empId);
           data.attRow = found.record;
           data.attKeyMap = found.keyMap;
-        } catch (e) {
-          console.error('Attendance could not be loaded', e);
-          data.cycleData = emptyCycleData(true);
-        }
-
+        } catch (e) { data.cycleData = emptyCycleData(true); }
         currentData = data;
         showLoadingName(pick('name') || 'Employee');
         const waitMore = LOADING_MIN_MS - (Date.now() - startedAt);
         if (waitMore > 0) await sleep(waitMore);
-
         showDashboard();
         hideLoadingOverlay();
         success = true;
-        // The password is not needed any more
         expectedPassword = '';
         empPwdInput.value = '';
-      } catch (error) {
-        console.error(error);
-        currentData = null;
-        setLoginMessage('msgSystem', 'error');
-      } finally {
-        if (!success) hideLoadingOverlay();
-        loginBusy = false;
-        continueBtn.disabled = false;
-      }
+      } catch (error) { currentData = null; setLoginMessage('msgSystem', 'error'); } 
+      finally { if (!success) hideLoadingOverlay(); loginBusy = false; continueBtn.disabled = false; }
     }
-
-    // ============================================================
-    // Cycle tabs
-    // ============================================================
     function renderMonthTabs() {
       const container = document.getElementById('monthTabsContainer');
       container.textContent = '';
-      if (!currentData || availableMonths.length <= 1) {
-        container.style.display = 'none';
-        return;
-      }
+      if (!currentData || availableMonths.length <= 1) { container.style.display = 'none'; return; }
       container.style.display = 'flex';
-
       availableMonths.forEach(function (m) {
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -2078,25 +1989,21 @@
         container.appendChild(btn);
       });
     }
-
     async function loadSpecificMonth(monthStr) {
       const owner = currentData;
       if (!owner || owner.currentMonth === monthStr) return;
-
       document.querySelectorAll('.month-tab').forEach(function (b) { b.classList.remove('active'); });
       const tab = document.getElementById('tab-' + monthStr);
       if (tab) tab.classList.add('active');
-
       const grid = document.getElementById('calendarGrid');
       grid.textContent = '';
       const loadingNote = document.createElement('p');
       loadingNote.className = 'empty-note';
       loadingNote.textContent = t('checking');
       grid.appendChild(loadingNote);
-
       try {
         const cd = await getCycleData(monthStr);
-        if (currentData !== owner) return;   // logged out meanwhile
+        if (currentData !== owner) return;
         const found = findRecord(cd.rows, owner.empId);
         owner.currentMonth = monthStr;
         owner.cycleData = cd;
@@ -2110,13 +2017,9 @@
         err.className = 'empty-note';
         err.textContent = t('msgLoadMonth');
         grid.appendChild(err);
-        renderMonthTabs();   // restore the highlight on the cycle that is really shown
+        renderMonthTabs();
       }
     }
-
-    // ============================================================
-    // Dashboard
-    // ============================================================
     function pick(group) {
       const d = currentData;
       if (!d) return '';
@@ -2125,8 +2028,6 @@
       if (v === '' && d.attRow) v = getField(d.attRow, d.attKeyMap, COLS[group]);
       return formatValue(v);
     }
-
-    // Same as pick(), but returns the original Excel value (needed for dates)
     function pickRaw(group) {
       const d = currentData;
       if (!d) return '';
@@ -2135,7 +2036,6 @@
       if (v === '' && d.attRow) v = getField(d.attRow, d.attKeyMap, COLS[group]);
       return v;
     }
-
     function showDashboard() {
       document.getElementById('loginSection').style.display = 'none';
       document.getElementById('dashboardSection').style.display = 'block';
@@ -2145,11 +2045,9 @@
       renderDashboard();
       startSessionTimer();
     }
-
     function renderDashboard() {
       const d = currentData;
       if (!d) return;
-
       const empName = pick('name') || 'Employee';
       const doj     = pick('doj');
       const lwd     = pick('lwd');
@@ -2184,21 +2082,15 @@
       setText('modalBankName', bank);
       setText('modalIfsc', ifsc);
 
-      // Status: an LWD means Resigned; otherwise the Status column is used
       let statusKey = null;
       let statusShown = statusRaw;
-      if (lwd && lwd !== '-') {
-        statusKey = 'resigned';
-      } else {
+      if (lwd && lwd !== '-') { statusKey = 'resigned'; } 
+      else {
         const su = statusRaw.toUpperCase();
-        if (statusRaw === '' || ['ACTIVE', 'WORKING', 'CONTINUING'].includes(su)) {
-          statusKey = 'active';
-        } else if (['INACTIVE', 'IN-ACTIVE', 'IN ACTIVE'].includes(su)) {
-          statusKey = 'inactive';
-        }
+        if (statusRaw === '' || ['ACTIVE', 'WORKING', 'CONTINUING'].includes(su)) { statusKey = 'active'; } 
+        else if (['INACTIVE', 'IN-ACTIVE', 'IN ACTIVE'].includes(su)) { statusKey = 'inactive'; }
       }
       if (statusKey) statusShown = t(statusKey);
-
       const badgeClass = 'status-badge ' + (statusKey === 'active' ? 'status-active' : 'status-inactive');
       const badge = document.getElementById('modalStatus');
       badge.textContent = statusShown;
@@ -2207,7 +2099,6 @@
       aboutBadge.textContent = statusShown;
       aboutBadge.className = badgeClass;
 
-      // Bank account: hidden by default except the last 4 digits
       currentAccountFull = account;
       currentAccountMasked = account.length > 4 ? '*'.repeat(account.length - 4) + account.slice(-4) : account;
       const toggleBtn = document.getElementById('toggleAccBtn');
@@ -2215,14 +2106,9 @@
         document.getElementById('modalAccNo').textContent = accountVisible ? currentAccountFull : currentAccountMasked;
         toggleBtn.style.display = 'inline-block';
         toggleBtn.textContent = accountVisible ? t('hideAcc') : t('showAcc');
-      } else {
-        document.getElementById('modalAccNo').textContent = '---';
-        toggleBtn.style.display = 'none';
-      }
-
+      } else { document.getElementById('modalAccNo').textContent = '---'; toggleBtn.style.display = 'none'; }
       updateCopyButtons();
 
-      // ---------- Attendance: the whole cycle is built as a template and filled from the Excel file ----------
       const cycle = cycleInfo(d.currentMonth);
       const cd = d.cycleData || emptyCycleData(false);
       const todayYmd = getTodayYmd();
@@ -2230,25 +2116,17 @@
       const lwdYmd = rawToYmd(pickRaw('lwd'));
       const oldCycle = daysBetween(cycle.endYmd, todayYmd) > OLD_CYCLE_DAYS;
       const months = t('months');
-
       const grid = document.getElementById('calendarGrid');
       grid.textContent = '';
-
       let cntPresent = 0, cntAbsent = 0, cntHalf = 0;
       let hasPending = false, hasNoRecord = false;
-
       cycle.days.forEach(function (day) {
         const key = cd.dateKey.get(day.ymd);
         const raw = (d.attRow && key !== undefined) ? d.attRow[key] : '';
         const val = formatValue(raw).toUpperCase();
         const hasValue = val !== '' && val !== '-';
         const isToday = day.ymd === todayYmd;
-
-        let cardClass = '';
-        let labelKey = '';
-        let statusText = val;
-        let showClock = false;
-
+        let cardClass = '', labelKey = '', statusText = val, showClock = false;
         if (hasValue) {
           if (CODE_PRESENT.includes(val))         { cardClass = 'present'; labelKey = 'lblPresent';   cntPresent++; }
           else if (CODE_ABSENT.includes(val))     { cardClass = 'absent';  labelKey = 'lblAbsent';    cntAbsent++; }
@@ -2257,59 +2135,30 @@
           else if (CODE_WEEKLY_OFF.includes(val)) { cardClass = 'off';     labelKey = 'lblWeeklyOff'; }
           else if (CODE_HOLIDAY.includes(val))    { cardClass = 'off';     labelKey = 'lblHoliday'; }
           else if (CODE_OFF.includes(val))        { cardClass = 'off';     labelKey = 'lblOff'; }
-        } else if ((dojYmd && day.ymd < dojYmd) || (lwdYmd && day.ymd > lwdYmd)) {
-          cardClass = 'na';                       // before joining or after the last working day
-          statusText = '\u2014';
-        } else if (day.ymd > todayYmd) {
-          cardClass = 'future';                   // the day has not come yet
-          statusText = '\u00A0';
-        } else if (isToday) {
-          cardClass = 'pending';                  // today: added after the day is completed
-          labelKey = 'lblToday';
-          showClock = true;
-          hasPending = true;
-        } else if (cd.updated.has(day.ymd) || oldCycle) {
-          cardClass = 'norecord';                 // HR filled this day for others, not for this employee
-          labelKey = 'lblNoRecord';
-          statusText = '\u2014';
-          hasNoRecord = true;
-        } else {
-          cardClass = 'pending';                  // not uploaded yet
-          labelKey = 'lblSoon';
-          showClock = true;
-          hasPending = true;
-        }
+        } else if ((dojYmd && day.ymd < dojYmd) || (lwdYmd && day.ymd > lwdYmd)) { cardClass = 'na'; statusText = '\u2014'; } 
+        else if (day.ymd > todayYmd) { cardClass = 'future'; statusText = '\u00A0'; } 
+        else if (isToday) { cardClass = 'pending'; labelKey = 'lblToday'; showClock = true; hasPending = true; } 
+        else if (cd.updated.has(day.ymd) || oldCycle) { cardClass = 'norecord'; labelKey = 'lblNoRecord'; statusText = '\u2014'; hasNoRecord = true; } 
+        else { cardClass = 'pending'; labelKey = 'lblSoon'; showClock = true; hasPending = true; }
         if (isToday) cardClass += ' today';
-
         const card = document.createElement('div');
         card.className = 'day-card' + (cardClass ? ' ' + cardClass : '');
-
         const dateDiv = document.createElement('div');
         dateDiv.className = 'date-text';
         dateDiv.textContent = day.d + ' ' + months[day.m];
         const wd = document.createElement('span');
         wd.className = 'wd';
-        try {
-          wd.textContent = new Date(day.y, day.m, day.d).toLocaleDateString(t('locale'), { weekday: 'short' });
-        } catch (e) { wd.textContent = ''; }
+        try { wd.textContent = new Date(day.y, day.m, day.d).toLocaleDateString(t('locale'), { weekday: 'short' }); } catch (e) { wd.textContent = ''; }
         dateDiv.appendChild(wd);
-
         const statusDiv = document.createElement('div');
         statusDiv.className = 'status-text';
-        if (showClock) statusDiv.innerHTML = CLOCK_ICON;
-        else statusDiv.textContent = statusText;
-
+        if (showClock) statusDiv.innerHTML = CLOCK_ICON; else statusDiv.textContent = statusText;
         const labelDiv = document.createElement('div');
         labelDiv.className = 'status-label';
         labelDiv.textContent = labelKey ? t(labelKey) : '';
-
-        card.appendChild(dateDiv);
-        card.appendChild(statusDiv);
-        card.appendChild(labelDiv);
+        card.appendChild(dateDiv); card.appendChild(statusDiv); card.appendChild(labelDiv);
         grid.appendChild(card);
       });
-
-      // Cycle dates and "updated up to" line
       document.getElementById('cycleRange').textContent = cycleLabel(d.currentMonth, true);
       let lastUpdated = '';
       cycle.days.forEach(function (day) { if (cd.updated.has(day.ymd)) lastUpdated = day.ymd; });
@@ -2319,46 +2168,27 @@
         upToText = pad2(lp.d) + '-' + months[lp.m] + '-' + lp.y;
       }
       document.getElementById('updatedUpTo').textContent = t('updatedUpTo') + ': ' + upToText;
-
-      // Notes above the cards (only when they are needed)
       const notes = document.getElementById('attendanceNotes');
       notes.textContent = '';
-      function addNote(key) {
-        const p = document.createElement('p');
-        p.className = 'attendance-note';
-        p.textContent = t(key);
-        notes.appendChild(p);
-      }
+      function addNote(key) { const p = document.createElement('p'); p.className = 'attendance-note'; p.textContent = t(key); notes.appendChild(p); }
       if (cd.failed) addNote('msgLoadMonth');
       if (cd.mismatch) addNote('msgCycleMismatch');
       if (hasPending) addNote('pendingNote');
       if (hasNoRecord) addNote('noRecordNote');
-
-      // A half day counts as 0.5 present and 0.5 absent. Leave, weekly off and holidays are not working days.
       const totalCount = cntPresent + cntAbsent + cntHalf;
       const presentCount = cntPresent + cntHalf * 0.5;
       const absentCount = cntAbsent + cntHalf * 0.5;
       const percent = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
-
       document.getElementById('statTotal').textContent = fmtNum(totalCount);
       document.getElementById('statPresent').textContent = fmtNum(presentCount);
       document.getElementById('statAbsent').textContent = fmtNum(absentCount);
       document.getElementById('statPercent').textContent = percent + '%';
       document.getElementById('progressFill').style.width = percent + '%';
     }
-
-    // ============================================================
-    // PDF
-    // ============================================================
-    function currentMonthLabel() {
-      if (!currentData || !currentData.currentMonth) return '';
-      return cycleLabel(currentData.currentMonth, true);
-    }
-
+    function currentMonthLabel() { if (!currentData || !currentData.currentMonth) return ''; return cycleLabel(currentData.currentMonth, true); }
     function buildPdfRoot(mode) {
       const root = document.createElement('div');
       root.className = 'pdf-root';
-
       const head = document.createElement('div');
       head.className = 'pdf-head';
       const company = document.createElement('div');
@@ -2373,10 +2203,7 @@
         if (upTo && upTo.textContent) line += '   |   ' + upTo.textContent;
       }
       generated.textContent = line;
-      head.appendChild(company);
-      head.appendChild(generated);
-      root.appendChild(head);
-
+      head.appendChild(company); head.appendChild(generated); root.appendChild(head);
       if (mode === 'attendance' || mode === 'all') {
         const att = document.getElementById('printArea').cloneNode(true);
         const btns = att.querySelector('#actionButtons');
@@ -2385,84 +2212,51 @@
         if (tabs) tabs.remove();
         root.appendChild(att);
       }
-
-      if (mode === 'all') {
-        const br = document.createElement('div');
-        br.className = 'html2pdf__page-break';
-        root.appendChild(br);
-      }
-
+      if (mode === 'all') { const br = document.createElement('div'); br.className = 'html2pdf__page-break'; root.appendChild(br); }
       if (mode === 'staff' || mode === 'all') {
         const staff = document.createElement('div');
         const source = document.querySelector('#staffModal .modal-content');
-        Array.prototype.forEach.call(source.children, function (child) {
-          staff.appendChild(child.cloneNode(true));
-        });
+        Array.prototype.forEach.call(source.children, function (child) { staff.appendChild(child.cloneNode(true)); });
         staff.querySelectorAll('.close-modal, .copy-btn, .link-btn').forEach(function (el) { el.remove(); });
         root.appendChild(staff);
       }
-
       root.querySelectorAll('[id]').forEach(function (el) { el.removeAttribute('id'); });
       return root;
     }
-
     async function generatePDF(mode) {
       closePdfChoice();
       if (!currentData) return;
-
       const pdfBtn = document.getElementById('pdfBtn');
       const empId = currentData.empId;
       const monthPart = currentData.currentMonth ? '_' + currentData.currentMonth : '';
-      const names = {
-        attendance: 'Attendance_Report' + monthPart + '_',
-        staff: 'Staff_Details_',
-        all: 'Full_Report' + monthPart + '_'
-      };
-
+      const names = { attendance: 'Attendance_Report' + monthPart + '_', staff: 'Staff_Details_', all: 'Full_Report' + monthPart + '_' };
       pdfBtn.disabled = true;
-
       const wrapper = document.createElement('div');
       wrapper.style.cssText = 'position:fixed;top:0;left:-10000px;width:900px;overflow:hidden;';
       const root = buildPdfRoot(mode);
       wrapper.appendChild(root);
       document.body.appendChild(wrapper);
-
       try {
         if (document.fonts && document.fonts.ready) await document.fonts.ready;
-
         const opt = {
           margin: [0.3, 0.25, 0.3, 0.25],
           filename: (names[mode] || 'Report_') + empId + '.pdf',
           image: { type: 'jpeg', quality: 1 },
           html2canvas: { scale: 3, scrollX: 0, scrollY: 0, windowWidth: 900, useCORS: true, backgroundColor: '#ffffff' },
           jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait', compress: true },
-          pagebreak: {
-            mode: ['css', 'legacy'],
-            avoid: ['.pdf-head', '.about-card', '.stat-card', '.day-card', '.hr-footer', '.modal-section']
-          }
+          pagebreak: { mode: ['css', 'legacy'], avoid: ['.pdf-head', '.about-card', '.stat-card', '.day-card', '.hr-footer', '.modal-section'] }
         };
         await html2pdf().set(opt).from(root).save();
-      } catch (err) {
-        console.error(err);
-        alert(t('msgPdf'));
-      } finally {
-        wrapper.remove();
-        pdfBtn.disabled = false;
-      }
+      } catch (err) { console.error(err); alert(t('msgPdf')); } 
+      finally { wrapper.remove(); pdfBtn.disabled = false; }
     }
-
-    // ============================================================
-    // Session timer and logout
-    // ============================================================
     let sessionTimerId = null;
     let sessionEndTime = 0;
-
     function formatTimer(totalSeconds) {
       const m = Math.floor(totalSeconds / 60);
       const sec = totalSeconds % 60;
       return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
     }
-
     function tickSessionTimer() {
       const remaining = Math.max(0, Math.ceil((sessionEndTime - Date.now()) / 1000));
       const el = document.getElementById('sessionTimer');
@@ -2470,7 +2264,6 @@
       el.classList.toggle('low', remaining <= 30);
       if (remaining <= 0) expireSession();
     }
-
     function startSessionTimer() {
       stopSessionTimer();
       sessionEndTime = Date.now() + SESSION_SECONDS * 1000;
@@ -2478,43 +2271,37 @@
       tickSessionTimer();
       sessionTimerId = setInterval(tickSessionTimer, 250);
     }
-
     function stopSessionTimer() {
-      if (sessionTimerId !== null) {
-        clearInterval(sessionTimerId);
-        sessionTimerId = null;
-      }
+      if (sessionTimerId !== null) { clearInterval(sessionTimerId); sessionTimerId = null; }
       const el = document.getElementById('sessionTimer');
       el.style.display = 'none';
       el.classList.remove('low');
     }
-
-    function expireSession() {
-      logout();
-      setLoginMessage('msgSessionEnded', 'error');
-    }
-
+    function expireSession() { logout(); setLoginMessage('msgSessionEnded', 'error'); }
     function logout() {
       stopSessionTimer();
       closeStaffModal();
       closePdfChoice();
       clearTimeout(typingTimer);
       validationSeq++;
-
       currentData = null;
       pendingEmployee = null;
       expectedPassword = '';
-      monthCache.clear();           // attendance of other employees is not kept in memory
+      monthCache.clear(); 
       lastCheckedId = '';
       idState = null;
       pwdState = null;
-
       empIdInput.value = '';
       empPwdInput.value = '';
       pwdGroup.style.display = 'none';
       continueBtn.classList.remove('show-btn');
-      renderInputStatuses();
+      
+      // Reset Eye Icon
+      empPwdInput.type = 'password';
+      document.getElementById('eyeIconShow').style.display = 'block';
+      document.getElementById('eyeIconHide').style.display = 'none';
 
+      renderInputStatuses();
       setLoginMessage(null, 'info');
       document.getElementById('progressFill').style.width = '0%';
       document.getElementById('calendarGrid').textContent = '';
@@ -2525,16 +2312,11 @@
       currentAccountFull = '';
       currentAccountMasked = '';
       accountVisible = false;
-
       document.getElementById('dashboardSection').style.display = 'none';
       document.getElementById('mainNavbar').style.display = 'none';
       document.getElementById('loginSection').style.display = 'flex';
       empIdInput.focus();
     }
-
-    // ============================================================
-    // Start
-    // ============================================================
     loadSavedLanguage();
     applyStaticTranslations();
     preloadSystemData();
