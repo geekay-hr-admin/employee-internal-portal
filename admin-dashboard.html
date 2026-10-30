@@ -134,8 +134,10 @@
     .btn-primary { background: #3182ce; color: white; }
     .btn-primary:hover { background: #2b6cb0; }
     .btn-primary:disabled { background: #a0aec0; cursor: not-allowed; opacity: 0.6; }
-    .btn-danger { background: #e53e3e; color: white; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight:600; }
+    .btn-danger { background: #e53e3e; color: white; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight:600; transition: background 0.2s; }
     .btn-danger:hover { background: #c53030; }
+    .btn-outline { background: white; color: #3182ce; border: 1px solid #3182ce; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight:600; transition: all 0.2s;}
+    .btn-outline:hover { background: #ebf8ff; }
 
     /* Admin Settings Modal */
     .admin-settings-content { max-width: 650px; padding: 0; overflow: hidden; text-align: left; }
@@ -160,13 +162,16 @@
     .badge-default { background: #ebf8ff; color: #3182ce; border: 1px solid #bee3f8; }
     .badge-staff { background: #f0fff4; color: #38a169; border: 1px solid #c6f6d5; }
     .badge-external { background: #fff5f5; color: #e53e3e; border: 1px solid #fed7d7; }
+    .admin-actions-row { display: flex; gap: 10px; align-items: center; }
 
-    /* Floating Inputs */
+    /* Floating Inputs & Eye Icon */
     .floating-input-group { position: relative; margin-bottom: 25px; text-align: left; }
     .floating-input-group input { width: 100%; padding: 15px 120px 10px 5px; font-size: 16px; font-weight: 600; letter-spacing: 0.5px; color: #1a202c; border: none; border-bottom: 2px solid #cbd5e1; background: transparent; outline: none; transition: all 0.3s ease; }
     .floating-input-group label { position: absolute; top: 15px; left: 5px; font-size: 14px; color: #718096; transition: all 0.3s ease; pointer-events: none; }
     .floating-input-group input:focus { border-bottom-color: #3182ce; }
     .floating-input-group input:focus ~ label, .floating-input-group input:not(:placeholder-shown) ~ label { top: -10px; font-size: 12px; color: #3182ce; font-weight: 600; }
+    .pwd-toggle { position: absolute; right: 5px; top: 15px; cursor: pointer; font-size: 16px; opacity: 0.6; transition: opacity 0.2s; user-select: none;}
+    .pwd-toggle:hover { opacity: 1; }
 
     .staff-detect-msg { font-size: 13px; margin-top: -15px; margin-bottom: 20px; font-weight: 600; min-height: 20px; }
     .staff-detect-msg.success { color: #38a169; }
@@ -276,7 +281,6 @@
             <button type="button" onclick="toggleAttendanceSubmenu(event)">📅 Attendance ▾</button>
             <div class="attendance-submenu" id="attendanceSubmenu"></div>
           </div>
-          <!-- New Admin Settings Button -->
           <button type="button" onclick="openAdminSettingsModal()" style="color: #004080; font-weight: 600;">⚙️ Admin Settings</button>
         </div>
       </div>
@@ -295,6 +299,7 @@
           <div class="search-results-dropdown" id="searchResultsDropdown"></div>
         </div>
         <select class="search-select" id="searchModeSelect">
+          <option value="all" selected>All Records</option>
           <option value="master">Overall Master Details</option>
           <option value="attendance">Attendance Details</option>
         </select>
@@ -341,7 +346,7 @@
 
   </div>
 
-  <!-- Admin Settings Modal (NEW) -->
+  <!-- Admin Settings Modal -->
   <div class="modal-overlay" id="adminSettingsModal" onclick="if(event.target.id==='adminSettingsModal') closeAdminSettingsModal()">
     <div class="modal-content admin-settings-content">
       <div class="as-header">
@@ -355,7 +360,7 @@
           <button type="button" class="mode-tab-btn" id="tabAdminList" onclick="switchAdminSettingsTab('list')">Admin List</button>
         </div>
 
-        <!-- View 1: Add New Admin -->
+        <!-- Add New Admin -->
         <div id="viewAddAdmin">
           <div class="radio-group">
             <label class="radio-label">
@@ -379,6 +384,12 @@
             <div class="floating-input-group">
               <input type="password" id="newAdminEmpPwd" placeholder=" " autocomplete="new-password">
               <label>Create Login Password</label>
+              <span class="pwd-toggle" onclick="togglePwd('newAdminEmpPwd')">👁️</span>
+            </div>
+            <div class="floating-input-group">
+              <input type="password" id="newAdminEmpPwdConf" placeholder=" " autocomplete="new-password">
+              <label>Confirm Password</label>
+              <span class="pwd-toggle" onclick="togglePwd('newAdminEmpPwdConf')">👁️</span>
             </div>
             
             <button type="button" class="btn-modal btn-primary" style="width:100%;" id="btnCreateExisting" disabled onclick="saveNewAdmin('existing')">Create Staff Admin</button>
@@ -397,18 +408,51 @@
             <div class="floating-input-group">
               <input type="password" id="newAdminExtPwd" placeholder=" " autocomplete="new-password">
               <label>Create Login Password</label>
+              <span class="pwd-toggle" onclick="togglePwd('newAdminExtPwd')">👁️</span>
+            </div>
+            <div class="floating-input-group">
+              <input type="password" id="newAdminExtPwdConf" placeholder=" " autocomplete="new-password">
+              <label>Confirm Password</label>
+              <span class="pwd-toggle" onclick="togglePwd('newAdminExtPwdConf')">👁️</span>
             </div>
             <button type="button" class="btn-modal btn-primary" style="width:100%;" onclick="saveNewAdmin('external')">Create External Admin</button>
           </div>
         </div>
 
-        <!-- View 2: Admin List -->
+        <!-- Admin List -->
         <div id="viewAdminList" style="display: none;">
           <div class="admin-list-container" id="adminListContainer">
-            <!-- Dynamically populated admin list -->
+            <!-- Dynamically populated -->
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div class="modal-overlay" id="changePwdModal" style="z-index: 2100;" onclick="if(event.target.id==='changePwdModal') closeChangePwdModal()">
+    <div class="modal-content" style="max-width:400px; padding:30px;">
+      <div class="modal-title dark" style="font-size:18px; margin-bottom:20px; text-align:left;">Change Password</div>
+      <div style="font-size:13px; color:#4a5568; margin-bottom:20px; text-align:left;" id="changePwdTargetName">For: </div>
+      
+      <input type="hidden" id="changePwdTargetId">
+      
+      <div class="floating-input-group" id="groupOldPwd">
+        <input type="password" id="chgOldPwd" placeholder=" " autocomplete="new-password">
+        <label>Old Password</label>
+        <span class="pwd-toggle" onclick="togglePwd('chgOldPwd')">👁️</span>
+      </div>
+      
+      <div class="floating-input-group">
+        <input type="password" id="chgNewPwd" placeholder=" " autocomplete="new-password">
+        <label>New Password</label>
+        <span class="pwd-toggle" onclick="togglePwd('chgNewPwd')">👁️</span>
+      </div>
+
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn-modal btn-cancel" style="padding:10px;" onclick="closeChangePwdModal()">Cancel</button>
+        <button class="btn-modal btn-primary" style="padding:10px;" onclick="submitChangePwd()">Save</button>
       </div>
     </div>
   </div>
@@ -527,7 +571,6 @@
     // ==========================================
     const DEFAULT_ADMIN = { id: "000000123", name: "System Admin", pwd: "Admin0000", type: "default" };
     
-    // Initialize LocalStorage Database for Admins
     function getAdminsDB() {
       let db = localStorage.getItem('geekay_admins');
       if (!db) {
@@ -550,6 +593,12 @@
         document.getElementById('navAdminName').textContent = currentAdminObj.name;
         document.getElementById('loadingAdminName').textContent = currentAdminObj.name;
         document.querySelectorAll('.lock-admin-name').forEach(el => el.textContent = currentAdminObj.name);
+    }
+
+    function togglePwd(id) {
+      const el = document.getElementById(id);
+      if(el.type === 'password') el.type = 'text';
+      else el.type = 'password';
     }
 
     const MASTER_FILE = 'master_data/master_data.xlsx';
@@ -614,26 +663,28 @@
     }
 
     // ==========================================
-    // Admin Settings Module (NEW)
+    // Admin Settings Module
     // ==========================================
     function openAdminSettingsModal() {
       document.getElementById('adminSettingsModal').style.display = 'flex';
       switchAdminSettingsTab('add');
       
-      // Reset inputs
+      // Reset inputs & eyes
       document.getElementById('newAdminEmpId').value = '';
-      document.getElementById('newAdminEmpPwd').value = '';
+      document.getElementById('newAdminEmpPwd').value = ''; document.getElementById('newAdminEmpPwd').type = 'password';
+      document.getElementById('newAdminEmpPwdConf').value = ''; document.getElementById('newAdminEmpPwdConf').type = 'password';
+      
       document.getElementById('newAdminExtId').value = '';
       document.getElementById('newAdminExtName').value = '';
-      document.getElementById('newAdminExtPwd').value = '';
+      document.getElementById('newAdminExtPwd').value = ''; document.getElementById('newAdminExtPwd').type = 'password';
+      document.getElementById('newAdminExtPwdConf').value = ''; document.getElementById('newAdminExtPwdConf').type = 'password';
+      
       document.getElementById('staffDetectMsg').className = 'staff-detect-msg';
       document.getElementById('staffDetectMsg').textContent = 'Type ID to auto-detect name...';
       document.getElementById('btnCreateExisting').disabled = true;
     }
 
-    function closeAdminSettingsModal() {
-      document.getElementById('adminSettingsModal').style.display = 'none';
-    }
+    function closeAdminSettingsModal() { document.getElementById('adminSettingsModal').style.display = 'none'; }
 
     function switchAdminSettingsTab(tab) {
       if (tab === 'add') {
@@ -667,22 +718,14 @@
       const btn = document.getElementById('btnCreateExisting');
       detectedStaffName = "";
       
-      if (!val) {
-        msgEl.className = 'staff-detect-msg';
-        msgEl.textContent = 'Type ID to auto-detect name...';
-        btn.disabled = true;
-        return;
-      }
+      if (!val) { msgEl.className = 'staff-detect-msg'; msgEl.textContent = 'Type ID to auto-detect name...'; btn.disabled = true; return; }
 
       let foundRow = null;
       for (let i = 0; i < cachedMasterRows.length; i++) {
         const row = cachedMasterRows[i];
         const km = buildKeyMap(row);
         const id = getField(row, km, COLS.id);
-        if (id && String(id).toLowerCase() === val.toLowerCase()) {
-          foundRow = row;
-          break;
-        }
+        if (id && String(id).toLowerCase() === val.toLowerCase()) { foundRow = row; break; }
       }
 
       if (foundRow) {
@@ -700,35 +743,33 @@
 
     function saveNewAdmin(type) {
       const db = getAdminsDB();
-      let newId, newName, newPwd, newType;
+      let newId, newName, newPwd, confPwd, newType;
 
       if (type === 'existing') {
         newId = document.getElementById('newAdminEmpId').value.trim();
         newName = detectedStaffName;
         newPwd = document.getElementById('newAdminEmpPwd').value.trim();
+        confPwd = document.getElementById('newAdminEmpPwdConf').value.trim();
         newType = 'staff';
-        if(!newPwd) return alert("Please enter a password for the new admin.");
+        if(!newPwd) return alert("Please enter a password.");
       } else {
         newId = document.getElementById('newAdminExtId').value.trim();
         newName = document.getElementById('newAdminExtName').value.trim();
         newPwd = document.getElementById('newAdminExtPwd').value.trim();
+        confPwd = document.getElementById('newAdminExtPwdConf').value.trim();
         newType = 'external';
         if(!newId || !newName || !newPwd) return alert("Please fill all fields for the external admin.");
       }
 
-      // Check if exists
-      if (db.some(a => a.id.toLowerCase() === newId.toLowerCase())) {
-        alert("An admin with this ID/Username already exists!");
-        return;
-      }
+      if(newPwd !== confPwd) return alert("Passwords do not match!");
+      if (db.some(a => a.id.toLowerCase() === newId.toLowerCase())) return alert("An admin with this ID/Username already exists!");
 
       db.push({ id: newId, name: newName, pwd: newPwd, type: newType });
       localStorage.setItem('geekay_admins', JSON.stringify(db));
       alert(`Admin account for ${newName} created successfully!`);
       
-      // Reset & Switch to list
-      document.getElementById('newAdminEmpPwd').value = '';
-      document.getElementById('newAdminExtPwd').value = '';
+      document.getElementById('newAdminEmpPwd').value = ''; document.getElementById('newAdminEmpPwdConf').value = '';
+      document.getElementById('newAdminExtPwd').value = ''; document.getElementById('newAdminExtPwdConf').value = '';
       switchAdminSettingsTab('list');
     }
 
@@ -746,30 +787,27 @@
         else if (a.type === 'staff') badgeHtml = `<span class="badge-type badge-staff">Staff Admin</span>`;
         else badgeHtml = `<span class="badge-type badge-external">External Admin</span>`;
 
-        let deleteHtml = '';
+        let actionHtml = `<div class="admin-actions-row">`;
+        actionHtml += `<button class="btn-outline" onclick="openChangePwdModal('${a.id}')">🔑 Pwd</button>`;
         if (a.type !== 'default') {
-          deleteHtml = `<button class="btn-danger" onclick="deleteAdmin('${a.id}')">Remove</button>`;
-        } else {
-          deleteHtml = `<div style="font-size:12px; color:#a0aec0; font-weight:600;">Unremovable</div>`;
+          actionHtml += `<button class="btn-danger" onclick="deleteAdmin('${a.id}')">Remove</button>`;
         }
+        actionHtml += `</div>`;
 
         item.innerHTML = `
           <div class="admin-info">
             <div class="admin-name">${a.name} ${badgeHtml}</div>
             <div class="admin-id">ID: ${a.id}</div>
           </div>
-          <div>${deleteHtml}</div>
+          ${actionHtml}
         `;
         container.appendChild(item);
       });
     }
 
     function deleteAdmin(delId) {
-      if(delId === currentAdminObj.id) {
-        alert("You cannot remove your own account while logged in.");
-        return;
-      }
-      if(confirm(`Are you sure you want to remove the admin access for ID: ${delId}?`)) {
+      if(delId === currentAdminObj.id) return alert("You cannot remove your own account while logged in.");
+      if(confirm(`Are you sure you want to remove admin access for ID: ${delId}?`)) {
         let db = getAdminsDB();
         db = db.filter(a => a.id !== delId);
         localStorage.setItem('geekay_admins', JSON.stringify(db));
@@ -777,30 +815,66 @@
       }
     }
 
+    function openChangePwdModal(targetId) {
+      const db = getAdminsDB();
+      const targetAdmin = db.find(a => a.id === targetId);
+      if(!targetAdmin) return;
+      
+      document.getElementById('changePwdTargetId').value = targetId;
+      document.getElementById('changePwdTargetName').textContent = `For Account: ${targetAdmin.name} (${targetId})`;
+      
+      document.getElementById('chgOldPwd').value = ''; document.getElementById('chgOldPwd').type = 'password';
+      document.getElementById('chgNewPwd').value = ''; document.getElementById('chgNewPwd').type = 'password';
+
+      // System Admin Override check
+      if(currentAdminObj.id === '000000123' && targetId !== '000000123') {
+        document.getElementById('groupOldPwd').style.display = 'none'; // Super Admin can override
+      } else {
+        document.getElementById('groupOldPwd').style.display = 'block'; // Normal behavior
+      }
+
+      document.getElementById('changePwdModal').style.display = 'flex';
+    }
+
+    function closeChangePwdModal() { document.getElementById('changePwdModal').style.display = 'none'; }
+
+    function submitChangePwd() {
+      const targetId = document.getElementById('changePwdTargetId').value;
+      const oldP = document.getElementById('chgOldPwd').value.trim();
+      const newP = document.getElementById('chgNewPwd').value.trim();
+      
+      if(!newP) return alert("New password cannot be empty.");
+
+      let db = getAdminsDB();
+      const idx = db.findIndex(a => a.id === targetId);
+      
+      // Validation logic
+      const isSuperAdminOverride = (currentAdminObj.id === '000000123' && targetId !== '000000123');
+      if(!isSuperAdminOverride) {
+        if(db[idx].pwd !== oldP) return alert("Old password is incorrect!");
+      }
+
+      db[idx].pwd = newP;
+      localStorage.setItem('geekay_admins', JSON.stringify(db));
+      
+      // Update session obj if changing own password
+      if(targetId === currentAdminObj.id) { currentAdminObj.pwd = newP; }
+      
+      alert("Password changed successfully.");
+      closeChangePwdModal();
+    }
+
 
     // ==========================================
     // Workforce & File Logic
     // ==========================================
-    function toggleWorkforceMenu(e) {
-      e.stopPropagation();
-      const dd = document.getElementById('workforceDropdown');
-      dd.classList.toggle('show');
-    }
-    function toggleAttendanceSubmenu(e) {
-      e.stopPropagation();
-      const sub = document.getElementById('attendanceSubmenu');
-      sub.classList.toggle('show');
-      populateAttendanceMenu();
-    }
+    function toggleWorkforceMenu(e) { e.stopPropagation(); document.getElementById('workforceDropdown').classList.toggle('show'); }
+    function toggleAttendanceSubmenu(e) { e.stopPropagation(); const sub = document.getElementById('attendanceSubmenu'); sub.classList.toggle('show'); populateAttendanceMenu(); }
     function populateAttendanceMenu() {
-      const sub = document.getElementById('attendanceSubmenu');
-      sub.textContent = '';
+      const sub = document.getElementById('attendanceSubmenu'); sub.textContent = '';
       AVAILABLE_ATTENDANCE_FILES.forEach(file => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.textContent = file;
-        btn.onclick = function() { openAttendanceFile(file); };
-        sub.appendChild(btn);
+        const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = file;
+        btn.onclick = function() { openAttendanceFile(file); }; sub.appendChild(btn);
       });
     }
     window.addEventListener('click', function() {
@@ -820,8 +894,7 @@
       document.getElementById('workforceChoiceModal').style.display = 'flex';
     }
     function openAttendanceFile(monthName) {
-      selectedAttendanceMonth = monthName;
-      currentWorkforceType = 'attendance';
+      selectedAttendanceMonth = monthName; currentWorkforceType = 'attendance';
       document.getElementById('choiceModalIcon').textContent = '📅';
       document.getElementById('choiceModalTitle').textContent = 'Attendance (' + selectedAttendanceMonth + ')';
       document.getElementById('choiceModalDesc').textContent = 'How would you like to access this attendance file?';
@@ -832,13 +905,9 @@
     async function executeWorkforceAction(action) {
       closeWorkforceChoiceModal();
       let fileUrl = MASTER_FILE;
-      if (currentWorkforceType === 'attendance') {
-        fileUrl = ATTENDANCE_FOLDER + selectedAttendanceMonth + '.xlsx';
-      }
-
-      if (action === 'download') {
-        window.open(fileUrl, '_blank');
-      } else {
+      if (currentWorkforceType === 'attendance') fileUrl = ATTENDANCE_FOLDER + selectedAttendanceMonth + '.xlsx';
+      if (action === 'download') window.open(fileUrl, '_blank');
+      else {
         showLoadingOverlay();
         try {
           const res = await fetch(fileUrl + '?v=' + Date.now(), { cache: 'no-store' });
@@ -846,84 +915,51 @@
           const buf = await res.arrayBuffer();
           const wb = XLSX.read(buf, { type: 'array', cellDates: true });
           const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' });
-          
-          currentFsRows = rows;
-          currentSelectedStaffRow = null;
+          currentFsRows = rows; currentSelectedStaffRow = null;
           document.getElementById('btnFormView').style.display = 'none';
           renderFullscreenTable(rows, currentWorkforceType === 'master' ? 'Master Data Viewer' : 'Attendance: ' + selectedAttendanceMonth);
         } catch (e) {
           alert("Error: Could not load file. Please check if the file exists.");
-        } finally {
-          hideLoadingOverlay();
-        }
+        } finally { hideLoadingOverlay(); }
       }
     }
 
     function renderFullscreenTable(rows, titleText) {
       document.getElementById('fsViewerTitle').textContent = titleText;
       document.getElementById('fsSearchInput').value = '';
-      const container = document.getElementById('fsContentInner');
-      container.textContent = '';
-
+      const container = document.getElementById('fsContentInner'); container.textContent = '';
       if(!rows || rows.length === 0) {
         container.innerHTML = '<div style="padding:40px; text-align:center; color:#718096; font-size:16px;">No records found in this file.</div>';
-        document.getElementById('fullscreenViewer').style.display = 'flex';
-        return;
+        document.getElementById('fullscreenViewer').style.display = 'flex'; return;
       }
-
-      const table = document.createElement('table');
-      table.className = 'excel-mirror-table';
-      table.id = 'fsDataTable';
-      
-      const thead = document.createElement('thead');
-      const headerRow = document.createElement('tr');
+      const table = document.createElement('table'); table.className = 'excel-mirror-table'; table.id = 'fsDataTable';
+      const thead = document.createElement('thead'); const headerRow = document.createElement('tr');
       const headers = Object.keys(rows[0]);
-      headers.forEach(h => {
-        const th = document.createElement('th');
-        th.textContent = h;
-        headerRow.appendChild(th);
-      });
-      thead.appendChild(headerRow);
-      table.appendChild(thead);
-
+      headers.forEach(h => { const th = document.createElement('th'); th.textContent = h; headerRow.appendChild(th); });
+      thead.appendChild(headerRow); table.appendChild(thead);
       const tbody = document.createElement('tbody');
       rows.forEach(r => {
         const tr = document.createElement('tr');
         tr.onclick = function() {
           const allTrs = tbody.getElementsByTagName('tr');
           for(let t of allTrs) t.classList.remove('highlighted-row');
-          tr.classList.add('highlighted-row');
-          currentSelectedStaffRow = r;
+          tr.classList.add('highlighted-row'); currentSelectedStaffRow = r;
           document.getElementById('btnFormView').style.display = 'block';
         };
-
-        headers.forEach(h => {
-          const td = document.createElement('td');
-          td.textContent = formatDateVal(r[h]);
-          tr.appendChild(td);
-        });
+        headers.forEach(h => { const td = document.createElement('td'); td.textContent = formatDateVal(r[h]); tr.appendChild(td); });
         tbody.appendChild(tr);
       });
-      table.appendChild(tbody);
-      container.appendChild(table);
-
-      currentZoomLevel = 1.0;
-      applyZoom();
-      document.getElementById('fullscreenViewer').style.display = 'flex';
+      table.appendChild(tbody); container.appendChild(table);
+      currentZoomLevel = 1.0; applyZoom(); document.getElementById('fullscreenViewer').style.display = 'flex';
     }
 
     function closeFullscreenViewer() { document.getElementById('fullscreenViewer').style.display = 'none'; }
     function filterFullscreenTable(query) {
-      const q = query.toLowerCase();
-      const table = document.getElementById('fsDataTable');
-      if(!table) return;
+      const q = query.toLowerCase(); const table = document.getElementById('fsDataTable'); if(!table) return;
       const trs = table.getElementsByTagName('tr');
       for(let i = 1; i < trs.length; i++) {
-        const tds = trs[i].getElementsByTagName('td');
-        let found = false;
-        for(let j = 0; j < tds.length; j++) {
-          if(tds[j].textContent.toLowerCase().includes(q)) { found = true; break; }
-        }
+        const tds = trs[i].getElementsByTagName('td'); let found = false;
+        for(let j = 0; j < tds.length; j++) { if(tds[j].textContent.toLowerCase().includes(q)) { found = true; break; } }
         trs[i].style.display = found ? '' : 'none';
       }
     }
@@ -934,24 +970,17 @@
 
     function openInPlaceFormView() {
       if(!currentSelectedStaffRow) { alert("Please select a staff row from the table first."); return; }
-      renderInPlaceForm(currentSelectedStaffRow);
-      document.getElementById('inPlaceFormModal').style.display = 'flex';
+      renderInPlaceForm(currentSelectedStaffRow); document.getElementById('inPlaceFormModal').style.display = 'flex';
     }
     function closeInPlaceFormModal() { document.getElementById('inPlaceFormModal').style.display = 'none'; }
 
     function renderInPlaceForm(row) {
-      const container = document.getElementById('ipBodyContainer');
-      container.textContent = '';
+      const container = document.getElementById('ipBodyContainer'); container.textContent = '';
       if(!row) return;
-
-      const biodataDiv = document.createElement('div');
-      biodataDiv.className = 'biodata-container';
-
+      const biodataDiv = document.createElement('div'); biodataDiv.className = 'biodata-container';
       let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">`;
       html += `<div><div style="font-size:22px; font-weight:700; color:#1a202c;">${row['Emp Name'] || row['Name'] || 'Staff Profile'}</div><div style="font-size:13px; color:#718096; font-weight:500;">ID: ${row['Emp L ID'] || row['Employee ID'] || 'N/A'}</div></div>`;
-      html += `<div><input type="text" placeholder="Search in form..." oninput="filterInPlaceFormFields(this.value)" style="padding:8px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:6px; width:220px; outline:none;"></div>`;
-      html += `</div>`;
-
+      html += `<div><input type="text" placeholder="Search in form..." oninput="filterInPlaceFormFields(this.value)" style="padding:8px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:6px; width:220px; outline:none;"></div></div>`;
       html += `<div id="noDataNotice" style="display:none; color:#e53e3e; font-weight:600; margin-bottom:15px;">No data found matching your query</div>`;
       html += `<div class="biodata-section-title">Personal & Employment Details</div><div class="biodata-grid">`;
       for(let key in row) {
@@ -967,21 +996,15 @@
           html += `<div class="biodata-item ip-field-card" data-key="${key.toLowerCase()}" data-val="${val.toLowerCase()}"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
         }
       }
-      html += `</div>`;
-      biodataDiv.innerHTML = html;
-      container.appendChild(biodataDiv);
+      html += `</div>`; biodataDiv.innerHTML = html; container.appendChild(biodataDiv);
     }
 
     function filterInPlaceFormFields(query) {
-      const q = query.toLowerCase().trim();
-      const cards = document.querySelectorAll('.ip-field-card');
-      let visibleCount = 0;
+      const q = query.toLowerCase().trim(); const cards = document.querySelectorAll('.ip-field-card'); let visibleCount = 0;
       cards.forEach(c => {
-        const k = c.getAttribute('data-key');
-        const v = c.getAttribute('data-val');
+        const k = c.getAttribute('data-key'); const v = c.getAttribute('data-val');
         if(!q || k.includes(q) || v.includes(q)) {
-          c.style.display = 'flex';
-          visibleCount++;
+          c.style.display = 'flex'; visibleCount++;
           if(q && (k.includes(q) || v.includes(q))) c.style.background = '#feebc8';
           else c.style.background = '#f8fafc';
         } else c.style.display = 'none';
@@ -989,54 +1012,36 @@
       document.getElementById('noDataNotice').style.display = (visibleCount === 0 && q) ? 'block' : 'none';
     }
 
-    // Global Search
+    // Global Search (Added default fallback for 'All' mode)
     function handleGlobalSearch(query) {
       const dropdown = document.getElementById('searchResultsDropdown');
       const q = query.trim().toLowerCase();
       if(!q || cachedMasterRows.length === 0) { dropdown.style.display = 'none'; return; }
-
+      
       const mode = document.getElementById('searchModeSelect').value;
       const matches = [];
 
       for(let i = 0; i < cachedMasterRows.length; i++) {
-        const row = cachedMasterRows[i];
-        const km = buildKeyMap(row);
-        const id = getField(row, km, COLS.id);
-        const name = getField(row, km, COLS.name);
-        
+        const row = cachedMasterRows[i]; const km = buildKeyMap(row);
+        const id = getField(row, km, COLS.id); const name = getField(row, km, COLS.name);
         let matchFound = false;
-        for(let key in row) {
-          if(String(row[key]).toLowerCase().includes(q)) { matchFound = true; break; }
-        }
-
-        if(matchFound && id) {
-          matches.push({ id: id, name: name || 'Staff', row: row });
-          if(matches.length >= 10) break;
-        }
+        for(let key in row) { if(String(row[key]).toLowerCase().includes(q)) { matchFound = true; break; } }
+        if(matchFound && id) { matches.push({ id: id, name: name || 'Staff', row: row }); if(matches.length >= 10) break; }
       }
 
       dropdown.textContent = '';
       if(matches.length === 0) {
-        const div = document.createElement('div');
-        div.className = 'search-result-item';
-        div.style.color = '#e53e3e';
-        div.textContent = 'Record not found';
-        dropdown.appendChild(div);
+        const div = document.createElement('div'); div.className = 'search-result-item'; div.style.color = '#e53e3e'; div.textContent = 'Record not found'; dropdown.appendChild(div);
       } else {
         matches.forEach(m => {
-          const div = document.createElement('div');
-          div.className = 'search-result-item';
+          const div = document.createElement('div'); div.className = 'search-result-item';
           div.innerHTML = `<span><strong>${m.name}</strong> (${m.id})</span> <span style="font-size:12px; color:#3182ce;">View Profile &rarr;</span>`;
           div.onclick = function(e) {
-            e.stopPropagation();
-            dropdown.style.display = 'none';
-            document.getElementById('globalSearchInput').value = m.id;
-            
-            if(mode === 'master') {
-              currentSelectedStaffRow = m.row;
-              renderInPlaceForm(m.row);
-              document.getElementById('inPlaceFormModal').style.display = 'flex';
-            } else alert("Attendance lookup for ID: " + m.id);
+            e.stopPropagation(); dropdown.style.display = 'none'; document.getElementById('globalSearchInput').value = m.id;
+            // 'all' mode will default to opening master bio-data for now
+            if(mode === 'master' || mode === 'all') {
+              currentSelectedStaffRow = m.row; renderInPlaceForm(m.row); document.getElementById('inPlaceFormModal').style.display = 'flex';
+            } else { alert("Attendance lookup for ID: " + m.id); }
           };
           dropdown.appendChild(div);
         });
@@ -1053,7 +1058,6 @@
       doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(0, 64, 128); doc.text("Geekay Human Resources Pvt. Ltd.", 14, 18);
       doc.setFontSize(11); doc.setTextColor(100, 100, 100); doc.text("Employee Bio-Data & Profile Record", 14, 25);
       doc.setLineWidth(0.4); doc.setLineColor(200, 200, 200); doc.line(14, 29, 196, 29);
-
       let yPos = 38; doc.setFontSize(10);
       for(let key in currentSelectedStaffRow) {
         const rawVal = currentSelectedStaffRow[key];
@@ -1071,25 +1075,17 @@
     let idleTime = 0, idleInterval = null; const IDLE_LIMIT = 900; 
     function resetIdleTimer() { idleTime = 0; }
     function timerIncrement() { idleTime++; if (idleTime >= IDLE_LIMIT) triggerLockScreen(); }
-
     function triggerLockScreen() {
       clearInterval(idleInterval); 
-      document.getElementById('dashboardSection').style.filter = 'blur(8px)';
-      document.getElementById('dashboardSection').style.pointerEvents = 'none';
-      document.getElementById('mainNavbar').style.filter = 'blur(8px)';
-      document.getElementById('mainNavbar').style.pointerEvents = 'none';
-      document.getElementById('inactivityLockModal').style.display = 'flex';
-      document.getElementById('lockStep1').style.display = 'block';
-      document.getElementById('lockStep2').style.display = 'none';
-      document.getElementById('unlockPwd').value = '';
-      renderUnlockStatus(null);
+      document.getElementById('dashboardSection').style.filter = 'blur(8px)'; document.getElementById('dashboardSection').style.pointerEvents = 'none';
+      document.getElementById('mainNavbar').style.filter = 'blur(8px)'; document.getElementById('mainNavbar').style.pointerEvents = 'none';
+      document.getElementById('inactivityLockModal').style.display = 'flex'; document.getElementById('lockStep1').style.display = 'block'; document.getElementById('lockStep2').style.display = 'none'; document.getElementById('unlockPwd').value = ''; renderUnlockStatus(null);
     }
     function showLockPasswordStep() { document.getElementById('lockStep1').style.display = 'none'; document.getElementById('lockStep2').style.display = 'block'; document.getElementById('unlockPwd').focus(); }
     function renderUnlockStatus(state) {
       const el = document.getElementById('unlockStatus'); const btn = document.getElementById('btnUnlockContinue');
       el.textContent = ''; if (!state) { el.className = 'input-status'; btn.disabled = true; return; }
-      el.className = 'input-status ' + state + ' show'; el.textContent = (state === 'valid' ? '\u2714 Verified' : '\u2716 Invalid');
-      btn.disabled = (state !== 'valid');
+      el.className = 'input-status ' + state + ' show'; el.textContent = (state === 'valid' ? '\u2714 Verified' : '\u2716 Invalid'); btn.disabled = (state !== 'valid');
     }
     document.getElementById('unlockPwd').addEventListener('input', function() {
         const pwd = this.value.trim();
@@ -1097,17 +1093,12 @@
         else if (pwd === currentAdminObj.pwd) renderUnlockStatus('valid');
         else renderUnlockStatus('invalid');
     });
-    document.getElementById('unlockPwd').addEventListener('keydown', function(e) {
-      if(e.key === 'Enter' && !document.getElementById('btnUnlockContinue').disabled) unlockSession();
-    });
+    document.getElementById('unlockPwd').addEventListener('keydown', function(e) { if(e.key === 'Enter' && !document.getElementById('btnUnlockContinue').disabled) unlockSession(); });
     function unlockSession() {
       if(document.getElementById('unlockPwd').value.trim() === currentAdminObj.pwd) {
-        document.getElementById('dashboardSection').style.filter = 'none';
-        document.getElementById('dashboardSection').style.pointerEvents = 'auto';
-        document.getElementById('mainNavbar').style.filter = 'none';
-        document.getElementById('mainNavbar').style.pointerEvents = 'auto';
-        document.getElementById('inactivityLockModal').style.display = 'none';
-        resetIdleTimer(); idleInterval = setInterval(timerIncrement, 1000);
+        document.getElementById('dashboardSection').style.filter = 'none'; document.getElementById('dashboardSection').style.pointerEvents = 'auto';
+        document.getElementById('mainNavbar').style.filter = 'none'; document.getElementById('mainNavbar').style.pointerEvents = 'auto';
+        document.getElementById('inactivityLockModal').style.display = 'none'; resetIdleTimer(); idleInterval = setInterval(timerIncrement, 1000);
       }
     }
 
@@ -1118,48 +1109,31 @@
         const arrayBuffer = await response.arrayBuffer();
         const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
         const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
-        cachedMasterRows = rows;
-        return rows;
-      } catch (e) {
-        return [];
-      }
+        cachedMasterRows = rows; return rows;
+      } catch (e) { return []; }
     }
 
     function calculateStats(rows) {
       if (!rows || rows.length === 0) return;
-      let total = 0, active = 0, inactive = 0, resigned = 0;
-      const firstMap = buildKeyMap(rows[0]);
-      let idKey = null;
+      let total = 0, active = 0, inactive = 0, resigned = 0; const firstMap = buildKeyMap(rows[0]); let idKey = null;
       for (const alias of COLS.id) { if (alias in firstMap) { idKey = firstMap[alias]; break; } }
       if (!idKey) return; 
-
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         if (row[idKey]) {
-          total++;
-          const km = buildKeyMap(row);
-          const lwd = getField(row, km, COLS.lwd);
-          const statusRaw = getField(row, km, COLS.status);
+          total++; const km = buildKeyMap(row); const lwd = getField(row, km, COLS.lwd); const statusRaw = getField(row, km, COLS.status);
           if (lwd && lwd !== '-') resigned++;
-          else {
-            const su = statusRaw.toUpperCase();
-            if (['INACTIVE', 'IN-ACTIVE', 'IN ACTIVE'].includes(su)) inactive++;
-            else active++; 
-          }
+          else { const su = statusRaw.toUpperCase(); if (['INACTIVE', 'IN-ACTIVE', 'IN ACTIVE'].includes(su)) inactive++; else active++; }
         }
       }
       animateValue("statTotalEmp", 0, total, 1000); animateValue("statActiveEmp", 0, active, 1000);
       animateValue("statInactiveEmp", 0, inactive, 1000); animateValue("statResignedEmp", 0, resigned, 1000);
     }
-
     function animateValue(id, start, end, duration) {
-      const obj = document.getElementById(id); if(!obj) return;
-      let startTimestamp = null;
+      const obj = document.getElementById(id); if(!obj) return; let startTimestamp = null;
       const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        obj.innerHTML = Math.floor(progress * (end - start) + start);
-        if (progress < 1) window.requestAnimationFrame(step);
+        if (!startTimestamp) startTimestamp = timestamp; const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = Math.floor(progress * (end - start) + start); if (progress < 1) window.requestAnimationFrame(step);
       };
       window.requestAnimationFrame(step);
     }
@@ -1171,28 +1145,17 @@
 
     function openLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
     function closeLogoutModal() { document.getElementById('logoutModal').style.display = 'none'; }
-    function executeLogout() {
-      if(idleInterval) clearInterval(idleInterval);
-      sessionStorage.removeItem('geekay_emp_id');
-      window.location.href = './index.html';
-    }
-    
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && document.getElementById('logoutModal').style.display === 'flex') closeLogoutModal();
-    });
+    function executeLogout() { if(idleInterval) clearInterval(idleInterval); sessionStorage.removeItem('geekay_emp_id'); window.location.href = './index.html'; }
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && document.getElementById('logoutModal').style.display === 'flex') closeLogoutModal(); });
 
     function showLoadingOverlay() { document.getElementById('loadingWelcome').classList.add('in'); document.getElementById('loadingOverlay').classList.add('show'); }
     function hideLoadingOverlay() { document.getElementById('loadingOverlay').classList.remove('show'); }
 
     window.addEventListener('DOMContentLoaded', async function () {
-      setDate(); showLoadingOverlay();
-      const rows = await loadMasterData();
+      setDate(); showLoadingOverlay(); const rows = await loadMasterData();
       setTimeout(() => {
-        hideLoadingOverlay();
-        document.getElementById('dashboardSection').style.display = 'block';
-        calculateStats(rows);
-        document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer;
-        document.onclick = resetIdleTimer; document.onscroll = resetIdleTimer;
+        hideLoadingOverlay(); document.getElementById('dashboardSection').style.display = 'block'; calculateStats(rows);
+        document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.onscroll = resetIdleTimer;
         idleInterval = setInterval(timerIncrement, 1000);
       }, 1000);
     });
