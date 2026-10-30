@@ -37,7 +37,7 @@
 
     .nav-right-container { display: flex; align-items: center; gap: 20px; }
 
-    /* Workforce Dropdown (Click-based Sub-menu) */
+    /* Workforce Dropdown */
     .workforce-dropdown { position: relative; display: inline-block; }
     .workforce-btn {
       background: #edf2f7; border: none; color: #2d3748; padding: 6px 14px;
@@ -58,7 +58,6 @@
     }
     .workforce-content button:hover { background-color: #f7fafc; color: #3182ce; }
     
-    /* Click-based Attendance Submenu */
     .attendance-submenu {
       display: none; position: absolute; right: 100%; top: 0; background-color: #ffffff;
       min-width: 160px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px;
@@ -159,15 +158,21 @@
     .fs-body { flex: 1; overflow: auto; padding: 20px 30px; background: #f4f7f9; }
     .fs-content-inner { transform-origin: top left; transition: transform 0.1s ease; width: max-content; }
     
-    /* Excel Mirror Table Style */
+    /* Excel Mirror Table Style with Fixed Sticky Header */
     .excel-mirror-table { width: max-content; border-collapse: collapse; font-size: 12.5px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     .excel-mirror-table th, .excel-mirror-table td { padding: 6px 10px; border: 1px solid #d2d6dc; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
-    .excel-mirror-table th { background: #f3f4f6; color: #111827; font-weight: 700; position: sticky; top: 0; z-index: 20; }
-    .excel-mirror-table tr:hover { background: #f9fafb; }
+    .excel-mirror-table th { background: #f3f4f6; color: #111827; font-weight: 700; position: sticky; top: 0; z-index: 50; }
+    .excel-mirror-table tr:hover { background: #f9fafb; cursor: pointer; }
     .excel-mirror-table tr.highlighted-row { background: #feebc8 !important; }
 
+    /* In-place Form View Modal Overlay */
+    .in-place-modal { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); backdrop-filter: blur(3px); z-index: 3000; justify-content: center; align-items: center; padding: 30px; }
+    .in-place-content { background: white; width: 100%; max-width: 950px; height: 85vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); animation: popIn 0.2s ease; }
+    .ip-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+    .ip-body { flex: 1; overflow-y: auto; padding: 30px; background: #f4f7f9; }
+
     /* Bio-Data / Form View Mode (3-Column Grid Layout) */
-    .biodata-container { background: white; max-width: 1000px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    .biodata-container { background: white; max-width: 900px; margin: 0 auto; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
     .biodata-section-title { font-size: 15px; font-weight: 700; color: #004080; border-bottom: 2px solid #edf2f7; padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
     .biodata-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px 25px; }
     .biodata-item { display: flex; flex-direction: column; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #edf2f7; }
@@ -349,8 +354,7 @@
         <span id="fsViewerTitle">Live Viewer</span>
       </div>
       <div style="display: flex; align-items: center; gap: 15px;">
-        <button type="button" class="btn-modal btn-primary" id="btnFormView" style="display:none; padding:8px 16px; font-size:13px;" onclick="switchToFormViewFromTable()">Form View</button>
-        <button type="button" class="btn-modal btn-primary" id="btnDownloadPdf" style="display:none; padding:8px 16px; font-size:13px;" onclick="downloadStaffPdf()">Download as PDF</button>
+        <button type="button" class="btn-modal btn-primary" id="btnFormView" style="display:none; padding:8px 16px; font-size:13px;" onclick="openInPlaceFormView()">Form View</button>
         <button class="fs-close-btn" onclick="closeFullscreenViewer()" title="Close">&times;</button>
       </div>
     </div>
@@ -366,16 +370,27 @@
         <button type="button" class="zoom-btn" onclick="resetZoom()">100%</button>
         <button type="button" class="zoom-btn" onclick="adjustZoom(0.1)">+ Zoom</button>
       </div>
-
-      <div class="mode-tabs" id="fsModeTabs" style="display: none;">
-        <button class="mode-tab-btn active" onclick="switchViewMode('table')">Table Mode</button>
-        <button class="mode-tab-btn" onclick="switchViewMode('biodata')">Bio-Data / Form Mode</button>
-      </div>
     </div>
 
     <div class="fs-body" id="fsBodyContainer">
       <div class="fs-content-inner" id="fsContentInner">
         <!-- Dynamic Content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- In-Place Form View Modal (Popup inside sheet view) -->
+  <div class="in-place-modal" id="inPlaceFormModal" onclick="if(event.target.id==='inPlaceFormModal') closeInPlaceFormModal()">
+    <div class="in-place-content">
+      <div class="ip-header">
+        <div style="font-size:18px; font-weight:700; color:#1a202c;">Staff Bio-Data & Form View</div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button type="button" class="btn-modal btn-primary" style="padding:6px 14px; font-size:13px; flex:none;" onclick="downloadStaffPdf()">Download as PDF</button>
+          <button class="fs-close-btn" style="width:32px; height:32px; font-size:16px;" onclick="closeInPlaceFormModal()" title="Close">&times;</button>
+        </div>
+      </div>
+      <div class="ip-body" id="ipBodyContainer">
+        <!-- Dynamic Form View & Search inside form -->
       </div>
     </div>
   </div>
@@ -434,7 +449,6 @@
     const MASTER_FILE = 'master_data/master_data.xlsx';
     const ATTENDANCE_FOLDER = 'attendance_records/';
     
-    // Dynamic list of attendance files available in project
     const AVAILABLE_ATTENDANCE_FILES = ['Oct-2026', 'Sep-2026', 'Aug-2026'];
 
     let cachedMasterRows = [];
@@ -494,7 +508,7 @@
       return s;
     }
 
-    // Workforce Menu (Click Based)
+    // Workforce Menu
     function toggleWorkforceMenu(e) {
       e.stopPropagation();
       const dd = document.getElementById('workforceDropdown');
@@ -570,8 +584,6 @@
           
           currentFsRows = rows;
           currentSelectedStaffRow = null;
-          document.getElementById('fsModeTabs').style.display = 'none';
-          document.getElementById('btnDownloadPdf').style.display = 'none';
           document.getElementById('btnFormView').style.display = 'none';
           renderFullscreenTable(rows, currentWorkforceType === 'master' ? 'Master Data Viewer' : 'Attendance: ' + selectedAttendanceMonth);
         } catch (e) {
@@ -613,7 +625,6 @@
       rows.forEach(r => {
         const tr = document.createElement('tr');
         tr.onclick = function() {
-          // Highlight clicked row
           const allTrs = tbody.getElementsByTagName('tr');
           for(let t of allTrs) t.classList.remove('highlighted-row');
           tr.classList.add('highlighted-row');
@@ -680,15 +691,79 @@
       inner.style.transform = `scale(${currentZoomLevel})`;
     }
 
-    function switchToFormViewFromTable() {
+    function openInPlaceFormView() {
       if(!currentSelectedStaffRow) {
         alert("Please select a staff row from the table first.");
         return;
       }
-      document.getElementById('fsModeTabs').style.display = 'flex';
-      document.getElementById('btnDownloadPdf').style.display = 'block';
-      document.getElementById('btnFormView').style.display = 'none';
-      switchViewMode('biodata');
+      renderInPlaceForm(currentSelectedStaffRow);
+      document.getElementById('inPlaceFormModal').style.display = 'flex';
+    }
+
+    function closeInPlaceFormModal() {
+      document.getElementById('inPlaceFormModal').style.display = 'none';
+    }
+
+    function renderInPlaceForm(row) {
+      const container = document.getElementById('ipBodyContainer');
+      container.textContent = '';
+
+      if(!row) return;
+
+      const biodataDiv = document.createElement('div');
+      biodataDiv.className = 'biodata-container';
+
+      let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">`;
+      html += `<div><div style="font-size:22px; font-weight:700; color:#1a202c;">${row['Emp Name'] || row['Name'] || 'Staff Profile'}</div><div style="font-size:13px; color:#718096; font-weight:500;">ID: ${row['Emp L ID'] || row['Employee ID'] || 'N/A'}</div></div>`;
+      html += `<div><input type="text" id="ipFormSearch" placeholder="Search in form..." oninput="filterInPlaceFormFields(this.value)" style="padding:8px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:6px; width:220px; outline:none;"></div>`;
+      html += `</div>`;
+
+      html += `<div id="noDataNotice" style="display:none; color:#e53e3e; font-weight:600; margin-bottom:15px;">No data found matching your query</div>`;
+
+      html += `<div class="biodata-section-title">Personal & Employment Details</div>`;
+      html += `<div class="biodata-grid">`;
+      for(let key in row) {
+        if(!['bank', 'account', 'ifsc', 'phone', 'mobile', 'email', 'address'].some(k => key.toLowerCase().includes(k))) {
+          const val = formatDateVal(row[key]);
+          html += `<div class="biodata-item ip-field-card" data-key="${key.toLowerCase()}" data-val="${val.toLowerCase()}"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
+        }
+      }
+      html += `</div>`;
+
+      html += `<div class="biodata-section-title">Bank & Contact Details</div>`;
+      html += `<div class="biodata-grid">`;
+      for(let key in row) {
+        if(['bank', 'account', 'ifsc', 'phone', 'mobile', 'email', 'address'].some(k => key.toLowerCase().includes(k))) {
+          const val = formatDateVal(row[key]);
+          html += `<div class="biodata-item ip-field-card" data-key="${key.toLowerCase()}" data-val="${val.toLowerCase()}"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
+        }
+      }
+      html += `</div>`;
+
+      biodataDiv.innerHTML = html;
+      container.appendChild(biodataDiv);
+    }
+
+    function filterInPlaceFormFields(query) {
+      const q = query.toLowerCase().trim();
+      const cards = document.querySelectorAll('.ip-field-card');
+      let visibleCount = 0;
+      cards.forEach(c => {
+        const k = c.getAttribute('data-key');
+        const v = c.getAttribute('data-val');
+        if(!q || k.includes(q) || v.includes(q)) {
+          c.style.display = 'flex';
+          visibleCount++;
+          if(q && (k.includes(q) || v.includes(q))) {
+            c.style.background = '#feebc8';
+          } else {
+            c.style.background = '#f8fafc';
+          }
+        } else {
+          c.style.display = 'none';
+        }
+      });
+      document.getElementById('noDataNotice').style.display = (visibleCount === 0 && q) ? 'block' : 'none';
     }
 
     // Global Search Feature
@@ -743,11 +818,8 @@
             
             if(mode === 'master') {
               currentSelectedStaffRow = m.row;
-              currentFsRows = [m.row];
-              document.getElementById('fsModeTabs').style.display = 'flex';
-              document.getElementById('btnDownloadPdf').style.display = 'block';
-              document.getElementById('btnFormView').style.display = 'none';
-              switchViewMode('biodata');
+              renderInPlaceForm(m.row);
+              document.getElementById('inPlaceFormModal').style.display = 'flex';
             } else {
               alert("Attendance lookup for ID: " + m.id);
             }
@@ -763,87 +835,12 @@
       document.getElementById('searchResultsDropdown').style.display = 'none';
     }
 
-    function switchViewMode(mode) {
-      const tabs = document.querySelectorAll('.mode-tab-btn');
-      tabs.forEach(t => t.classList.remove('active'));
-      
-      if(mode === 'biodata') {
-        tabs[1].classList.add('active');
-        document.getElementById('btnDownloadPdf').style.display = 'block';
-        document.getElementById('btnFormView').style.display = 'none';
-        renderBioDataView(currentSelectedStaffRow);
-      } else {
-        tabs[0].classList.add('active');
-        document.getElementById('btnDownloadPdf').style.display = 'none';
-        document.getElementById('btnFormView').style.display = 'block';
-        renderFullscreenTable(currentFsRows, 'Staff Record');
-      }
-    }
-
-    function renderBioDataView(row) {
-      document.getElementById('fsViewerTitle').textContent = 'Staff Profile & Bio-Data';
-      const container = document.getElementById('fsContentInner');
-      container.textContent = '';
-
-      if(!row) return;
-
-      const biodataDiv = document.createElement('div');
-      biodataDiv.className = 'biodata-container';
-      biodataDiv.id = 'biodataPrintArea';
-
-      let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">`;
-      html += `<div><div style="font-size:24px; font-weight:700; color:#1a202c;">${row['Emp Name'] || row['Name'] || 'Staff Profile'}</div><div style="font-size:14px; color:#718096; font-weight:500;">ID: ${row['Emp L ID'] || row['Employee ID'] || 'N/A'}</div></div>`;
-      html += `<div style="position:relative;"><input type="text" id="bioSearchBox" placeholder="Search in profile..." oninput="filterBioDataFields(this.value)" style="padding:8px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:6px; width:220px; outline:none;"></div>`;
-      html += `</div>`;
-
-      html += `<div class="biodata-section-title">Personal & Employment Details</div>`;
-      html += `<div class="biodata-grid" id="bioGridPersonal">`;
-      for(let key in row) {
-        if(!['bank', 'account', 'ifsc', 'phone', 'mobile', 'email', 'address'].some(k => key.toLowerCase().includes(k))) {
-          const val = formatDateVal(row[key]);
-          html += `<div class="biodata-item bio-field-card" data-key="${key.toLowerCase()}" data-val="${val.toLowerCase()}"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
-        }
-      }
-      html += `</div>`;
-
-      html += `<div class="biodata-section-title">Bank & Contact Details</div>`;
-      html += `<div class="biodata-grid" id="bioGridContact">`;
-      for(let key in row) {
-        if(['bank', 'account', 'ifsc', 'phone', 'mobile', 'email', 'address'].some(k => key.toLowerCase().includes(k))) {
-          const val = formatDateVal(row[key]);
-          html += `<div class="biodata-item bio-field-card" data-key="${key.toLowerCase()}" data-val="${val.toLowerCase()}"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
-        }
-      }
-      html += `</div>`;
-
-      biodataDiv.innerHTML = html;
-      container.appendChild(biodataDiv);
-      currentZoomLevel = 1.0;
-      applyZoom();
-      document.getElementById('fullscreenViewer').style.display = 'flex';
-    }
-
-    function filterBioDataFields(query) {
-      const q = query.toLowerCase().trim();
-      const cards = document.querySelectorAll('.bio-field-card');
-      cards.forEach(c => {
-        const k = c.getAttribute('data-key');
-        const v = c.getAttribute('data-val');
-        if(!q || k.includes(q) || v.includes(q)) {
-          c.style.display = 'flex';
-          if(q && (k.includes(q) || v.includes(q))) {
-            c.style.background = '#feebc8'; // Highlight match
-          } else {
-            c.style.background = '#f8fafc';
-          }
-        } else {
-          c.style.display = 'none';
-        }
-      });
-    }
-
     // High Quality PDF Export using jsPDF
     function downloadStaffPdf() {
+      if(!currentSelectedStaffRow) {
+        alert("No staff record selected.");
+        return;
+      }
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF('p', 'mm', 'a4');
       
@@ -863,25 +860,23 @@
       let yPos = 40;
       doc.setFontSize(10);
       
-      if(currentSelectedStaffRow) {
-        for(let key in currentSelectedStaffRow) {
-          const val = currentSelectedStaffRow[key] !== undefined && currentSelectedStaffRow[key] !== '' ? formatDateVal(currentSelectedStaffRow[key]) : '-';
-          
-          if(yPos > 275) {
-            doc.addPage();
-            yPos = 20;
-          }
-
-          doc.setFont("helvetica", "bold");
-          doc.setTextColor(70, 70, 70);
-          doc.text(key + ":", 14, yPos);
-
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(20, 20, 20);
-          doc.text(val, 70, yPos);
-
-          yPos += 8;
+      for(let key in currentSelectedStaffRow) {
+        const val = currentSelectedStaffRow[key] !== undefined && currentSelectedStaffRow[key] !== '' ? formatDateVal(currentSelectedStaffRow[key]) : '-';
+        
+        if(yPos > 275) {
+          doc.addPage();
+          yPos = 20;
         }
+
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(70, 70, 70);
+        doc.text(key + ":", 14, yPos);
+
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(20, 20, 20);
+        doc.text(String(val), 70, yPos);
+
+        yPos += 8;
       }
 
       const staffName = currentSelectedStaffRow['Emp Name'] || currentSelectedStaffRow['Name'] || 'Staff';
