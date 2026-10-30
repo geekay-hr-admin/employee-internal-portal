@@ -434,7 +434,7 @@
 
         <div class="login-form-inner">
           
-          <!-- NEW: Role Switcher Tabs -->
+          <!-- Role Switcher Tabs -->
           <div class="role-switcher">
             <button type="button" class="role-btn active" id="tabEmployee" data-i18n="empLoginTab">Employee Login</button>
             <button type="button" class="role-btn" id="tabAdmin" data-i18n="adminLoginTab">Admin Login</button>
@@ -481,13 +481,24 @@
 
   <script>
     // ============================================================
-    // Settings
+    // Settings & Admin Database Logic
     // ============================================================
     const MASTER_FILE = 'master_data/master_data.xlsx';
     const LANG_STORAGE_KEY = 'geekayPortalLang';
     const LOADING_MIN_MS = 1500;          
     const ID_CHECK_DELAY_MS = 1000;       
     const MASTER_TTL_MS = 10 * 60 * 1000; 
+
+    const DEFAULT_ADMIN = { id: "000000123", name: "System Admin", pwd: "Admin0000", type: "default" };
+    function getAdminsDB() {
+      let db = localStorage.getItem('geekay_admins');
+      if (!db) {
+        db = [DEFAULT_ADMIN];
+        localStorage.setItem('geekay_admins', JSON.stringify(db));
+        return db;
+      }
+      return JSON.parse(db);
+    }
 
     // ============================================================
     // Translations
@@ -631,10 +642,6 @@
     let lastCheckedId = '';
     let validationSeq = 0;
     let typingTimer = null;
-
-    // Hardcoded Admin Credentials
-    const ADMIN_ID = "000000123";
-    const ADMIN_PWD = "Admin0000";
 
     // ============================================================
     // Small helpers
@@ -994,9 +1001,12 @@
 
       // --- NEW ADMIN LOGIC BYPASS ---
       if (currentLoginMode === 'admin') {
-         if (id === ADMIN_ID) {
-            expectedPassword = ADMIN_PWD;
-            pendingEmployee = { empId: id, name: 'System Admin' };
+         const db = getAdminsDB();
+         const matchedAdmin = db.find(a => a.id.toLowerCase() === id.toLowerCase());
+
+         if (matchedAdmin) {
+            expectedPassword = matchedAdmin.pwd;
+            pendingEmployee = { empId: matchedAdmin.id, name: matchedAdmin.name };
             idState = 'valid';
             pwdGroup.style.display = 'block';
          } else {
@@ -1135,7 +1145,7 @@
 
       try {
         sessionStorage.setItem('geekay_emp_id', pendingEmployee.empId);
-        showLoadingName(pendingEmployee.name || 'Employee');
+        showLoadingName(pendingEmployee.name || (currentLoginMode === 'admin' ? 'Admin' : 'Employee'));
         
         const waitMore = LOADING_MIN_MS - (Date.now() - startedAt);
         if (waitMore > 0) await sleep(waitMore);
