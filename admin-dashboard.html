@@ -37,7 +37,7 @@
 
     .nav-right-container { display: flex; align-items: center; gap: 20px; }
 
-    /* Workforce Dropdown (Clean Nested Sub-menu) */
+    /* Workforce Dropdown (Click-based Sub-menu) */
     .workforce-dropdown { position: relative; display: inline-block; }
     .workforce-btn {
       background: #edf2f7; border: none; color: #2d3748; padding: 6px 14px;
@@ -48,7 +48,7 @@
     
     .workforce-content {
       display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff;
-      min-width: 180px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px;
+      min-width: 190px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px;
       z-index: 1000; overflow: visible; border: 1px solid #e2e8f0; margin-top: 5px;
     }
     .workforce-content .wf-item { position: relative; width: 100%; }
@@ -58,13 +58,13 @@
     }
     .workforce-content button:hover { background-color: #f7fafc; color: #3182ce; }
     
-    /* Nested Attendance Sub-menu */
+    /* Click-based Attendance Submenu */
     .attendance-submenu {
       display: none; position: absolute; right: 100%; top: 0; background-color: #ffffff;
       min-width: 160px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px;
       border: 1px solid #e2e8f0; overflow: hidden;
     }
-    .wf-item:hover .attendance-submenu { display: block; }
+    .attendance-submenu.show { display: block; }
     .workforce-dropdown.show .workforce-content { display: block; }
 
     .nav-logout-btn { 
@@ -159,19 +159,20 @@
     .fs-body { flex: 1; overflow: auto; padding: 20px 30px; background: #f4f7f9; }
     .fs-content-inner { transform-origin: top left; transition: transform 0.1s ease; width: max-content; }
     
-    /* Excel Mirror Table Style (Sticky Header Fixed) */
+    /* Excel Mirror Table Style */
     .excel-mirror-table { width: max-content; border-collapse: collapse; font-size: 12.5px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     .excel-mirror-table th, .excel-mirror-table td { padding: 6px 10px; border: 1px solid #d2d6dc; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
     .excel-mirror-table th { background: #f3f4f6; color: #111827; font-weight: 700; position: sticky; top: 0; z-index: 20; }
     .excel-mirror-table tr:hover { background: #f9fafb; }
+    .excel-mirror-table tr.highlighted-row { background: #feebc8 !important; }
 
-    /* Bio-Data / Form View Mode */
-    .biodata-container { background: white; max-width: 900px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-    .biodata-section-title { font-size: 16px; font-weight: 700; color: #004080; border-bottom: 2px solid #edf2f7; padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .biodata-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px 30px; }
-    .biodata-item { display: flex; flex-direction: column; }
-    .biodata-label { font-size: 12px; color: #718096; font-weight: 600; text-transform: uppercase; }
-    .biodata-value { font-size: 15px; color: #1a202c; font-weight: 600; margin-top: 2px; }
+    /* Bio-Data / Form View Mode (3-Column Grid Layout) */
+    .biodata-container { background: white; max-width: 1000px; margin: 0 auto; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+    .biodata-section-title { font-size: 15px; font-weight: 700; color: #004080; border-bottom: 2px solid #edf2f7; padding-bottom: 8px; margin-top: 25px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .biodata-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px 25px; }
+    .biodata-item { display: flex; flex-direction: column; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #edf2f7; }
+    .biodata-label { font-size: 11px; color: #718096; font-weight: 600; text-transform: uppercase; }
+    .biodata-value { font-size: 14px; color: #1a202c; font-weight: 600; margin-top: 2px; overflow-wrap: anywhere; }
 
     .mode-tabs { display: flex; background: #edf2f7; padding: 4px; border-radius: 8px; gap: 4px; }
     .mode-tab-btn { background: transparent; border: none; padding: 6px 14px; font-size: 13px; font-weight: 600; color: #4a5568; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
@@ -204,7 +205,6 @@
     .rainbow-ring { width: 96px; height: 96px; border-radius: 50%; background: conic-gradient(#ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px)); mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px)); animation: ringSpin 1.1s linear infinite; }
     @keyframes ringSpin { to { transform: rotate(360deg); } }
     .loading-welcome { position: absolute; top: calc(50% + 78px); left: 0; right: 0; text-align: center; padding: 0 20px; opacity: 0; transform: translateY(10px); transition: opacity 0.7s ease, transform 0.7s ease; }
-    .loading-welcome.in { opacity: 1; transform: translateY(0); }
     .lw-small { font-size: 15px; font-weight: 500; letter-spacing: 3px; color: #718096; margin-bottom: 6px; }
     .lw-name { font-size: clamp(28px, 6vw, 42px); font-weight: 300; letter-spacing: 1.5px; line-height: 1.3; background: linear-gradient(90deg, #e53e3e, #dd6b20); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; overflow-wrap: anywhere; }
 
@@ -235,7 +235,7 @@
       <div class="nav-date-text" id="currentDate">...</div>
     </div>
 
-    <!-- Right Side: Clean Nested Workforce Menu & Logout -->
+    <!-- Right Side: Click-based Workforce Menu & Logout -->
     <div class="nav-right-container">
       <div class="workforce-dropdown" id="workforceDropdown">
         <button type="button" class="workforce-btn" onclick="toggleWorkforceMenu(event)">
@@ -244,11 +244,9 @@
         <div class="workforce-content" id="workforceDropdownContent">
           <button type="button" onclick="openMasterDataPrompt()">Master Data</button>
           <div class="wf-item">
-            <button type="button">Attendance ▸</button>
-            <div class="attendance-submenu">
-              <button type="button" onclick="openAttendanceFile('Oct-2026')">Oct-2026</button>
-              <button type="button" onclick="openAttendanceFile('Sep-2026')">Sep-2026</button>
-              <button type="button" onclick="openAttendanceFile('Aug-2026')">Aug-2026</button>
+            <button type="button" onclick="toggleAttendanceSubmenu(event)">Attendance ▾</button>
+            <div class="attendance-submenu" id="attendanceSubmenu">
+              <!-- Dynamically populated attendance files -->
             </div>
           </div>
         </div>
@@ -351,6 +349,7 @@
         <span id="fsViewerTitle">Live Viewer</span>
       </div>
       <div style="display: flex; align-items: center; gap: 15px;">
+        <button type="button" class="btn-modal btn-primary" id="btnFormView" style="display:none; padding:8px 16px; font-size:13px;" onclick="switchToFormViewFromTable()">Form View</button>
         <button type="button" class="btn-modal btn-primary" id="btnDownloadPdf" style="display:none; padding:8px 16px; font-size:13px;" onclick="downloadStaffPdf()">Download as PDF</button>
         <button class="fs-close-btn" onclick="closeFullscreenViewer()" title="Close">&times;</button>
       </div>
@@ -434,6 +433,9 @@
 
     const MASTER_FILE = 'master_data/master_data.xlsx';
     const ATTENDANCE_FOLDER = 'attendance_records/';
+    
+    // Dynamic list of attendance files available in project
+    const AVAILABLE_ATTENDANCE_FILES = ['Oct-2026', 'Sep-2026', 'Aug-2026'];
 
     let cachedMasterRows = [];
     let currentWorkforceType = ''; 
@@ -469,7 +471,6 @@
       return '';
     }
 
-    // Clean Date Formatter (Removes GMT/IST mess)
     function formatDateVal(val) {
       if (!val) return '-';
       if (val instanceof Date) {
@@ -479,7 +480,6 @@
         return `${d}-${m}-${y}`;
       }
       const s = String(val).trim();
-      // If it looks like serial date or timestamp, handle gracefully
       if (s.includes('GMT') || s.includes('UTC')) {
         try {
           const d = new Date(s);
@@ -494,15 +494,37 @@
       return s;
     }
 
-    // Workforce Menu
+    // Workforce Menu (Click Based)
     function toggleWorkforceMenu(e) {
       e.stopPropagation();
-      document.getElementById('workforceDropdown').classList.toggle('show');
+      const dd = document.getElementById('workforceDropdown');
+      dd.classList.toggle('show');
+    }
+
+    function toggleAttendanceSubmenu(e) {
+      e.stopPropagation();
+      const sub = document.getElementById('attendanceSubmenu');
+      sub.classList.toggle('show');
+      populateAttendanceMenu();
+    }
+
+    function populateAttendanceMenu() {
+      const sub = document.getElementById('attendanceSubmenu');
+      sub.textContent = '';
+      AVAILABLE_ATTENDANCE_FILES.forEach(file => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = file;
+        btn.onclick = function() { openAttendanceFile(file); };
+        sub.appendChild(btn);
+      });
     }
 
     window.addEventListener('click', function() {
       const dropdown = document.getElementById('workforceDropdown');
       if (dropdown.classList.contains('show')) dropdown.classList.remove('show');
+      const sub = document.getElementById('attendanceSubmenu');
+      if (sub && sub.classList.contains('show')) sub.classList.remove('show');
       const searchDrop = document.getElementById('searchResultsDropdown');
       if (searchDrop) searchDrop.style.display = 'none';
     });
@@ -550,6 +572,7 @@
           currentSelectedStaffRow = null;
           document.getElementById('fsModeTabs').style.display = 'none';
           document.getElementById('btnDownloadPdf').style.display = 'none';
+          document.getElementById('btnFormView').style.display = 'none';
           renderFullscreenTable(rows, currentWorkforceType === 'master' ? 'Master Data Viewer' : 'Attendance: ' + selectedAttendanceMonth);
         } catch (e) {
           alert("Error: Could not load file. Please check if the file exists.");
@@ -589,6 +612,15 @@
       const tbody = document.createElement('tbody');
       rows.forEach(r => {
         const tr = document.createElement('tr');
+        tr.onclick = function() {
+          // Highlight clicked row
+          const allTrs = tbody.getElementsByTagName('tr');
+          for(let t of allTrs) t.classList.remove('highlighted-row');
+          tr.classList.add('highlighted-row');
+          currentSelectedStaffRow = r;
+          document.getElementById('btnFormView').style.display = 'block';
+        };
+
         headers.forEach(h => {
           const td = document.createElement('td');
           let val = r[h];
@@ -648,6 +680,17 @@
       inner.style.transform = `scale(${currentZoomLevel})`;
     }
 
+    function switchToFormViewFromTable() {
+      if(!currentSelectedStaffRow) {
+        alert("Please select a staff row from the table first.");
+        return;
+      }
+      document.getElementById('fsModeTabs').style.display = 'flex';
+      document.getElementById('btnDownloadPdf').style.display = 'block';
+      document.getElementById('btnFormView').style.display = 'none';
+      switchViewMode('biodata');
+    }
+
     // Global Search Feature
     function handleGlobalSearch(query) {
       const dropdown = document.getElementById('searchResultsDropdown');
@@ -703,6 +746,7 @@
               currentFsRows = [m.row];
               document.getElementById('fsModeTabs').style.display = 'flex';
               document.getElementById('btnDownloadPdf').style.display = 'block';
+              document.getElementById('btnFormView').style.display = 'none';
               switchViewMode('biodata');
             } else {
               alert("Attendance lookup for ID: " + m.id);
@@ -726,10 +770,12 @@
       if(mode === 'biodata') {
         tabs[1].classList.add('active');
         document.getElementById('btnDownloadPdf').style.display = 'block';
+        document.getElementById('btnFormView').style.display = 'none';
         renderBioDataView(currentSelectedStaffRow);
       } else {
         tabs[0].classList.add('active');
         document.getElementById('btnDownloadPdf').style.display = 'none';
+        document.getElementById('btnFormView').style.display = 'block';
         renderFullscreenTable(currentFsRows, 'Staff Record');
       }
     }
@@ -745,24 +791,27 @@
       biodataDiv.className = 'biodata-container';
       biodataDiv.id = 'biodataPrintArea';
 
-      let html = `<div style="font-size:24px; font-weight:700; color:#1a202c; margin-bottom:20px;">${row['Emp Name'] || row['Name'] || 'Staff Profile'} <span style="font-size:14px; color:#718096; font-weight:500;">(ID: ${row['Emp L ID'] || row['Employee ID'] || 'N/A'})</span></div>`;
+      let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">`;
+      html += `<div><div style="font-size:24px; font-weight:700; color:#1a202c;">${row['Emp Name'] || row['Name'] || 'Staff Profile'}</div><div style="font-size:14px; color:#718096; font-weight:500;">ID: ${row['Emp L ID'] || row['Employee ID'] || 'N/A'}</div></div>`;
+      html += `<div style="position:relative;"><input type="text" id="bioSearchBox" placeholder="Search in profile..." oninput="filterBioDataFields(this.value)" style="padding:8px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:6px; width:220px; outline:none;"></div>`;
+      html += `</div>`;
 
       html += `<div class="biodata-section-title">Personal & Employment Details</div>`;
-      html += `<div class="biodata-grid">`;
+      html += `<div class="biodata-grid" id="bioGridPersonal">`;
       for(let key in row) {
         if(!['bank', 'account', 'ifsc', 'phone', 'mobile', 'email', 'address'].some(k => key.toLowerCase().includes(k))) {
           const val = formatDateVal(row[key]);
-          html += `<div class="biodata-item"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
+          html += `<div class="biodata-item bio-field-card" data-key="${key.toLowerCase()}" data-val="${val.toLowerCase()}"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
         }
       }
       html += `</div>`;
 
       html += `<div class="biodata-section-title">Bank & Contact Details</div>`;
-      html += `<div class="biodata-grid">`;
+      html += `<div class="biodata-grid" id="bioGridContact">`;
       for(let key in row) {
         if(['bank', 'account', 'ifsc', 'phone', 'mobile', 'email', 'address'].some(k => key.toLowerCase().includes(k))) {
           const val = formatDateVal(row[key]);
-          html += `<div class="biodata-item"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
+          html += `<div class="biodata-item bio-field-card" data-key="${key.toLowerCase()}" data-val="${val.toLowerCase()}"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
         }
       }
       html += `</div>`;
@@ -772,6 +821,25 @@
       currentZoomLevel = 1.0;
       applyZoom();
       document.getElementById('fullscreenViewer').style.display = 'flex';
+    }
+
+    function filterBioDataFields(query) {
+      const q = query.toLowerCase().trim();
+      const cards = document.querySelectorAll('.bio-field-card');
+      cards.forEach(c => {
+        const k = c.getAttribute('data-key');
+        const v = c.getAttribute('data-val');
+        if(!q || k.includes(q) || v.includes(q)) {
+          c.style.display = 'flex';
+          if(q && (k.includes(q) || v.includes(q))) {
+            c.style.background = '#feebc8'; // Highlight match
+          } else {
+            c.style.background = '#f8fafc';
+          }
+        } else {
+          c.style.display = 'none';
+        }
+      });
     }
 
     // High Quality PDF Export using jsPDF
