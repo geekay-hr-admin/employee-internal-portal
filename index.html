@@ -89,8 +89,8 @@
     }
     .brand-greeting { font-size: 15px; font-weight: 400; opacity: 0.92; line-height: 1.6; margin: 14px 0 0 0; }
     .brand-points { list-style: none; margin: 30px 0 0 0; padding: 0; display: flex; flex-direction: column; gap: 18px; }
-    .brand-points li { font-size: 14px; line-height: 1.65; opacity: 0.92; }
-    .brand-points li::before { content: ''; display: block; width: 28px; height: 2px; background: rgba(255,255,255,0.55); margin: 0 auto 10px auto; }
+    .brand-points li { font-size: 14px; line-height: 1.65; opacity: 0.92; text-align: left; display: flex; align-items: flex-start; gap: 12px; }
+    .brand-points li::before { content: '✦'; color: #63b3ed; font-size: 16px; margin-top: -2px; }
     :lang(ta) .brand-eyebrow, :lang(hi) .brand-eyebrow,
     :lang(ta) .lw-small, :lang(hi) .lw-small { letter-spacing: normal; }
 
@@ -142,6 +142,7 @@
       50% { opacity: 0.8; transform: scale(1); }
     }
 
+    /* Right Form Panel */
     .login-form-panel {
       flex: 1;
       padding: 50px;
@@ -149,9 +150,47 @@
       flex-direction: column;
       justify-content: center;
       background: #ffffff;
+      position: relative;
     }
+    
+    /* Role Switcher Tabs (New Logic) */
+    .role-switcher {
+      display: flex;
+      justify-content: flex-start;
+      gap: 20px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 5px;
+    }
+    .role-btn {
+      background: none;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      color: #718096;
+      padding: 8px 4px;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.3s ease;
+      outline: none;
+    }
+    .role-btn::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 0;
+      width: 0%;
+      height: 3px;
+      background: #3182ce;
+      transition: width 0.3s ease;
+      border-radius: 2px 2px 0 0;
+    }
+    .role-btn.active { color: #1a202c; }
+    .role-btn.active::after { width: 100%; }
+    
     .login-form-inner { max-width: 360px; width: 100%; margin: 0 auto; }
-    .login-lang { display: flex; justify-content: flex-end; margin-bottom: 25px; }
+    .login-lang { position: absolute; top: 30px; right: 40px; display: flex; justify-content: flex-end; margin-bottom: 0; }
+    
     .login-form-inner h2 { margin: 0 0 6px 0; color: #1a202c; font-size: 26px; font-weight: 700; letter-spacing: 0.2px; }
     .login-accent { width: 44px; height: 4px; background: #3182ce; border-radius: 2px; margin-bottom: 14px; }
     .login-subtitle { margin: 0 0 30px 0; font-size: 14px; color: #718096; line-height: 1.6; }
@@ -176,7 +215,7 @@
       font-weight: 600;
       letter-spacing: 1.2px;
       font-variant-numeric: tabular-nums;
-      text-transform: uppercase;
+      /* removed text-transform: uppercase; so Admin0000 works exactly */
       color: #1a202c;
       caret-color: #3182ce;
       border: none;
@@ -235,7 +274,7 @@
     .input-status.invalid { color: #e53e3e; }
     .input-status.checking { color: #3182ce; }
 
-    /* Show / hide password button (inside the field, on the right end) */
+    /* Show / hide password button */
     .pwd-toggle {
       position: absolute;
       right: 0;
@@ -265,7 +304,8 @@
       0% { opacity: 0; transform: translateY(-10px); }
       100% { opacity: 1; transform: translateY(0); }
     }
-    .password-hint { font-size: 12.5px; color: #4a5568; font-weight: 500; margin: -8px 0 25px 0; line-height: 1.7; white-space: pre-line; }
+    .password-hint { font-size: 12.5px; color: #4a5568; font-weight: 500; margin: -8px 0 25px 0; line-height: 1.7; white-space: pre-line; background: #ebf8ff; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #3182ce;}
+    .hint-highlight { font-weight: 700; color: #004080; }
 
     .login-btn {
       width: 100%;
@@ -354,11 +394,12 @@
       .login-brand-panel { flex: none; padding: 30px 20px; }
       .brand-points { display: none; }
       .login-form-panel { padding: 30px 20px 36px 20px; }
+      .login-lang { position: relative; top: auto; right: auto; margin-bottom: 20px; }
     }
     @media (max-width: 480px) {
       .floating-input-group input { font-size: 18px; letter-spacing: 1px; padding-right: 64px; }
       .floating-input-group.has-toggle input { padding-right: 104px; }
-      .input-status .st-text { display: none; }   /* only the tick / cross icon on small phones */
+      .input-status .st-text { display: none; }   
     }
   </style>
 </head>
@@ -375,7 +416,6 @@
         <div class="brand-inner">
           <div class="brand-eyebrow" data-i18n="brandWelcome">Welcome to</div>
           <h1 class="brand-name">Geekay Human Resources Pvt. Ltd.</h1>
-          <p class="brand-greeting" data-i18n="brandGreeting">The Geekay family is glad to have you here.</p>
           <ul class="brand-points">
             <li data-i18n="brandSlogan">Empowering our workforce with seamless and secure HR solutions.</li>
             <li data-i18n="brandPoint2">Clear, accurate and timely attendance records for every employee.</li>
@@ -385,21 +425,29 @@
       </div>
 
       <div class="login-form-panel">
+        
+        <div class="lang-switch login-lang" role="group" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang="en" title="English" aria-label="English">E</button>
+          <button type="button" class="lang-btn" data-lang="ta" title="தமிழ்" aria-label="தமிழ்">த</button>
+          <button type="button" class="lang-btn" data-lang="hi" title="हिन्दी" aria-label="हिन्दी">हि</button>
+        </div>
+
         <div class="login-form-inner">
-          <div class="lang-switch login-lang" role="group" aria-label="Language">
-            <button type="button" class="lang-btn" data-lang="en" title="English" aria-label="English">E</button>
-            <button type="button" class="lang-btn" data-lang="ta" title="தமிழ்" aria-label="தமிழ்">த</button>
-            <button type="button" class="lang-btn" data-lang="hi" title="हिन्दी" aria-label="हिन्दी">हि</button>
+          
+          <!-- NEW: Role Switcher Tabs -->
+          <div class="role-switcher">
+            <button type="button" class="role-btn active" id="tabEmployee" data-i18n="empLoginTab">Employee Login</button>
+            <button type="button" class="role-btn" id="tabAdmin" data-i18n="adminLoginTab">Admin Login</button>
           </div>
 
           <h2 id="dynamicGreeting">Good Morning</h2>
           <div class="login-accent"></div>
-          <p class="login-subtitle" data-i18n="portalSubtitle">Enter your Employee ID to view your attendance and details.</p>
+          <p class="login-subtitle" id="subtitleText" data-i18n="portalSubtitle">Enter your Employee ID to view your attendance and details.</p>
 
           <div class="floating-input-group">
             <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><circle cx="9" cy="11" r="2"></circle><path d="M6 16c.6-1.4 1.7-2 3-2s2.4.6 3 2"></path><line x1="14.5" y1="10" x2="18" y2="10"></line><line x1="14.5" y1="14" x2="18" y2="14"></line></svg>
             <input type="text" id="empId" autocomplete="off" spellcheck="false" placeholder=" ">
-            <label for="empId" data-i18n="employeeId">Employee ID</label>
+            <label for="empId" id="idLabelText" data-i18n="employeeId">Employee ID</label>
             <div id="idStatus" class="input-status" aria-live="polite"></div>
           </div>
 
@@ -411,7 +459,7 @@
               <div id="pwdStatus" class="input-status" aria-live="polite"></div>
               <button type="button" class="pwd-toggle" id="pwdToggle" aria-pressed="false"><svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path><circle cx="12" cy="12" r="3"></circle></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.9 17.9A10.9 10.9 0 0 1 12 19C5 19 1 12 1 12a18.5 18.5 0 0 1 5.1-5.9"></path><path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c7 0 11 7 11 7a18.6 18.6 0 0 1-2.2 3.2"></path><path d="M14.1 14.1A3 3 0 0 1 9.9 9.9"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg></button>
             </div>
-            <div class="password-hint" data-i18n="passwordHint">Hint: First 4 letters of your name + Birth Year (e.g., SIVA1995, ARUN1992)</div>
+            <div class="password-hint" id="pwdHintBlock" data-i18n="passwordHint">Hint: First 4 letters of your name + Birth Year (e.g., SIVA1995, ARUN1992)</div>
           </div>
 
           <button type="button" class="login-btn" id="continueBtn" onclick="executeLogin()" data-i18n="viewProfile">Continue</button>
@@ -438,7 +486,7 @@
     const MASTER_FILE = 'master_data/master_data.xlsx';
     const LANG_STORAGE_KEY = 'geekayPortalLang';
     const LOADING_MIN_MS = 1500;          
-    const ID_CHECK_DELAY_MS = 1500;       
+    const ID_CHECK_DELAY_MS = 1000;       
     const MASTER_TTL_MS = 10 * 60 * 1000; 
 
     // ============================================================
@@ -447,9 +495,10 @@
     const I18N = {
       en: {
         locale: 'en-US',
+        empLoginTab: 'Employee Login',
+        adminLoginTab: 'Admin Login',
         brandSlogan: 'Empowering our workforce with seamless and secure HR solutions.',
         brandWelcome: 'Welcome to',
-        brandGreeting: 'The Geekay family is glad to have you here.',
         brandPoint2: 'Clear, accurate and timely attendance records for every employee.',
         brandPoint3: 'Supporting our people with transparency, care and professionalism.',
         showPassword: 'Show password',
@@ -459,26 +508,31 @@
         greetingEvening: 'Good Evening',
         greetingNight: 'Welcome Back',
         portalSubtitle: 'Enter your Employee ID to view your attendance and details.',
+        adminSubtitle: 'Enter Admin ID to access the management dashboard.',
         employeeId: 'Employee ID',
+        adminIdLabel: 'Admin ID',
         password: 'Password',
         passwordHint: 'Hint: First 4 letters of your name + Birth Year (e.g., SIVA1995, ARUN1992).\nIgnore dots and spaces: S. Kumar born in 1990 \u2192 SKUM1990.\nIf your name has fewer than 4 letters, use all of them: RAJ1995.',
+        adminHint: 'Enter your designated Admin password.',
         viewProfile: 'Continue',
         validId: 'Verified',
         invalidId: 'Invalid',
         checking: 'Checking...',
         welcomeLoading: 'Welcome',
         msgFileProtocol: 'Open this page from a web server (or hosting). Browsers block reading local files.',
-        msgIdColumn: 'Employee ID column not found in the Master Data file. Please contact HR / Admin.',
-        msgFileNotFound: 'Master Data file not found. Please contact HR / Admin.',
-        msgEmptyBook: 'The Master Data file is empty. Please contact HR / Admin.',
-        msgSystem: 'System error. Data could not be loaded. Please try again.',
-        msgNoPassword: 'Your password could not be created because your name or date of birth is missing. Please contact HR / Admin.'
+        msgIdColumn: 'Employee ID column not found in the Master Data file.',
+        msgFileNotFound: 'Master Data file not found.',
+        msgEmptyBook: 'The Master Data file is empty.',
+        msgSystem: 'System error. Data could not be loaded.',
+        msgNoPassword: 'Your password could not be created because your name or date of birth is missing.',
+        msgInvalidAdmin: 'Invalid Admin Credentials.'
       },
       ta: {
         locale: 'ta-IN',
+        empLoginTab: 'ஊழியர் உள்நுழைவு',
+        adminLoginTab: 'நிர்வாகி உள்நுழைவு',
         brandSlogan: 'பாதுகாப்பான மற்றும் சிறப்பான மனிதவள சேவைகளுடன் நமது ஊழியர்களை மேம்படுத்துகிறோம்.',
         brandWelcome: 'வரவேற்கிறோம்',
-        brandGreeting: 'Geekay குடும்பம் உங்களை இங்கே வரவேற்பதில் மகிழ்ச்சி அடைகிறது.',
         brandPoint2: 'ஒவ்வொரு ஊழியருக்கும் தெளிவான, துல்லியமான, உரிய நேரத்தில் வழங்கப்படும் வருகைப் பதிவுகள்.',
         brandPoint3: 'வெளிப்படைத்தன்மை, அக்கறை மற்றும் தொழில்முறையுடன் நமது ஊழியர்களுக்குத் துணை நிற்கிறோம்.',
         showPassword: 'பாஸ்வேர்டைக் காட்டு',
@@ -488,26 +542,31 @@
         greetingEvening: 'மாலை வணக்கம்',
         greetingNight: 'மீண்டும் வரவேற்கிறோம்',
         portalSubtitle: 'உங்கள் வருகைப் பதிவு மற்றும் விவரங்களைப் பார்க்க, உங்கள் ஊழியர் ID-ஐ உள்ளிடவும்.',
+        adminSubtitle: 'நிர்வாகி டேஷ்போர்டை அணுக Admin ID-ஐ உள்ளிடவும்.',
         employeeId: 'ஊழியர் ID',
+        adminIdLabel: 'நிர்வாகி ID',
         password: 'பாஸ்வேர்ட்',
-        passwordHint: 'குறிப்பு: உங்கள் பெயரின் முதல் 4 எழுத்துக்கள் + பிறந்த வருடம் (உ-ம்: SIVA1995, ARUN1992).\nபுள்ளி மற்றும் இடைவெளியை விட்டுவிடவும்: S. Kumar, 1990-ல் பிறந்தவர் \u2192 SKUM1990.\nபெயரில் 4 எழுத்துக்குக் குறைவாக இருந்தால், உள்ள எல்லா எழுத்துக்களையும் பயன்படுத்தவும்: RAJ1995.',
+        passwordHint: 'குறிப்பு: உங்கள் பெயரின் முதல் 4 எழுத்துக்கள் + பிறந்த வருடம் (உ-ம்: SIVA1995, ARUN1992).\nபுள்ளி மற்றும் இடைவெளியை விட்டுவிடவும்: S. Kumar, 1990-ல் பிறந்தவர் \u2192 SKUM1990.',
+        adminHint: 'உங்களுக்கு ஒதுக்கப்பட்ட நிர்வாகி பாஸ்வேர்டை உள்ளிடவும்.',
         viewProfile: 'தொடரவும்',
         validId: 'சரியானது',
         invalidId: 'தவறானது',
         checking: 'சரிபார்க்கிறது...',
         welcomeLoading: 'வரவேற்கிறோம்',
-        msgFileProtocol: 'இந்தப் பக்கத்தை இணையதள சேவையகம் (hosting) வழியாகத் திறக்கவும். கணினியில் உள்ள கோப்பாகத் திறந்தால் தரவைப் படிக்க முடியாது.',
-        msgIdColumn: 'Master Data கோப்பில் ஊழியர் ID column கிடைக்கவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
-        msgFileNotFound: 'Master Data கோப்பு கிடைக்கவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
-        msgEmptyBook: 'Master Data கோப்பு காலியாக உள்ளது. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
-        msgSystem: 'கணினிப் பிழை. தரவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
-        msgNoPassword: 'உங்கள் பெயர் அல்லது பிறந்த தேதி இல்லாததால் password உருவாக்க முடியவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.'
+        msgFileProtocol: 'இந்தப் பக்கத்தை இணையதள சேவையகம் வழியாகத் திறக்கவும்.',
+        msgIdColumn: 'Master Data கோப்பில் ஊழியர் ID column கிடைக்கவில்லை.',
+        msgFileNotFound: 'Master Data கோப்பு கிடைக்கவில்லை.',
+        msgEmptyBook: 'Master Data கோப்பு காலியாக உள்ளது.',
+        msgSystem: 'கணினிப் பிழை. தரவை ஏற்ற முடியவில்லை.',
+        msgNoPassword: 'உங்கள் பெயர் அல்லது பிறந்த தேதி இல்லாததால் password உருவாக்க முடியவில்லை.',
+        msgInvalidAdmin: 'தவறான நிர்வாகி தரவுகள்.'
       },
       hi: {
         locale: 'hi-IN',
+        empLoginTab: 'कर्मचारी लॉगिन',
+        adminLoginTab: 'व्यवस्थापक लॉगिन',
         brandSlogan: 'निर्बाध और सुरक्षित मानव संसाधन समाधानों के साथ हमारे कर्मचारियों को सशक्त बनाना।',
         brandWelcome: 'स्वागत है',
-        brandGreeting: 'Geekay परिवार आपका यहाँ स्वागत करते हुए प्रसन्न है।',
         brandPoint2: 'हर कर्मचारी के लिए स्पष्ट, सटीक और समय पर उपस्थिति रिकॉर्ड।',
         brandPoint3: 'पारदर्शिता, देखभाल और व्यावसायिकता के साथ हम अपने कर्मचारियों के साथ खड़े हैं।',
         showPassword: 'पासवर्ड दिखाएँ',
@@ -517,20 +576,24 @@
         greetingEvening: 'शुभ संध्या',
         greetingNight: 'वापसी पर स्वागत है',
         portalSubtitle: 'अपनी उपस्थिति और विवरण देखने के लिए अपना कर्मचारी ID दर्ज करें।',
+        adminSubtitle: 'प्रबंधन डैशबोर्ड तक पहुँचने के लिए व्यवस्थापक ID दर्ज करें।',
         employeeId: 'कर्मचारी ID',
+        adminIdLabel: 'व्यवस्थापक ID',
         password: 'पासवर्ड',
-        passwordHint: 'संकेत: आपके नाम के पहले 4 अक्षर + जन्म वर्ष (उदा: SIVA1995, ARUN1992)।\nबिंदु और खाली जगह छोड़ दें: S. Kumar, जन्म 1990 \u2192 SKUM1990।\nनाम में 4 से कम अक्षर हों तो सभी अक्षर लें: RAJ1995।',
+        passwordHint: 'संकेत: आपके नाम के पहले 4 अक्षर + जन्म वर्ष (उदा: SIVA1995, ARUN1992)।\nबिंदु और खाली जगह छोड़ दें: S. Kumar, जन्म 1990 \u2192 SKUM1990।',
+        adminHint: 'अपना व्यवस्थापक पासवर्ड दर्ज करें।',
         viewProfile: 'जारी रखें',
         validId: 'सत्यापित',
         invalidId: 'अमान्य',
         checking: 'जाँच हो रही है...',
         welcomeLoading: 'स्वागत है',
-        msgFileProtocol: 'इस पेज को वेब सर्वर (होस्टिंग) से खोलें। कंप्यूटर की फ़ाइल के रूप में खोलने पर डेटा पढ़ा नहीं जा सकता।',
-        msgIdColumn: 'Master Data फ़ाइल में कर्मचारी ID कॉलम नहीं मिला। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgFileNotFound: 'Master Data फ़ाइल नहीं मिली। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgEmptyBook: 'Master Data फ़ाइल खाली है। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgSystem: 'सिस्टम में त्रुटि। डेटा लोड नहीं हो सका। कृपया फिर से प्रयास करें।',
-        msgNoPassword: 'आपका नाम या जन्म तिथि उपलब्ध न होने से पासवर्ड नहीं बन सका। कृपया HR / एडमिन विभाग से संपर्क करें।'
+        msgFileProtocol: 'इस पेज को वेब सर्वर से खोलें।',
+        msgIdColumn: 'Master Data फ़ाइल में कर्मचारी ID कॉलम नहीं मिला।',
+        msgFileNotFound: 'Master Data फ़ाइल नहीं मिली।',
+        msgEmptyBook: 'Master Data फ़ाइल खाली है।',
+        msgSystem: 'सिस्टम में त्रुटि। डेटा लोड नहीं हो सका।',
+        msgNoPassword: 'आपका नाम या जन्म तिथि उपलब्ध न होने से पासवर्ड नहीं बन सका।',
+        msgInvalidAdmin: 'अमान्य व्यवस्थापक क्रेडेंशियल।'
       }
     };
 
@@ -553,20 +616,25 @@
     // ============================================================
     // State
     // ============================================================
-    let pendingEmployee = null;      // ID verified, waiting for the password
+    let pendingEmployee = null;      
     let expectedPassword = '';
     let currentLoginMessage = null;
+    let currentLoginMode = 'employee'; // 'employee' or 'admin'
 
     let cachedMasterData = null;
     let masterLoadedAt = 0;
     let masterError = null;
     let preloadPromise = null;
 
-    let idState = null;              // null | 'checking' | 'valid' | 'invalid'
-    let pwdState = null;             // null | 'valid' | 'invalid'
+    let idState = null;              
+    let pwdState = null;             
     let lastCheckedId = '';
     let validationSeq = 0;
     let typingTimer = null;
+
+    // Hardcoded Admin Credentials
+    const ADMIN_ID = "000000123";
+    const ADMIN_PWD = "Admin0000";
 
     // ============================================================
     // Small helpers
@@ -727,16 +795,23 @@
       document.querySelectorAll('[data-i18n]').forEach(function (el) {
         el.textContent = t(el.getAttribute('data-i18n'));
       });
-      document.querySelectorAll('[data-i18n-title]').forEach(function (el) {
-        const txt = t(el.getAttribute('data-i18n-title'));
-        el.setAttribute('title', txt);
-        el.setAttribute('aria-label', txt);
-      });
+      
       document.querySelectorAll('.lang-btn').forEach(function (btn) {
         const active = btn.getAttribute('data-lang') === currentLang;
         btn.classList.toggle('active', active);
         btn.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
+
+      // Update text based on Current Mode
+      if (currentLoginMode === 'admin') {
+        document.getElementById('subtitleText').textContent = t('adminSubtitle');
+        document.getElementById('idLabelText').textContent = t('adminIdLabel');
+        document.getElementById('pwdHintBlock').textContent = t('adminHint');
+      } else {
+        document.getElementById('subtitleText').textContent = t('portalSubtitle');
+        document.getElementById('idLabelText').textContent = t('employeeId');
+        document.getElementById('pwdHintBlock').innerHTML = `<span data-i18n="hintLine1">${t('passwordHint').split('\n')[0]}</span>`;
+      }
 
       updateDynamicGreeting();
       renderInputStatuses();
@@ -789,9 +864,52 @@
     }
 
     // ============================================================
+    // Role Switcher Logic (NEW)
+    // ============================================================
+    const tabEmployee = document.getElementById('tabEmployee');
+    const tabAdmin = document.getElementById('tabAdmin');
+    const empIdInput = document.getElementById('empId');
+    
+    tabEmployee.addEventListener('click', () => switchMode('employee'));
+    tabAdmin.addEventListener('click', () => switchMode('admin'));
+
+    function switchMode(mode) {
+      currentLoginMode = mode;
+      
+      // Update UI Tabs
+      if(mode === 'admin') {
+        tabAdmin.classList.add('active');
+        tabEmployee.classList.remove('active');
+        
+        // Remove text-transform for Admin mode so exact casing is allowed
+        empIdInput.style.textTransform = 'none';
+        empPwdInput.style.textTransform = 'none';
+      } else {
+        tabEmployee.classList.add('active');
+        tabAdmin.classList.remove('active');
+        
+        // Re-add text transform for Employee mode
+        empIdInput.style.textTransform = 'uppercase';
+        empPwdInput.style.textTransform = 'uppercase';
+      }
+
+      // Reset Inputs and State
+      empIdInput.value = '';
+      clearTimeout(typingTimer);
+      validationSeq++;
+      lastCheckedId = '';
+      idState = null;
+      hidePasswordStep();
+      renderInputStatuses();
+      setLoginMessage(null, 'info');
+
+      // Update Translations based on mode
+      applyStaticTranslations();
+    }
+
+    // ============================================================
     // Login: Employee ID check, then password check
     // ============================================================
-    const empIdInput = document.getElementById('empId');
     const idStatus = document.getElementById('idStatus');
     const pwdGroup = document.getElementById('pwdGroup');
     const empPwdInput = document.getElementById('empPwd');
@@ -858,8 +976,14 @@
     }
 
     async function validateId() {
-      const id = empIdInput.value.trim().toUpperCase();
+      let id = empIdInput.value.trim();
       if (!id) return;
+      
+      // If Employee Mode, force uppercase. If Admin, keep exact case.
+      if (currentLoginMode === 'employee') {
+         id = id.toUpperCase();
+      }
+
       if (id === lastCheckedId && (idState === 'valid' || idState === 'invalid')) return;
 
       const seq = ++validationSeq;
@@ -868,12 +992,29 @@
       renderInputStatuses();
       setLoginMessage(null, 'info');
 
+      // --- NEW ADMIN LOGIC BYPASS ---
+      if (currentLoginMode === 'admin') {
+         if (id === ADMIN_ID) {
+            expectedPassword = ADMIN_PWD;
+            pendingEmployee = { empId: id, name: 'System Admin' };
+            idState = 'valid';
+            pwdGroup.style.display = 'block';
+         } else {
+            idState = 'invalid';
+         }
+         lastCheckedId = id;
+         renderInputStatuses();
+         return; // Skip Excel Validation completely for Admin
+      }
+      // ------------------------------
+
+      // Employee Mode Logic (Excel Validation)
       if (cachedMasterData && Date.now() - masterLoadedAt > MASTER_TTL_MS) {
         cachedMasterData = null;
         preloadPromise = null;
       }
       await preloadSystemData();
-      if (seq !== validationSeq) return;   // a newer check has started
+      if (seq !== validationSeq) return;   
 
       if (!cachedMasterData) {
         idState = null;
@@ -947,7 +1088,13 @@
       renderStatus(idStatus, null);
       continueBtn.classList.remove('show-btn');
 
-      const pwd = this.value.trim().toUpperCase();
+      let pwd = this.value.trim();
+      
+      // If Employee Mode, uppercase it. If Admin, keep exact case.
+      if (currentLoginMode === 'employee') {
+          pwd = pwd.toUpperCase();
+      }
+
       if (!pwd || !expectedPassword) {
         pwdState = null;
       } else if (pwd === expectedPassword) {
@@ -970,7 +1117,14 @@
     let loginBusy = false;
     async function executeLogin() {
       if (loginBusy || !pendingEmployee) return;
-      if (empPwdInput.value.trim().toUpperCase() !== expectedPassword) return;
+      
+      let typedPwd = empPwdInput.value.trim();
+      if (currentLoginMode === 'employee') typedPwd = typedPwd.toUpperCase();
+
+      if (typedPwd !== expectedPassword) {
+        if(currentLoginMode === 'admin') setLoginMessage('msgInvalidAdmin', 'error');
+        return;
+      }
 
       loginBusy = true;
       continueBtn.disabled = true;
@@ -980,14 +1134,19 @@
       showLoadingOverlay();
 
       try {
-        // --- ஒரே ஒரு மாற்றம்: டேஷ்போர்டுக்கு அனுப்புவது ---
         sessionStorage.setItem('geekay_emp_id', pendingEmployee.empId);
         showLoadingName(pendingEmployee.name || 'Employee');
         
         const waitMore = LOADING_MIN_MS - (Date.now() - startedAt);
         if (waitMore > 0) await sleep(waitMore);
 
-        window.location.href = 'employee-dashboard.html';
+        // --- NEW ROUTING LOGIC ---
+        if (currentLoginMode === 'admin') {
+            window.location.assign('./admin-dashboard.html');
+        } else {
+            window.location.assign('./employee-dashboard.html');
+        }
+        
         success = true;
       } catch (error) {
         console.error(error);
