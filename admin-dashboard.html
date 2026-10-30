@@ -8,7 +8,6 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <!-- jsPDF for High-Quality PDF Export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
@@ -38,7 +37,7 @@
 
     .nav-right-container { display: flex; align-items: center; gap: 20px; }
 
-    /* Workforce Dropdown */
+    /* Workforce Dropdown (Clean Nested Sub-menu) */
     .workforce-dropdown { position: relative; display: inline-block; }
     .workforce-btn {
       background: #edf2f7; border: none; color: #2d3748; padding: 6px 14px;
@@ -46,17 +45,26 @@
       display: flex; align-items: center; gap: 6px; transition: background 0.2s;
     }
     .workforce-btn:hover { background: #e2e8f0; }
+    
     .workforce-content {
       display: none; position: absolute; right: 0; top: 100%; background-color: #ffffff;
-      min-width: 190px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px;
-      z-index: 1000; overflow: hidden; border: 1px solid #e2e8f0; margin-top: 5px;
+      min-width: 180px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px;
+      z-index: 1000; overflow: visible; border: 1px solid #e2e8f0; margin-top: 5px;
     }
-    .workforce-content button, .workforce-content .wf-header {
+    .workforce-content .wf-item { position: relative; width: 100%; }
+    .workforce-content button {
       color: #2d3748; padding: 10px 16px; text-decoration: none; display: block;
       width: 100%; text-align: left; background: none; border: none; font-size: 13px; font-weight: 500; cursor: pointer;
     }
-    .workforce-content .wf-header { font-weight: 700; color: #718096; background: #f7fafc; font-size: 11px; text-transform: uppercase; padding: 6px 16px; cursor: default;}
     .workforce-content button:hover { background-color: #f7fafc; color: #3182ce; }
+    
+    /* Nested Attendance Sub-menu */
+    .attendance-submenu {
+      display: none; position: absolute; right: 100%; top: 0; background-color: #ffffff;
+      min-width: 160px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px;
+      border: 1px solid #e2e8f0; overflow: hidden;
+    }
+    .wf-item:hover .attendance-submenu { display: block; }
     .workforce-dropdown.show .workforce-content { display: block; }
 
     .nav-logout-btn { 
@@ -148,12 +156,13 @@
     .zoom-btn { background: #edf2f7; border: none; padding: 6px 12px; font-weight: 600; border-radius: 6px; cursor: pointer; }
     .zoom-btn:hover { background: #e2e8f0; }
 
-    .fs-body { flex: 1; overflow: auto; padding: 20px 30px; background: #f4f7f9; transform-origin: top left; transition: transform 0.1s ease; }
+    .fs-body { flex: 1; overflow: auto; padding: 20px 30px; background: #f4f7f9; }
+    .fs-content-inner { transform-origin: top left; transition: transform 0.1s ease; width: max-content; }
     
-    /* Excel Mirror Table Style (Compact, Single-line, No Wrap) */
+    /* Excel Mirror Table Style (Sticky Header Fixed) */
     .excel-mirror-table { width: max-content; border-collapse: collapse; font-size: 12.5px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
     .excel-mirror-table th, .excel-mirror-table td { padding: 6px 10px; border: 1px solid #d2d6dc; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
-    .excel-mirror-table th { background: #f3f4f6; color: #111827; font-weight: 700; position: sticky; top: 0; z-index: 10; }
+    .excel-mirror-table th { background: #f3f4f6; color: #111827; font-weight: 700; position: sticky; top: 0; z-index: 20; }
     .excel-mirror-table tr:hover { background: #f9fafb; }
 
     /* Bio-Data / Form View Mode */
@@ -226,7 +235,7 @@
       <div class="nav-date-text" id="currentDate">...</div>
     </div>
 
-    <!-- Right Side: Workforce & Logout -->
+    <!-- Right Side: Clean Nested Workforce Menu & Logout -->
     <div class="nav-right-container">
       <div class="workforce-dropdown" id="workforceDropdown">
         <button type="button" class="workforce-btn" onclick="toggleWorkforceMenu(event)">
@@ -234,10 +243,14 @@
         </button>
         <div class="workforce-content" id="workforceDropdownContent">
           <button type="button" onclick="openMasterDataPrompt()">Master Data</button>
-          <div class="wf-header">Attendance</div>
-          <button type="button" onclick="openAttendanceFile('Oct-2026')">Oct-2026</button>
-          <button type="button" onclick="openAttendanceFile('Sep-2026')">Sep-2026</button>
-          <button type="button" onclick="openAttendanceFile('Aug-2026')">Aug-2026</button>
+          <div class="wf-item">
+            <button type="button">Attendance ▸</button>
+            <div class="attendance-submenu">
+              <button type="button" onclick="openAttendanceFile('Oct-2026')">Oct-2026</button>
+              <button type="button" onclick="openAttendanceFile('Sep-2026')">Sep-2026</button>
+              <button type="button" onclick="openAttendanceFile('Aug-2026')">Aug-2026</button>
+            </div>
+          </div>
         </div>
       </div>
       <button type="button" class="nav-logout-btn" onclick="openLogoutModal()">Logout</button>
@@ -318,7 +331,7 @@
     </div>
   </div>
 
-  <!-- Workforce Choice Modal (Live View vs Download) -->
+  <!-- Workforce Choice Modal -->
   <div class="modal-overlay" id="workforceChoiceModal" onclick="if(event.target.id==='workforceChoiceModal') closeWorkforceChoiceModal()">
     <div class="modal-content">
       <div class="modal-icon" id="choiceModalIcon">📂</div>
@@ -362,7 +375,9 @@
     </div>
 
     <div class="fs-body" id="fsBodyContainer">
-      <!-- Dynamic Content -->
+      <div class="fs-content-inner" id="fsContentInner">
+        <!-- Dynamic Content -->
+      </div>
     </div>
   </div>
 
@@ -454,6 +469,31 @@
       return '';
     }
 
+    // Clean Date Formatter (Removes GMT/IST mess)
+    function formatDateVal(val) {
+      if (!val) return '-';
+      if (val instanceof Date) {
+        const d = String(val.getDate()).padStart(2, '0');
+        const m = String(val.getMonth() + 1).padStart(2, '0');
+        const y = val.getFullYear();
+        return `${d}-${m}-${y}`;
+      }
+      const s = String(val).trim();
+      // If it looks like serial date or timestamp, handle gracefully
+      if (s.includes('GMT') || s.includes('UTC')) {
+        try {
+          const d = new Date(s);
+          if (!isNaN(d.getTime())) {
+            const day = String(d.getDate()).padStart(2, '0');
+            const mn = String(d.getMonth() + 1).padStart(2, '0');
+            const yr = d.getFullYear();
+            return `${day}-${mn}-${yr}`;
+          }
+        } catch(e) {}
+      }
+      return s;
+    }
+
     // Workforce Menu
     function toggleWorkforceMenu(e) {
       e.stopPropagation();
@@ -522,7 +562,7 @@
     function renderFullscreenTable(rows, titleText) {
       document.getElementById('fsViewerTitle').textContent = titleText;
       document.getElementById('fsSearchInput').value = '';
-      const container = document.getElementById('fsBodyContainer');
+      const container = document.getElementById('fsContentInner');
       container.textContent = '';
 
       if(!rows || rows.length === 0) {
@@ -552,7 +592,7 @@
         headers.forEach(h => {
           const td = document.createElement('td');
           let val = r[h];
-          if(val instanceof Date) val = val.toLocaleDateString();
+          val = formatDateVal(val);
           td.textContent = val !== undefined ? val : '';
           tr.appendChild(td);
         });
@@ -604,8 +644,8 @@
     }
 
     function applyZoom() {
-      const container = document.getElementById('fsBodyContainer');
-      container.style.transform = `scale(${currentZoomLevel})`;
+      const inner = document.getElementById('fsContentInner');
+      inner.style.transform = `scale(${currentZoomLevel})`;
     }
 
     // Global Search Feature
@@ -696,7 +736,7 @@
 
     function renderBioDataView(row) {
       document.getElementById('fsViewerTitle').textContent = 'Staff Profile & Bio-Data';
-      const container = document.getElementById('fsBodyContainer');
+      const container = document.getElementById('fsContentInner');
       container.textContent = '';
 
       if(!row) return;
@@ -711,7 +751,8 @@
       html += `<div class="biodata-grid">`;
       for(let key in row) {
         if(!['bank', 'account', 'ifsc', 'phone', 'mobile', 'email', 'address'].some(k => key.toLowerCase().includes(k))) {
-          html += `<div class="biodata-item"><span class="biodata-label">${key}</span><span class="biodata-value">${row[key] !== '' ? row[key] : '-'}</span></div>`;
+          const val = formatDateVal(row[key]);
+          html += `<div class="biodata-item"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
         }
       }
       html += `</div>`;
@@ -720,7 +761,8 @@
       html += `<div class="biodata-grid">`;
       for(let key in row) {
         if(['bank', 'account', 'ifsc', 'phone', 'mobile', 'email', 'address'].some(k => key.toLowerCase().includes(k))) {
-          html += `<div class="biodata-item"><span class="biodata-label">${key}</span><span class="biodata-value">${row[key] !== '' ? row[key] : '-'}</span></div>`;
+          const val = formatDateVal(row[key]);
+          html += `<div class="biodata-item"><span class="biodata-label">${key}</span><span class="biodata-value">${val !== '' ? val : '-'}</span></div>`;
         }
       }
       html += `</div>`;
@@ -755,7 +797,7 @@
       
       if(currentSelectedStaffRow) {
         for(let key in currentSelectedStaffRow) {
-          const val = currentSelectedStaffRow[key] !== undefined && currentSelectedStaffRow[key] !== '' ? String(currentSelectedStaffRow[key]) : '-';
+          const val = currentSelectedStaffRow[key] !== undefined && currentSelectedStaffRow[key] !== '' ? formatDateVal(currentSelectedStaffRow[key]) : '-';
           
           if(yPos > 275) {
             doc.addPage();
