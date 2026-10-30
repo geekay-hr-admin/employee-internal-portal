@@ -11,7 +11,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
   <style>
-    /* 100% Identical CSS to the original dashboard */
     * { box-sizing: border-box; }
     body { font-family: 'Poppins', 'Noto Sans Tamil', 'Noto Sans Devanagari', Arial, sans-serif; background: #f4f7f9; color: #2d3748; margin: 0; padding: 0; line-height: 1.5; }
     button { font-family: inherit; }
@@ -160,7 +159,7 @@
     <div class="rainbow-ring"></div>
     <div class="loading-welcome" id="loadingWelcome">
       <div class="lw-small" data-i18n="welcomeLoading">Welcome</div>
-      <div class="lw-name" id="loadingName"></div>
+      <div class="lw-name" id="loadingName">Authenticating...</div>
     </div>
   </div>
 
@@ -273,10 +272,6 @@
   </div>
 
   <script>
-    // Security Check: Redirect to login if opened directly without session
-    const loggedInId = sessionStorage.getItem('geekay_emp_id');
-    if(!loggedInId) { window.location.href = 'index.html'; }
-
     // ============================================================
     // Settings & Globals
     // ============================================================
@@ -545,7 +540,6 @@
     const CODE_WEEKLY_OFF = ['WO', 'WOFF'];
     const CODE_HOLIDAY    = ['H', 'HOL', 'HOLIDAY', 'PH', 'FH'];
     const CODE_OFF        = ['OFF'];
-    const ALL_CODES = [].concat(CODE_PRESENT, CODE_ABSENT, CODE_HALF, CODE_LEAVE, CODE_WEEKLY_OFF, CODE_HOLIDAY, CODE_OFF);
 
     let currentData = null;
     let currentAccountFull = '';
@@ -1506,7 +1500,9 @@
             const found = findRecord(cachedMasterData, storedId);
             
             if (!found.record) {
-                throw new Error("Invalid Session ID");
+                document.getElementById('loadingName').innerHTML = `<span style="color:#e53e3e; font-size:16px;">Error: Employee ID not found in Master Data.</span>`;
+                setTimeout(() => { logout(); }, 3500);
+                return;
             }
             
             currentData = {
@@ -1536,7 +1532,8 @@
             
         } catch(e) {
             console.error("Dashboard init error:", e);
-            logout(); // Kick out if data tampering or missing files
+            document.getElementById('loadingName').innerHTML = `<span style="color:#e53e3e; font-size:16px;">System Error: Check Master Data file.</span>`;
+            setTimeout(() => { logout(); }, 3500);
         }
     }
 
