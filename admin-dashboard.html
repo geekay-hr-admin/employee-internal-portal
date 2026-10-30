@@ -29,7 +29,7 @@
       transition: filter 0.3s ease;
     }
     
-    /* Left Side: Admin Panel, Welcome & Date */
+    /* Left Side: Admin Panel, Workforce Dropdown, Welcome & Date */
     .nav-left-container { display: flex; flex-direction: column; gap: 5px; }
     .nav-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     
@@ -43,6 +43,26 @@
       letter-spacing: 0.5px; 
       text-transform: uppercase; 
     }
+
+    /* Workforce Dropdown Menu */
+    .workforce-dropdown { position: relative; display: inline-block; }
+    .workforce-btn {
+      background: #edf2f7; border: none; color: #2d3748; padding: 4px 12px;
+      border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; gap: 5px; transition: background 0.2s;
+    }
+    .workforce-btn:hover { background: #e2e8f0; }
+    .workforce-content {
+      display: none; position: absolute; left: 0; top: 100%; background-color: #ffffff;
+      min-width: 160px; box-shadow: 0px 8px 16px rgba(0,0,0,0.1); border-radius: 8px;
+      z-index: 1000; overflow: hidden; border: 1px solid #e2e8f0; margin-top: 5px;
+    }
+    .workforce-content button {
+      color: #2d3748; padding: 10px 16px; text-decoration: none; display: block;
+      width: 100%; text-align: left; background: none; border: none; font-size: 13px; font-weight: 500; cursor: pointer;
+    }
+    .workforce-content button:hover { background-color: #f7fafc; color: #3182ce; }
+    .workforce-dropdown.show .workforce-content { display: block; }
     
     .nav-welcome-text { display: flex; align-items: baseline; gap: 5px; }
     .welcome-tiny { font-size: 12px; color: #718096; font-weight: 500; }
@@ -107,14 +127,14 @@
     .btn-primary:hover { background: #2b6cb0; }
     .btn-primary:disabled { background: #a0aec0; cursor: not-allowed; opacity: 0.6; }
 
-    /* Wide Rectangle Modal for Security Lock (Professional Look) */
+    /* Wide Rectangle Modal for Security Lock */
     .lock-modal { max-width: 600px; padding: 35px 40px; text-align: left; }
     .lock-flex { display: flex; align-items: flex-start; gap: 25px; }
     .lock-icon-wrapper { flex-shrink: 0; width: 64px; height: 64px; background: #fff5f5; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 30px; }
     .lock-icon-wrapper.blue { background: #ebf8ff; }
     .lock-text-content { flex: 1; }
     .lock-actions { display: flex; gap: 15px; justify-content: flex-end; margin-top: 25px; }
-    .lock-actions .btn-modal { flex: none; padding: 10px 25px; } /* Override flex to make buttons neat and compact */
+    .lock-actions .btn-modal { flex: none; padding: 10px 25px; }
 
     /* Custom Inputs inside Modal (For Unlock) */
     .floating-input-group { position: relative; margin-bottom: 25px; text-align: left; }
@@ -164,13 +184,25 @@
     </div>
   </div>
 
-  <!-- Minimal Navbar -->
+  <!-- Minimal Navbar with Workforce Menu -->
   <div class="navbar" id="mainNavbar">
     
-    <!-- Left Side: Badge, Welcome & Date -->
+    <!-- Left Side: Badge, Workforce Menu, Welcome & Date -->
     <div class="nav-left-container">
       <div class="nav-title-row">
         <span class="admin-badge">Admin Panel</span>
+        
+        <!-- Workforce Dropdown Menu -->
+        <div class="workforce-dropdown" id="workforceDropdown">
+          <button type="button" class="workforce-btn" onclick="toggleWorkforceMenu(event)">
+            Workforce ▾
+          </button>
+          <div class="workforce-content">
+            <button type="button" onclick="openMasterDataFile()">Master Data</button>
+            <button type="button" onclick="openAttendanceFilePrompt()">Attendance</button>
+          </div>
+        </div>
+
         <div class="nav-welcome-text">
           <span class="welcome-tiny">Welcome,</span>
           <span class="welcome-admin-name">System Admin</span>
@@ -246,7 +278,7 @@
     </div>
   </div>
 
-  <!-- Security Inactivity Lock Modal (Professional Wide Layout) -->
+  <!-- Security Inactivity Lock Modal -->
   <div class="modal-overlay" id="inactivityLockModal" style="background: rgba(0,0,0,0.5);">
     <div class="modal-content lock-modal">
       
@@ -306,6 +338,7 @@
     }
 
     const MASTER_FILE = 'master_data/master_data.xlsx';
+    const ATTENDANCE_FOLDER = 'attendance_records/';
 
     // Column aliases for Master Data parsing
     const COLS = {
@@ -335,6 +368,38 @@
     }
 
     // ============================================================
+    // Workforce Menu Actions (NEW)
+    // ============================================================
+    function toggleWorkforceMenu(e) {
+      e.stopPropagation();
+      document.getElementById('workforceDropdown').classList.toggle('show');
+    }
+
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function() {
+      const dropdown = document.getElementById('workforceDropdown');
+      if (dropdown.classList.contains('show')) {
+        dropdown.classList.remove('show');
+      }
+    });
+
+    function openMasterDataFile() {
+      if (confirm("Do you want to open the Master Data Excel file?")) {
+        window.open(MASTER_FILE, '_blank');
+      }
+    }
+
+    function openAttendanceFilePrompt() {
+      const monthInput = prompt("Enter attendance month and year (e.g., Oct-2026):", "Oct-2026");
+      if (monthInput && monthInput.trim()) {
+        const fileUrl = ATTENDANCE_FOLDER + monthInput.trim() + '.xlsx';
+        if (confirm(`Do you want to open attendance file for: ${monthInput.trim()}?`)) {
+          window.open(fileUrl, '_blank');
+        }
+      }
+    }
+
+    // ============================================================
     // Inactivity Lock System
     // ============================================================
     let idleTime = 0;
@@ -353,18 +418,15 @@
     }
 
     function triggerLockScreen() {
-      clearInterval(idleInterval); // Stop timer while locked
+      clearInterval(idleInterval); 
       
-      // Blur Background
       document.getElementById('dashboardSection').style.filter = 'blur(8px)';
       document.getElementById('dashboardSection').style.pointerEvents = 'none';
       document.getElementById('mainNavbar').style.filter = 'blur(8px)';
       document.getElementById('mainNavbar').style.pointerEvents = 'none';
       
-      // Show Modal
       document.getElementById('inactivityLockModal').style.display = 'flex';
       
-      // Reset Modal Steps
       document.getElementById('lockStep1').style.display = 'block';
       document.getElementById('lockStep2').style.display = 'none';
       document.getElementById('unlockPwd').value = '';
@@ -395,7 +457,6 @@
       else btn.disabled = true;
     }
 
-    // Live Password Verification on Lock Screen
     document.getElementById('unlockPwd').addEventListener('input', function() {
         const pwd = this.value.trim();
         if (!pwd) {
@@ -415,16 +476,13 @@
 
     function unlockSession() {
       if(document.getElementById('unlockPwd').value.trim() === ADMIN_PWD) {
-        // Remove Blur
         document.getElementById('dashboardSection').style.filter = 'none';
         document.getElementById('dashboardSection').style.pointerEvents = 'auto';
         document.getElementById('mainNavbar').style.filter = 'none';
         document.getElementById('mainNavbar').style.pointerEvents = 'auto';
         
-        // Hide Modal
         document.getElementById('inactivityLockModal').style.display = 'none';
         
-        // Restart Timer
         resetIdleTimer();
         idleInterval = setInterval(timerIncrement, 1000);
       }
@@ -476,13 +534,12 @@
             if (['INACTIVE', 'IN-ACTIVE', 'IN ACTIVE'].includes(su)) {
               inactive++;
             } else {
-              active++; // Default to active
+              active++; 
             }
           }
         }
       }
 
-      // Animate Numbers
       animateValue("statTotalEmp", 0, total, 1000);
       animateValue("statActiveEmp", 0, active, 1000);
       animateValue("statInactiveEmp", 0, inactive, 1000);
@@ -505,14 +562,13 @@
     }
 
     // ============================================================
-    // UI Updates & Standard Logout Logic
+    // UI Updates & Logout Logic
     // ============================================================
     function setDate() {
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
       document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', options);
     }
 
-    // Modal Logic
     function openLogoutModal() {
       document.getElementById('logoutModal').style.display = 'flex';
     }
@@ -527,7 +583,6 @@
       window.location.href = './index.html';
     }
     
-    // Press Escape to close normal logout modal (only if Lock Modal is not active)
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && document.getElementById('logoutModal').style.display === 'flex') {
         closeLogoutModal();
@@ -540,19 +595,16 @@
     window.addEventListener('DOMContentLoaded', async function () {
       setDate();
       
-      // Start Dashboard Loading
       document.getElementById('loadingWelcome').classList.add('in');
       document.getElementById('loadingOverlay').classList.add('show');
 
       const rows = await loadMasterData();
       
-      // Brief wait for UX
       setTimeout(() => {
         document.getElementById('loadingOverlay').classList.remove('show');
         document.getElementById('dashboardSection').style.display = 'block';
         calculateStats(rows);
 
-        // Start Inactivity Tracking ONLY after dashboard is fully loaded
         document.onmousemove = resetIdleTimer;
         document.onkeypress = resetIdleTimer;
         document.onclick = resetIdleTimer;
