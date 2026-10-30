@@ -12,10 +12,10 @@
   <style>
     /* Premium CSS System */
     * { box-sizing: border-box; }
-    body { font-family: 'Poppins', 'Noto Sans Tamil', 'Noto Sans Devanagari', Arial, sans-serif; background: #f4f7f9; color: #2d3748; margin: 0; padding: 0; line-height: 1.5; }
+    body { font-family: 'Poppins', 'Noto Sans Tamil', 'Noto Sans Devanagari', Arial, sans-serif; background: #f4f7f9; color: #2d3748; margin: 0; padding: 0; line-height: 1.5; overflow-x: hidden;}
     button { font-family: inherit; }
     
-    /* Updated Navbar Layout */
+    /* Navbar: Top-Left Logout, Top-Right Admin Badge */
     .navbar { 
       position: sticky; 
       top: 0; 
@@ -26,6 +26,7 @@
       display: flex; 
       justify-content: space-between; 
       align-items: center; 
+      transition: filter 0.3s ease;
     }
     
     /* Left Side: Admin Panel, Welcome & Date */
@@ -62,7 +63,7 @@
     }
     .nav-logout-btn:hover { color: #c53030; text-decoration: underline; transform: scale(1.02); }
 
-    .dashboard-section { padding: 30px 20px; max-width: 1100px; margin: 0 auto; display: none; }
+    .dashboard-section { padding: 30px 20px; max-width: 1100px; margin: 0 auto; display: none; transition: filter 0.3s ease; }
     
     /* 4 Grid Stats */
     .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 35px; }
@@ -76,7 +77,7 @@
     
     .section-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #2d3748; display: flex; align-items: center; justify-content: space-between;}
     
-    /* Control Cards (Coming Soon Placeholders) */
+    /* Control Cards */
     .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
     .control-card { background: white; padding: 30px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); text-align: center; border: 1px solid #e2e8f0; transition: transform 0.3s ease, box-shadow 0.3s ease; position: relative; overflow: hidden;}
     .control-card.disabled { opacity: 0.7; cursor: not-allowed; }
@@ -85,22 +86,41 @@
     .control-title { font-size: 18px; font-weight: 600; color: #2d3748; margin-bottom: 8px; }
     .control-desc { font-size: 13px; color: #718096; line-height: 1.5; }
 
-    /* Custom Logout Modal */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; }
-    .modal-content { background: white; width: 90%; max-width: 400px; border-radius: 12px; padding: 30px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); position: relative; animation: popIn 0.3s ease; }
+    /* Modals System */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2000; justify-content: center; align-items: center; }
+    .modal-content { background: white; width: 90%; max-width: 420px; border-radius: 12px; padding: 35px 30px; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); position: relative; animation: popIn 0.3s ease; }
     @keyframes popIn { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    .modal-icon { font-size: 48px; color: #e53e3e; margin-bottom: 15px; }
-    .modal-title { font-size: 20px; font-weight: 700; color: #1a202c; margin-bottom: 10px; }
-    .modal-desc { font-size: 14px; color: #718096; margin-bottom: 25px; line-height: 1.5; }
+    
+    .modal-icon { font-size: 48px; margin-bottom: 15px; line-height: 1; }
+    .modal-title { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+    .modal-title.red { color: #e53e3e; }
+    .modal-title.dark { color: #1a202c; }
+    .modal-desc { font-size: 14.5px; color: #4a5568; margin-bottom: 25px; line-height: 1.6; }
+    
     .modal-actions { display: flex; gap: 15px; justify-content: center; }
-    .btn-modal { flex: 1; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; border: none; transition: all 0.2s ease; }
+    .btn-modal { flex: 1; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; border: none; transition: all 0.2s ease; }
     .btn-cancel { background: #edf2f7; color: #4a5568; }
     .btn-cancel:hover { background: #e2e8f0; }
     .btn-confirm { background: #e53e3e; color: white; }
     .btn-confirm:hover { background: #c53030; }
+    .btn-primary { background: #3182ce; color: white; }
+    .btn-primary:hover { background: #2b6cb0; }
+    .btn-primary:disabled { background: #a0aec0; cursor: not-allowed; opacity: 0.6; }
+
+    /* Custom Inputs inside Modal (For Unlock) */
+    .floating-input-group { position: relative; margin-bottom: 25px; text-align: left; }
+    .floating-input-group input { width: 100%; padding: 15px 120px 10px 5px; font-size: 20px; font-weight: 600; letter-spacing: 1px; color: #004080; border: none; border-bottom: 2px solid #cbd5e1; background: transparent; outline: none; transition: all 0.3s ease; }
+    .floating-input-group label { position: absolute; top: 15px; left: 5px; font-size: 15px; color: #718096; transition: all 0.3s ease; pointer-events: none; }
+    .floating-input-group input:focus { border-bottom-color: #3182ce; }
+    .floating-input-group input:focus ~ label, .floating-input-group input:not(:placeholder-shown) ~ label { top: -10px; font-size: 12px; color: #3182ce; font-weight: 600; }
+    
+    .input-status { position: absolute; right: 0; bottom: 12px; font-size: 13px; font-weight: 600; pointer-events: none; opacity: 0; transition: opacity 0.3s ease; display: flex; align-items: center; gap: 5px;}
+    .input-status.show { opacity: 1; }
+    .input-status.valid { color: #38a169; }
+    .input-status.invalid { color: #e53e3e; }
 
     /* Loading Overlay */
-    .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 2000; background: #ffffff; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease; }
+    .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 3000; background: #ffffff; display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease; }
     .loading-overlay.show { opacity: 1; visibility: visible; }
     .rainbow-ring { width: 96px; height: 96px; border-radius: 50%; background: conic-gradient(#ff3b30, #ff9500, #ffcc00, #34c759, #00c7be, #007aff, #5856d6, #af52de, #ff2d55, #ff3b30); -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px)); mask: radial-gradient(farthest-side, transparent calc(100% - 10px), #000 calc(100% - 9px)); animation: ringSpin 1.1s linear infinite; }
     @keyframes ringSpin { to { transform: rotate(360deg); } }
@@ -121,16 +141,16 @@
 </head>
 <body>
   
-  <!-- Loading Screen -->
+  <!-- Initial Loading Screen -->
   <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
     <div class="rainbow-ring"></div>
     <div class="loading-welcome" id="loadingWelcome">
       <div class="lw-small">Authorizing</div>
-      <div class="lw-name" id="loadingName">System Admin</div>
+      <div class="lw-name">System Admin</div>
     </div>
   </div>
 
-  <!-- Updated Minimal Navbar -->
+  <!-- Minimal Navbar -->
   <div class="navbar" id="mainNavbar">
     
     <!-- Left Side: Badge, Welcome & Date -->
@@ -151,7 +171,7 @@
 
   <!-- Dashboard Content -->
   <div class="dashboard-section" id="dashboardSection">
-
+    
     <!-- Quick Stats -->
     <div class="analytics-grid">
       <div class="stat-card total-stat">
@@ -199,11 +219,11 @@
 
   </div>
 
-  <!-- Logout Confirmation Modal -->
+  <!-- Standard Logout Confirmation Modal -->
   <div class="modal-overlay" id="logoutModal" onclick="if(event.target.id==='logoutModal') closeLogoutModal()">
     <div class="modal-content">
       <div class="modal-icon">⚠️</div>
-      <div class="modal-title">Confirm Logout</div>
+      <div class="modal-title dark">Confirm Logout</div>
       <div class="modal-desc">Are you sure you want to log out of the Admin Dashboard?</div>
       <div class="modal-actions">
         <button class="btn-modal btn-cancel" onclick="closeLogoutModal()">Cancel</button>
@@ -212,11 +232,47 @@
     </div>
   </div>
 
+  <!-- Security Inactivity Lock Modal -->
+  <div class="modal-overlay" id="inactivityLockModal" style="background: rgba(0,0,0,0.4);">
+    <div class="modal-content">
+      
+      <!-- Step 1: Oops Message -->
+      <div id="lockStep1">
+        <div class="modal-icon">🔒</div>
+        <div class="modal-title red">OOPS!</div>
+        <div class="modal-desc">Hi System Admin, You were inactive for a while. For security reasons, your session has been temporarily locked.</div>
+        <div class="modal-actions">
+          <button class="btn-modal btn-cancel" onclick="executeLogout()">Logout</button>
+          <button class="btn-modal btn-confirm" onclick="showLockPasswordStep()">OK</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Password Verification -->
+      <div id="lockStep2" style="display: none;">
+        <div class="modal-title dark" style="text-align: left; font-size: 18px;">Unlock Session</div>
+        <div class="modal-desc" style="text-align: left; margin-bottom: 35px;">Enter your admin password to continue working.</div>
+        
+        <div class="floating-input-group">
+          <input type="password" id="unlockPwd" placeholder=" " autocomplete="off">
+          <label>Admin Password</label>
+          <div id="unlockStatus" class="input-status"></div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-modal btn-cancel" onclick="executeLogout()">Logout</button>
+          <button class="btn-modal btn-primary" id="btnUnlockContinue" disabled onclick="unlockSession()">Continue</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <script>
     // ============================================================
     // Security & Globals
     // ============================================================
     const ADMIN_ID = "000000123";
+    const ADMIN_PWD = "Admin0000"; // Used for screen unlock
     const loggedInId = sessionStorage.getItem('geekay_emp_id');
     
     // Strict Admin Verification
@@ -256,6 +312,102 @@
     }
 
     // ============================================================
+    // Inactivity Lock System (NEW)
+    // ============================================================
+    let idleTime = 0;
+    let idleInterval = null;
+    const IDLE_LIMIT = 30; // 30 seconds
+
+    function resetIdleTimer() {
+      idleTime = 0;
+    }
+
+    function timerIncrement() {
+      idleTime++;
+      if (idleTime >= IDLE_LIMIT) {
+        triggerLockScreen();
+      }
+    }
+
+    function triggerLockScreen() {
+      clearInterval(idleInterval); // Stop timer while locked
+      
+      // Blur Background
+      document.getElementById('dashboardSection').style.filter = 'blur(8px)';
+      document.getElementById('dashboardSection').style.pointerEvents = 'none';
+      document.getElementById('mainNavbar').style.filter = 'blur(8px)';
+      document.getElementById('mainNavbar').style.pointerEvents = 'none';
+      
+      // Show Modal
+      document.getElementById('inactivityLockModal').style.display = 'flex';
+      
+      // Reset Modal Steps
+      document.getElementById('lockStep1').style.display = 'block';
+      document.getElementById('lockStep2').style.display = 'none';
+      document.getElementById('unlockPwd').value = '';
+      
+      renderUnlockStatus(null);
+    }
+
+    function showLockPasswordStep() {
+      document.getElementById('lockStep1').style.display = 'none';
+      document.getElementById('lockStep2').style.display = 'block';
+      document.getElementById('unlockPwd').focus();
+    }
+
+    function renderUnlockStatus(state) {
+      const el = document.getElementById('unlockStatus');
+      const btn = document.getElementById('btnUnlockContinue');
+      el.textContent = '';
+      if (!state) {
+        el.className = 'input-status';
+        btn.disabled = true;
+        return;
+      }
+      const icons = { valid: '\u2714 ', invalid: '\u2716 ' };
+      el.className = 'input-status ' + state + ' show';
+      el.textContent = icons[state] + (state === 'valid' ? 'Verified' : 'Invalid');
+      
+      if(state === 'valid') btn.disabled = false;
+      else btn.disabled = true;
+    }
+
+    // Live Password Verification on Lock Screen
+    document.getElementById('unlockPwd').addEventListener('input', function() {
+        const pwd = this.value.trim();
+        if (!pwd) {
+            renderUnlockStatus(null);
+        } else if (pwd === ADMIN_PWD) {
+            renderUnlockStatus('valid');
+        } else {
+            renderUnlockStatus('invalid');
+        }
+    });
+
+    document.getElementById('unlockPwd').addEventListener('keydown', function(e) {
+      if(e.key === 'Enter' && !document.getElementById('btnUnlockContinue').disabled) {
+        unlockSession();
+      }
+    });
+
+    function unlockSession() {
+      if(document.getElementById('unlockPwd').value.trim() === ADMIN_PWD) {
+        // Remove Blur
+        document.getElementById('dashboardSection').style.filter = 'none';
+        document.getElementById('dashboardSection').style.pointerEvents = 'auto';
+        document.getElementById('mainNavbar').style.filter = 'none';
+        document.getElementById('mainNavbar').style.pointerEvents = 'auto';
+        
+        // Hide Modal
+        document.getElementById('inactivityLockModal').style.display = 'none';
+        
+        // Restart Timer
+        resetIdleTimer();
+        idleInterval = setInterval(timerIncrement, 1000);
+      }
+    }
+
+    // ============================================================
     // Load Master Data to show stats
     // ============================================================
     async function loadMasterData() {
@@ -284,7 +436,7 @@
       let idKey = null;
       for (const alias of COLS.id) { if (alias in firstMap) { idKey = firstMap[alias]; break; } }
       
-      if (!idKey) return; // Cannot find ID column
+      if (!idKey) return; 
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
@@ -330,7 +482,7 @@
     }
 
     // ============================================================
-    // UI Updates & Logout Logic
+    // UI Updates & Standard Logout Logic
     // ============================================================
     function setDate() {
       const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -347,11 +499,12 @@
     }
 
     function executeLogout() {
+      if(idleInterval) clearInterval(idleInterval);
       sessionStorage.removeItem('geekay_emp_id');
       window.location.href = './index.html';
     }
     
-    // Press Escape to close modal
+    // Press Escape to close normal logout modal
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && document.getElementById('logoutModal').style.display === 'flex') {
         closeLogoutModal();
@@ -375,6 +528,14 @@
         document.getElementById('loadingOverlay').classList.remove('show');
         document.getElementById('dashboardSection').style.display = 'block';
         calculateStats(rows);
+
+        // Start Inactivity Tracking ONLY after dashboard is fully loaded
+        document.onmousemove = resetIdleTimer;
+        document.onkeypress = resetIdleTimer;
+        document.onclick = resetIdleTimer;
+        document.onscroll = resetIdleTimer;
+        idleInterval = setInterval(timerIncrement, 1000);
+
       }, 1000);
     });
 
