@@ -525,6 +525,29 @@
     .pdf-root .about-card, .pdf-root .stat-card, .pdf-root .day-card { box-shadow: 0 0 0 1px #e2e8f0; }
     .pdf-root .progress-bar-fill { transition: none; }
 
+    /* ---------- Attendance cycle: info line, notes and template cards ---------- */
+    .cycle-info { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: #718096; font-weight: 500; margin: -8px 0 14px 0; }
+    .attendance-note { font-size: 13px; color: #718096; line-height: 1.6; margin: 0 0 10px 0; }
+    .stat-sub { font-size: 11px; color: #a0aec0; margin-top: 6px; }
+    .day-card .wd { display: block; font-size: 11px; font-weight: 500; color: #a0aec0; margin-top: 1px; }
+    .day-card.today { box-shadow: 0 0 0 2px #3182ce; }
+    .day-card.pending {
+      background: linear-gradient(90deg, #f7fafc 25%, #edf2f7 50%, #f7fafc 75%);
+      background-size: 200% 100%;
+      animation: shimmer 2.2s ease-in-out infinite;
+      border-bottom: 4px dashed #cbd5e0;
+      opacity: 0.9;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    .day-card.pending .status-text, .day-card.pending .status-label,
+    .day-card.norecord .status-text, .day-card.norecord .status-label { color: #a0aec0; }
+    .day-card.pending .status-text svg { width: 20px; height: 20px; vertical-align: middle; }
+    .day-card.norecord { background: #f7fafc; border-bottom: 4px dashed #cbd5e0; }
+    .day-card.na, .day-card.future { opacity: 0.4; background: #f7fafc; box-shadow: none; }
+    .day-card.na .status-text { color: #a0aec0; }
+    .pdf-root .day-card.pending { animation: none; }
+    @media (prefers-reduced-motion: reduce) { .day-card.pending { animation: none; } }
+
     /* ---------- Loading screen ---------- */
     .loading-overlay {
       position: fixed;
@@ -598,6 +621,8 @@
       .day-card .date-text { font-size: 10px; margin-bottom: 4px; letter-spacing: -0.2px; }
       .day-card .status-text { font-size: 15px; }
       .day-card .status-label { font-size: 10px; line-height: 1.2; margin-top: 4px; min-height: 12px; }
+      .day-card .wd { display: none; }
+      .day-card.pending .status-text svg { width: 16px; height: 16px; }
 
       .about-details { flex-direction: column; gap: 15px; }
       .modal-grid { grid-template-columns: 1fr; }
@@ -724,12 +749,15 @@
           <div class="progress-bar-bg">
             <div class="progress-bar-fill" id="progressFill"></div>
           </div>
+          <div class="stat-sub" data-i18n="percentBasis">Based on updated days</div>
         </div>
       </div>
 
       <div class="section-title" data-i18n="attOverview">Attendance Overview</div>
+      <div class="cycle-info"><span id="cycleRange"></span><span id="updatedUpTo"></span></div>
 
       <div id="monthTabsContainer" class="month-tabs-container" style="display: none;"></div>
+      <div id="attendanceNotes"></div>
 
       <div class="calendar-grid" id="calendarGrid"></div>
 
@@ -859,7 +887,9 @@
     const LOADING_MIN_MS = 5000;          // loading screen: at least 5 seconds
     const ID_CHECK_DELAY_MS = 1500;       // ID is checked this long after typing stops
     const MASTER_TTL_MS = 10 * 60 * 1000; // master data is re-read after 10 minutes
-    const MONTH_LOOKBACK = 12;            // how many past months are looked for
+    const MONTH_LOOKBACK = 12;            // how many past cycles are looked for
+    const CYCLE_START_DAY = 21;           // a cycle runs from the 21st to the 20th of the next month (use 1 for calendar months)
+    const OLD_CYCLE_DAYS = 15;            // a cycle that ended more than this many days ago is not shown as "Soon" any more
     const ENG_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     // ============================================================
@@ -938,6 +968,15 @@
         lblHoliday: 'Holiday',
         lblOff: 'Off Day',
         noAttendance: 'No attendance dates recorded yet.',
+        lblSoon: 'Soon',
+        lblToday: 'Today',
+        lblNoRecord: 'No record',
+        percentBasis: 'Based on updated days',
+        updatedUpTo: 'Updated up to',
+        notUpdatedYet: 'not updated yet',
+        pendingNote: 'Attendance for days marked "Soon" is being processed and will appear here as soon as it is updated. Today\'s attendance is added after the day is completed. Thank you for your patience.',
+        noRecordNote: 'Days marked "No record" have no attendance entry for you. Please contact the HR / Admin Department.',
+        msgCycleMismatch: 'The dates in this attendance file do not match this period. Please contact HR / Admin.',
         msgFileProtocol: 'Open this page from a web server (or hosting). Browsers block reading local files.',
         msgIdColumn: 'Employee ID column not found in the Master Data file. Please contact HR / Admin.',
         msgFileNotFound: 'Master Data file not found. Please contact HR / Admin.',
@@ -1017,6 +1056,15 @@
         lblHoliday: 'விடுமுறை நாள்',
         lblOff: 'ஓய்வு நாள்',
         noAttendance: 'இந்த மாதத்திற்கான வருகைப் பதிவுகள் இன்னும் இல்லை.',
+        lblSoon: 'விரைவில்',
+        lblToday: 'இன்று',
+        lblNoRecord: 'பதிவு இல்லை',
+        percentBasis: 'புதுப்பித்த நாட்களின் அடிப்படையில்',
+        updatedUpTo: 'இதுவரை புதுப்பிக்கப்பட்டது',
+        notUpdatedYet: 'இன்னும் புதுப்பிக்கப்படவில்லை',
+        pendingNote: '"விரைவில்" என்று குறிக்கப்பட்ட நாட்களின் வருகைப் பதிவு செயலாக்கத்தில் உள்ளது; புதுப்பித்தவுடன் இங்கே தெரியும். இன்றைய வருகைப் பதிவு, இன்றைய நாள் முடிந்த பிறகே சேர்க்கப்படும். உங்கள் பொறுமைக்கு நன்றி.',
+        noRecordNote: '"பதிவு இல்லை" என்று குறிக்கப்பட்ட நாட்களுக்கு உங்கள் வருகைப் பதிவு இல்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
+        msgCycleMismatch: 'இந்த வருகைக் கோப்பில் உள்ள தேதிகள் இந்தக் காலத்துடன் பொருந்தவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
         msgFileProtocol: 'இந்தப் பக்கத்தை இணையதள சேவையகம் (hosting) வழியாகத் திறக்கவும். கணினியில் உள்ள கோப்பாகத் திறந்தால் தரவைப் படிக்க முடியாது.',
         msgIdColumn: 'Master Data கோப்பில் ஊழியர் ID column கிடைக்கவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
         msgFileNotFound: 'Master Data கோப்பு கிடைக்கவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
@@ -1096,6 +1144,15 @@
         lblHoliday: 'अवकाश दिवस',
         lblOff: 'ऑफ़ डे',
         noAttendance: 'इस महीने के लिए कोई उपस्थिति दर्ज नहीं है।',
+        lblSoon: 'जल्द',
+        lblToday: 'आज',
+        lblNoRecord: 'रिकॉर्ड नहीं',
+        percentBasis: 'अपडेट किए गए दिनों के आधार पर',
+        updatedUpTo: 'यहाँ तक अपडेट',
+        notUpdatedYet: 'अभी अपडेट नहीं हुआ',
+        pendingNote: '"जल्द" चिह्नित दिनों की उपस्थिति प्रक्रिया में है और अपडेट होते ही यहाँ दिखाई देगी। आज की उपस्थिति दिन पूरा होने के बाद जोड़ी जाएगी। आपके धैर्य के लिए धन्यवाद।',
+        noRecordNote: '"रिकॉर्ड नहीं" चिह्नित दिनों के लिए आपकी उपस्थिति दर्ज नहीं है। कृपया HR / एडमिन विभाग से संपर्क करें।',
+        msgCycleMismatch: 'इस उपस्थिति फ़ाइल की तारीखें इस अवधि से मेल नहीं खातीं। कृपया HR / एडमिन विभाग से संपर्क करें।',
         msgFileProtocol: 'इस पेज को वेब सर्वर (होस्टिंग) से खोलें। कंप्यूटर की फ़ाइल के रूप में खोलने पर डेटा पढ़ा नहीं जा सकता।',
         msgIdColumn: 'Master Data फ़ाइल में कर्मचारी ID कॉलम नहीं मिला। कृपया HR / एडमिन विभाग से संपर्क करें।',
         msgFileNotFound: 'Master Data फ़ाइल नहीं मिली। कृपया HR / एडमिन विभाग से संपर्क करें।',
@@ -1162,7 +1219,8 @@
     let cachedMasterData = null;
     let masterLoadedAt = 0;
     let masterError = null;
-    let availableMonths = [];
+    let availableMonths = [];        // cycle names, newest first (the current cycle is always included)
+    let existingCycles = new Set();  // cycle names that have an Excel file
     let preloadPromise = null;
     const monthCache = new Map();
 
@@ -1336,22 +1394,224 @@
       }
     }
 
+    // ------------------------------------------------------------
+    // Attendance cycles (21st to 20th). A cycle is named after the month it starts in:
+    // Oct-2026.xlsx = 21 Oct 2026 to 20 Nov 2026
+    // ------------------------------------------------------------
+    const MONTH_LOOKUP = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+    const CLOCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline></svg>';
+
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function makeYmd(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }   // m = 0..11
+    function ymdParts(ymd) { const p = ymd.split('-'); return { y: +p[0], m: +p[1] - 1, d: +p[2] }; }
+    function validYmd(y, m, d) {
+      const c = new Date(y, m, d);
+      return c.getFullYear() === y && c.getMonth() === m && c.getDate() === d;
+    }
+    function daysBetween(a, b) {   // b minus a, in days
+      const pa = ymdParts(a), pb = ymdParts(b);
+      return Math.round((Date.UTC(pb.y, pb.m, pb.d) - Date.UTC(pa.y, pa.m, pa.d)) / 86400000);
+    }
+
+    // Today in India (IST), so a wrong phone date or time zone does not change the result
+    function getTodayYmd() {
+      try {
+        const s = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      } catch (e) { /* use the device date below */ }
+      const n = new Date();
+      return makeYmd(n.getFullYear(), n.getMonth(), n.getDate());
+    }
+
+    function cycleKey(y, m) { return ENG_MONTHS[m] + '-' + y; }
+
+    function currentCycleStart() {
+      const p = ymdParts(getTodayYmd());
+      let y = p.y, m = p.m;
+      if (p.d < CYCLE_START_DAY) { m--; if (m < 0) { m = 11; y--; } }
+      return { y: y, m: m };
+    }
+
+    function cycleInfo(cycleStr) {
+      const parts = cycleStr.split('-');
+      const sm = ENG_MONTHS.indexOf(parts[0]);
+      const sy = parseInt(parts[1], 10);
+      const start = new Date(sy, sm, CYCLE_START_DAY);
+      const end = new Date(sy, sm + 1, CYCLE_START_DAY - 1);
+      const days = [];
+      for (let cur = start; cur.getTime() <= end.getTime(); cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1)) {
+        days.push({ ymd: makeYmd(cur.getFullYear(), cur.getMonth(), cur.getDate()), y: cur.getFullYear(), m: cur.getMonth(), d: cur.getDate() });
+      }
+      return {
+        cycleStr: cycleStr, days: days,
+        startYmd: days[0].ymd, endYmd: days[days.length - 1].ymd,
+        startMonth: sm, startYear: sy, endMonth: end.getMonth(), endYear: end.getFullYear()
+      };
+    }
+
+    // Example: "21 Oct – 20 Nov" (or with years when withYear is true)
+    function cycleLabel(cycleStr, withYear) {
+      const c = cycleInfo(cycleStr);
+      const first = c.days[0], last = c.days[c.days.length - 1];
+      const months = t('months');
+      return first.d + ' ' + months[first.m] + (withYear ? ' ' + first.y : '') + ' \u2013 ' +
+             last.d + ' ' + months[last.m] + (withYear ? ' ' + last.y : '');
+    }
+
+    function inCycleRange(ymd, cycle) { return ymd >= cycle.startYmd && ymd <= cycle.endYmd; }
+
+    function dayNumberToYmd(day, cycle) {
+      let y = cycle.startYear, m = cycle.startMonth;
+      if (CYCLE_START_DAY > 1 && day < CYCLE_START_DAY) { m = cycle.endMonth; y = cycle.endYear; }
+      if (!validYmd(y, m, day)) return '';
+      return makeYmd(y, m, day);
+    }
+
+    function yearCandidates(yearText, month, day, cycle) {
+      if (yearText) {
+        let y = +yearText;
+        if (yearText.length === 2) y += 2000;
+        return [[y, month, day]];
+      }
+      return [[cycle.startYear, month, day], [cycle.endYear, month, day]];
+    }
+
+    // Reads a column header and tells which date of this cycle it is.
+    // Works for: 21 / 5 (day numbers), 45678 (Excel date number), 2026-10-21, 21-Oct, 21-Oct-2026, Oct 21, 21/10/2026, 10/21/26
+    function parseHeaderDate(key, cycle) {
+      const k = String(key).trim();
+      const none = { ymd: '', outside: false };
+      if (!k) return none;
+
+      function result(candidates) {
+        let outside = false;
+        for (let i = 0; i < candidates.length; i++) {
+          const c = candidates[i];
+          if (!validYmd(c[0], c[1], c[2])) continue;
+          const ymd = makeYmd(c[0], c[1], c[2]);
+          if (inCycleRange(ymd, cycle)) return { ymd: ymd, outside: false };
+          outside = true;
+        }
+        return { ymd: '', outside: outside };
+      }
+
+      let m;
+      if (/^\d{1,2}$/.test(k)) {
+        const day = parseInt(k, 10);
+        if (day < 1 || day > 31) return none;
+        return { ymd: dayNumberToYmd(day, cycle), outside: false };
+      }
+      if (/^\d{5}$/.test(k)) {
+        const serial = Number(k);
+        if (serial > 30000 && serial < 70000) {
+          const dt = new Date(Math.round((serial - 25569) * 86400 * 1000));
+          return result([[dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate()]]);
+        }
+        return none;
+      }
+      if ((m = k.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) {
+        return result([[+m[1], +m[2] - 1, +m[3]]]);
+      }
+      if ((m = k.match(/^(\d{1,2})[\s\-\/.]*([A-Za-z]{3})[A-Za-z]*\.?(?:[\s\-\/.,]*(\d{2,4}))?/)) && m[2].toLowerCase() in MONTH_LOOKUP) {
+        return result(yearCandidates(m[3], MONTH_LOOKUP[m[2].toLowerCase()], +m[1], cycle));
+      }
+      if ((m = k.match(/^([A-Za-z]{3})[A-Za-z]*\.?[\s\-\/.]*(\d{1,2})(?:[\s\-\/.,]*(\d{2,4}))?/)) && m[1].toLowerCase() in MONTH_LOOKUP) {
+        return result(yearCandidates(m[3], MONTH_LOOKUP[m[1].toLowerCase()], +m[2], cycle));
+      }
+      if ((m = k.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))) {
+        let y = +m[3];
+        if (m[3].length === 2) y += 2000;
+        return result([[y, +m[2] - 1, +m[1]], [y, +m[1] - 1, +m[2]]]);   // day-first, then month-first
+      }
+      if ((m = k.match(/^(\d{1,2})[-\/.](\d{1,2})$/))) {
+        const list = [];
+        [cycle.startYear, cycle.endYear].forEach(function (yr) {
+          list.push([yr, +m[2] - 1, +m[1]]);
+          list.push([yr, +m[1] - 1, +m[2]]);
+        });
+        return result(list);
+      }
+      return none;
+    }
+
+    // Any date value from Excel (date cell, Excel number or text like 05-01-2020) to YYYY-MM-DD
+    function rawToYmd(raw) {
+      if (raw === '' || raw === null || raw === undefined) return '';
+      if (isDateObject(raw)) {
+        if (isNaN(raw.getTime())) return '';
+        const x = new Date(raw.getTime() + 60000);
+        return makeYmd(x.getFullYear(), x.getMonth(), x.getDate());
+      }
+      if (typeof raw === 'number') {
+        const dt = new Date(Math.round((raw - 25569) * 86400 * 1000));
+        return isNaN(dt.getTime()) ? '' : makeYmd(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate());
+      }
+      const str = String(raw).trim();
+      if (/^\d{5}$/.test(str)) return rawToYmd(Number(str));
+      let m;
+      if ((m = str.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) {
+        return validYmd(+m[1], +m[2] - 1, +m[3]) ? makeYmd(+m[1], +m[2] - 1, +m[3]) : '';
+      }
+      if ((m = str.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))) {
+        let y = +m[3];
+        if (m[3].length === 2) y += 2000;
+        return validYmd(y, +m[2] - 1, +m[1]) ? makeYmd(y, +m[2] - 1, +m[1]) : '';
+      }
+      if ((m = str.match(/^(\d{1,2})[\s\-\/.]*([A-Za-z]{3})[A-Za-z]*\.?[\s\-\/.,]*(\d{2,4})/)) && m[2].toLowerCase() in MONTH_LOOKUP) {
+        let y = +m[3];
+        if (m[3].length === 2) y += 2000;
+        const mo = MONTH_LOOKUP[m[2].toLowerCase()];
+        return validYmd(y, mo, +m[1]) ? makeYmd(y, mo, +m[1]) : '';
+      }
+      return '';
+    }
+
+    function hasAttendanceValue(v) {
+      const s = formatValue(v);
+      return s !== '' && s !== '-';
+    }
+
+    // Which Excel column belongs to which date, and which dates HR has already filled for anybody
+    function buildCycleColumns(rows, cycle) {
+      const dateKey = new Map();
+      let outsideCount = 0;
+      if (rows.length) {
+        Object.keys(rows[0]).forEach(function (key) {
+          const r = parseHeaderDate(key, cycle);
+          if (r.ymd) { if (!dateKey.has(r.ymd)) dateKey.set(r.ymd, key); }
+          else if (r.outside) outsideCount++;
+        });
+      }
+      const updated = new Set();
+      dateKey.forEach(function (key, ymd) {
+        for (let i = 0; i < rows.length; i++) {
+          if (hasAttendanceValue(rows[i][key])) { updated.add(ymd); break; }
+        }
+      });
+      return { dateKey: dateKey, updated: updated, mismatch: dateKey.size === 0 && outsideCount > 0 };
+    }
+
+    function emptyCycleData(failed) {
+      return { rows: [], hasFile: false, dateKey: new Map(), updated: new Set(), mismatch: false, failed: !!failed };
+    }
+
     async function probeAttendanceMonths() {
-      const probes = [];
-      const now = new Date();
-      let m = now.getMonth();
-      let y = now.getFullYear();
+      const cur = currentCycleStart();
+      const names = [];
+      let m = cur.m;
+      let y = cur.y;
       for (let i = 0; i < MONTH_LOOKBACK; i++) {
-        probes.push({ str: ENG_MONTHS[m] + '-' + y, m: m, y: y });
+        names.push(cycleKey(y, m));
         m--;
         if (m < 0) { m = 11; y--; }
       }
-      const found = [];
-      await Promise.all(probes.map(async function (p) {
-        if (await fileExists(ATTENDANCE_FOLDER + p.str + '.xlsx')) found.push(p);
+      const found = new Set();
+      await Promise.all(names.map(async function (name) {
+        if (await fileExists(ATTENDANCE_FOLDER + name + '.xlsx')) found.add(name);
       }));
-      found.sort(function (a, b) { return (b.y - a.y) || (b.m - a.m); });
-      availableMonths = found.map(function (v) { return v.str; });
+      existingCycles = found;
+      // Newest first. The current cycle is always shown, even before its Excel file arrives.
+      availableMonths = names.filter(function (name, i) { return i === 0 || found.has(name); });
     }
 
     function preloadSystemData() {
@@ -1366,16 +1626,24 @@
       return preloadPromise;
     }
 
-    async function getMonthRows(monthStr) {
-      if (monthCache.has(monthStr)) return monthCache.get(monthStr);
-      const response = await fetch(ATTENDANCE_FOLDER + monthStr + '.xlsx?v=' + Date.now(), { cache: 'no-store' });
-      if (!response.ok) throw new Error('MONTH_NOT_FOUND');
-      const buffer = await response.arrayBuffer();
-      const workbook = XLSX.read(buffer, { type: 'array', cellDates: true });
-      if (!workbook.SheetNames.length) throw new Error('MONTH_EMPTY');
-      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
-      monthCache.set(monthStr, rows);
-      return rows;
+    async function getCycleData(cycleStr) {
+      if (monthCache.has(cycleStr)) return monthCache.get(cycleStr);
+      const cycle = cycleInfo(cycleStr);
+      let rows = [];
+      let hasFile = false;
+      if (existingCycles.has(cycleStr)) {
+        const response = await fetch(ATTENDANCE_FOLDER + cycleStr + '.xlsx?v=' + Date.now(), { cache: 'no-store' });
+        if (!response.ok) throw new Error('MONTH_NOT_FOUND');
+        const buffer = await response.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
+        if (!workbook.SheetNames.length) throw new Error('MONTH_EMPTY');
+        rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
+        hasFile = true;
+      }
+      const cols = buildCycleColumns(rows, cycle);
+      const data = { rows: rows, hasFile: hasFile, dateKey: cols.dateKey, updated: cols.updated, mismatch: cols.mismatch, failed: false };
+      monthCache.set(cycleStr, data);
+      return data;
     }
 
     // ============================================================
@@ -1749,21 +2017,21 @@
           empId: pendingEmployee.empId,
           attRow: null,
           attKeyMap: null,
+          cycleData: null,
           currentMonth: null
         };
 
         if (availableMonths.length === 0) await probeAttendanceMonths();
 
-        if (availableMonths.length > 0) {
-          data.currentMonth = availableMonths[0];
-          try {
-            const rows = await getMonthRows(data.currentMonth);
-            const found = findRecord(rows, data.empId);
-            data.attRow = found.record;
-            data.attKeyMap = found.keyMap;
-          } catch (e) {
-            console.error('Attendance could not be loaded', e);
-          }
+        data.currentMonth = availableMonths[0];   // the current cycle
+        try {
+          data.cycleData = await getCycleData(data.currentMonth);
+          const found = findRecord(data.cycleData.rows, data.empId);
+          data.attRow = found.record;
+          data.attKeyMap = found.keyMap;
+        } catch (e) {
+          console.error('Attendance could not be loaded', e);
+          data.cycleData = emptyCycleData(true);
         }
 
         currentData = data;
@@ -1789,7 +2057,7 @@
     }
 
     // ============================================================
-    // Month tabs
+    // Cycle tabs
     // ============================================================
     function renderMonthTabs() {
       const container = document.getElementById('monthTabsContainer');
@@ -1805,13 +2073,7 @@
         btn.type = 'button';
         btn.className = 'month-tab' + (currentData.currentMonth === m ? ' active' : '');
         btn.id = 'tab-' + m;
-
-        const parts = m.split('-');
-        let label = m;
-        const idx = ENG_MONTHS.indexOf(parts[0]);
-        if (parts.length === 2 && idx !== -1) label = t('months')[idx] + ' ' + parts[1];
-
-        btn.textContent = label;
+        btn.textContent = cycleLabel(m, false);
         btn.addEventListener('click', function () { loadSpecificMonth(m); });
         container.appendChild(btn);
       });
@@ -1833,10 +2095,11 @@
       grid.appendChild(loadingNote);
 
       try {
-        const rows = await getMonthRows(monthStr);
+        const cd = await getCycleData(monthStr);
         if (currentData !== owner) return;   // logged out meanwhile
-        const found = findRecord(rows, owner.empId);
+        const found = findRecord(cd.rows, owner.empId);
         owner.currentMonth = monthStr;
+        owner.cycleData = cd;
         owner.attRow = found.record;
         owner.attKeyMap = found.keyMap;
         renderDashboard();
@@ -1847,7 +2110,7 @@
         err.className = 'empty-note';
         err.textContent = t('msgLoadMonth');
         grid.appendChild(err);
-        renderMonthTabs();   // restore the highlight on the month that is really shown
+        renderMonthTabs();   // restore the highlight on the cycle that is really shown
       }
     }
 
@@ -1861,6 +2124,16 @@
       if (d.masterRow) v = getField(d.masterRow, d.masterKeyMap, COLS[group]);
       if (v === '' && d.attRow) v = getField(d.attRow, d.attKeyMap, COLS[group]);
       return formatValue(v);
+    }
+
+    // Same as pick(), but returns the original Excel value (needed for dates)
+    function pickRaw(group) {
+      const d = currentData;
+      if (!d) return '';
+      let v = '';
+      if (d.masterRow) v = getField(d.masterRow, d.masterKeyMap, COLS[group]);
+      if (v === '' && d.attRow) v = getField(d.attRow, d.attKeyMap, COLS[group]);
+      return v;
     }
 
     function showDashboard() {
@@ -1949,64 +2222,117 @@
 
       updateCopyButtons();
 
-      // Attendance cards
+      // ---------- Attendance: the whole cycle is built as a template and filled from the Excel file ----------
+      const cycle = cycleInfo(d.currentMonth);
+      const cd = d.cycleData || emptyCycleData(false);
+      const todayYmd = getTodayYmd();
+      const dojYmd = rawToYmd(pickRaw('doj'));
+      const lwdYmd = rawToYmd(pickRaw('lwd'));
+      const oldCycle = daysBetween(cycle.endYmd, todayYmd) > OLD_CYCLE_DAYS;
+      const months = t('months');
+
       const grid = document.getElementById('calendarGrid');
       grid.textContent = '';
 
       let cntPresent = 0, cntAbsent = 0, cntHalf = 0;
-      let cardsAdded = 0;
+      let hasPending = false, hasNoRecord = false;
 
-      if (d.attRow) {
-        for (const key in d.attRow) {
-          const cleanKey = String(key).trim();
-          if (cleanKey === '' || cleanKey.startsWith('__EMPTY') || isInfoColumn(cleanKey)) continue;
+      cycle.days.forEach(function (day) {
+        const key = cd.dateKey.get(day.ymd);
+        const raw = (d.attRow && key !== undefined) ? d.attRow[key] : '';
+        const val = formatValue(raw).toUpperCase();
+        const hasValue = val !== '' && val !== '-';
+        const isToday = day.ymd === todayYmd;
 
-          let statusVal = formatValue(d.attRow[key]).toUpperCase();
-          if (statusVal === '') statusVal = '-';
+        let cardClass = '';
+        let labelKey = '';
+        let statusText = val;
+        let showClock = false;
 
-          // Only day columns are shown: the header has a number (1, 01-Oct, 45678 ...) or the value is a known code
-          const looksLikeDay = /\d/.test(cleanKey);
-          if (!looksLikeDay && !ALL_CODES.includes(statusVal)) continue;
-
-          let cardClass = '';
-          let labelKey = '';
-          if (CODE_PRESENT.includes(statusVal))         { cardClass = 'present'; labelKey = 'lblPresent';   cntPresent++; }
-          else if (CODE_ABSENT.includes(statusVal))     { cardClass = 'absent';  labelKey = 'lblAbsent';    cntAbsent++; }
-          else if (CODE_HALF.includes(statusVal))       { cardClass = 'half';    labelKey = 'lblHalf';      cntHalf++; }
-          else if (CODE_LEAVE.includes(statusVal))      { cardClass = 'leave';   labelKey = 'lblLeave'; }
-          else if (CODE_WEEKLY_OFF.includes(statusVal)) { cardClass = 'off';     labelKey = 'lblWeeklyOff'; }
-          else if (CODE_HOLIDAY.includes(statusVal))    { cardClass = 'off';     labelKey = 'lblHoliday'; }
-          else if (CODE_OFF.includes(statusVal))        { cardClass = 'off';     labelKey = 'lblOff'; }
-
-          const card = document.createElement('div');
-          card.className = 'day-card' + (cardClass ? ' ' + cardClass : '');
-
-          const dateDiv = document.createElement('div');
-          dateDiv.className = 'date-text';
-          dateDiv.textContent = formatHeader(cleanKey);
-
-          const statusDiv = document.createElement('div');
-          statusDiv.className = 'status-text';
-          statusDiv.textContent = statusVal;
-
-          const labelDiv = document.createElement('div');
-          labelDiv.className = 'status-label';
-          labelDiv.textContent = labelKey ? t(labelKey) : '';
-
-          card.appendChild(dateDiv);
-          card.appendChild(statusDiv);
-          card.appendChild(labelDiv);
-          grid.appendChild(card);
-          cardsAdded++;
+        if (hasValue) {
+          if (CODE_PRESENT.includes(val))         { cardClass = 'present'; labelKey = 'lblPresent';   cntPresent++; }
+          else if (CODE_ABSENT.includes(val))     { cardClass = 'absent';  labelKey = 'lblAbsent';    cntAbsent++; }
+          else if (CODE_HALF.includes(val))       { cardClass = 'half';    labelKey = 'lblHalf';      cntHalf++; }
+          else if (CODE_LEAVE.includes(val))      { cardClass = 'leave';   labelKey = 'lblLeave'; }
+          else if (CODE_WEEKLY_OFF.includes(val)) { cardClass = 'off';     labelKey = 'lblWeeklyOff'; }
+          else if (CODE_HOLIDAY.includes(val))    { cardClass = 'off';     labelKey = 'lblHoliday'; }
+          else if (CODE_OFF.includes(val))        { cardClass = 'off';     labelKey = 'lblOff'; }
+        } else if ((dojYmd && day.ymd < dojYmd) || (lwdYmd && day.ymd > lwdYmd)) {
+          cardClass = 'na';                       // before joining or after the last working day
+          statusText = '\u2014';
+        } else if (day.ymd > todayYmd) {
+          cardClass = 'future';                   // the day has not come yet
+          statusText = '\u00A0';
+        } else if (isToday) {
+          cardClass = 'pending';                  // today: added after the day is completed
+          labelKey = 'lblToday';
+          showClock = true;
+          hasPending = true;
+        } else if (cd.updated.has(day.ymd) || oldCycle) {
+          cardClass = 'norecord';                 // HR filled this day for others, not for this employee
+          labelKey = 'lblNoRecord';
+          statusText = '\u2014';
+          hasNoRecord = true;
+        } else {
+          cardClass = 'pending';                  // not uploaded yet
+          labelKey = 'lblSoon';
+          showClock = true;
+          hasPending = true;
         }
-      }
+        if (isToday) cardClass += ' today';
 
-      if (cardsAdded === 0) {
-        const p = document.createElement('p');
-        p.className = 'empty-note';
-        p.textContent = t('noAttendance');
-        grid.appendChild(p);
+        const card = document.createElement('div');
+        card.className = 'day-card' + (cardClass ? ' ' + cardClass : '');
+
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'date-text';
+        dateDiv.textContent = day.d + ' ' + months[day.m];
+        const wd = document.createElement('span');
+        wd.className = 'wd';
+        try {
+          wd.textContent = new Date(day.y, day.m, day.d).toLocaleDateString(t('locale'), { weekday: 'short' });
+        } catch (e) { wd.textContent = ''; }
+        dateDiv.appendChild(wd);
+
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'status-text';
+        if (showClock) statusDiv.innerHTML = CLOCK_ICON;
+        else statusDiv.textContent = statusText;
+
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'status-label';
+        labelDiv.textContent = labelKey ? t(labelKey) : '';
+
+        card.appendChild(dateDiv);
+        card.appendChild(statusDiv);
+        card.appendChild(labelDiv);
+        grid.appendChild(card);
+      });
+
+      // Cycle dates and "updated up to" line
+      document.getElementById('cycleRange').textContent = cycleLabel(d.currentMonth, true);
+      let lastUpdated = '';
+      cycle.days.forEach(function (day) { if (cd.updated.has(day.ymd)) lastUpdated = day.ymd; });
+      let upToText = t('notUpdatedYet');
+      if (lastUpdated) {
+        const lp = ymdParts(lastUpdated);
+        upToText = pad2(lp.d) + '-' + months[lp.m] + '-' + lp.y;
       }
+      document.getElementById('updatedUpTo').textContent = t('updatedUpTo') + ': ' + upToText;
+
+      // Notes above the cards (only when they are needed)
+      const notes = document.getElementById('attendanceNotes');
+      notes.textContent = '';
+      function addNote(key) {
+        const p = document.createElement('p');
+        p.className = 'attendance-note';
+        p.textContent = t(key);
+        notes.appendChild(p);
+      }
+      if (cd.failed) addNote('msgLoadMonth');
+      if (cd.mismatch) addNote('msgCycleMismatch');
+      if (hasPending) addNote('pendingNote');
+      if (hasNoRecord) addNote('noRecordNote');
 
       // A half day counts as 0.5 present and 0.5 absent. Leave, weekly off and holidays are not working days.
       const totalCount = cntPresent + cntAbsent + cntHalf;
@@ -2026,9 +2352,7 @@
     // ============================================================
     function currentMonthLabel() {
       if (!currentData || !currentData.currentMonth) return '';
-      const parts = currentData.currentMonth.split('-');
-      const idx = ENG_MONTHS.indexOf(parts[0]);
-      return (parts.length === 2 && idx !== -1) ? t('months')[idx] + ' ' + parts[1] : currentData.currentMonth;
+      return cycleLabel(currentData.currentMonth, true);
     }
 
     function buildPdfRoot(mode) {
@@ -2043,7 +2367,11 @@
       const generated = document.createElement('div');
       generated.className = 'pdf-generated';
       let line = t('generatedOn') + ': ' + document.getElementById('currentDate').textContent;
-      if (mode !== 'staff' && currentMonthLabel()) line += '   |   ' + t('monthLabel') + ': ' + currentMonthLabel();
+      if (mode !== 'staff' && currentMonthLabel()) {
+        line += '   |   ' + t('monthLabel') + ': ' + currentMonthLabel();
+        const upTo = document.getElementById('updatedUpTo');
+        if (upTo && upTo.textContent) line += '   |   ' + upTo.textContent;
+      }
       generated.textContent = line;
       head.appendChild(company);
       head.appendChild(generated);
@@ -2191,6 +2519,9 @@
       document.getElementById('progressFill').style.width = '0%';
       document.getElementById('calendarGrid').textContent = '';
       document.getElementById('monthTabsContainer').textContent = '';
+      document.getElementById('attendanceNotes').textContent = '';
+      document.getElementById('cycleRange').textContent = '';
+      document.getElementById('updatedUpTo').textContent = '';
       currentAccountFull = '';
       currentAccountMasked = '';
       accountVisible = false;
