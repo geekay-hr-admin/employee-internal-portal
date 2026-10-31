@@ -1085,7 +1085,7 @@
     function formatValue(v) {
       if (v === null || v === undefined) return '';
       if (isDateObject(v)) return isNaN(v.getTime()) ? '' : formatDate(v);
-      const strVal = String(v).trim();
+      let strVal = String(v).trim();
       
       // Protect Scientific Notation from Master Data (E+11 bug fix)
       if (strVal.includes('E+') || strVal.includes('e+')) {
@@ -1093,6 +1093,15 @@
             return BigInt(Math.round(Number(v))).toString();
          } catch(e) {}
       }
+      
+      // Fix for DOB/DOJ: Convert 2-digit year to 4-digit year (e.g., 25-Oct-24 -> 25-Oct-2024, 00 -> 2000)
+      const dateMatch = strVal.match(/^(\d{1,2}[\s\-\/][A-Za-z]{3}[\s\-\/])(\d{2})$/);
+      if (dateMatch) {
+         let year = parseInt(dateMatch[2], 10);
+         year = (year > 30 ? 1900 + year : 2000 + year);
+         return dateMatch[1] + year;
+      }
+      
       return strVal;
     }
 
@@ -1805,13 +1814,14 @@
       cycle.days.forEach(function (day) {
         const key = cd.dateKey.get(day.ymd);
         const raw = (d.attRow && key !== undefined) ? d.attRow[key] : '';
-        const val = formatValue(raw).toUpperCase();
+        const originalVal = formatValue(raw); // Retain exactly as typed in Excel
+        const val = originalVal.toUpperCase(); // For background processing
         const hasValue = val !== '' && val !== '-';
         const isToday = day.ymd === todayYmd;
 
         let cardClass = '';
         let labelKey = '';
-        let statusText = val;
+        let statusText = originalVal || val; // Display original case exactly
         let showClock = false;
 
         if (hasValue) {
@@ -1822,6 +1832,7 @@
           else if (CODE_WEEKLY_OFF.includes(val)) { cardClass = 'off';     labelKey = 'lblWeeklyOff'; }
           else if (CODE_HOLIDAY.includes(val))    { cardClass = 'off';     labelKey = 'lblHoliday'; }
           else if (CODE_OFF.includes(val))        { cardClass = 'off';     labelKey = 'lblOff'; }
+          statusText = originalVal; // Assign the original string exactly as in Excel
         } else if ((dojYmd && day.ymd < dojYmd) || (lwdYmd && day.ymd > lwdYmd)) {
           cardClass = 'na';                       
           statusText = '\u2014';
