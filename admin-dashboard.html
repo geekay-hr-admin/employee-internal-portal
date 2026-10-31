@@ -1077,7 +1077,7 @@
     }
 
     /* =========================================
-       📱 MOBILE RESPONSIVE UI (FIXES APPLIED)
+       📱 MOBILE RESPONSIVE UI
        ========================================= */
     @media (max-width: 768px) {
       .navbar { 
@@ -1237,7 +1237,6 @@
       </div>
     </div>
 
-    <!-- NOTE: Management Controls removed to keep UI Clean as requested -->
   </div>
 
   <!-- Cloud Upload Modal -->
@@ -1375,7 +1374,7 @@
   </div>
 
   <!-- Change Password Modal -->
-  <div class="modal-overlay" id="changePwdModal" style="z-index: 2100;" onclick="if(event.target.id==changePwdModal) closeChangePwdModal()">
+  <div class="modal-overlay" id="changePwdModal" style="z-index: 2100;" onclick="if(event.target.id==='changePwdModal') closeChangePwdModal()">
     <div class="modal-content" style="max-width:400px; padding:30px;">
       <div class="modal-title dark" style="font-size:18px; margin-bottom:20px; text-align:left;">Change Password</div>
       <div style="font-size:13px; color:#4a5568; margin-bottom:20px; text-align:left;" id="changePwdTargetName">For: </div>
@@ -1883,9 +1882,26 @@
         try {
           const data = e.target.result;
           const wb = XLSX.read(data, { type: 'array' });
-          const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
+          const rawRows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
           
-          if(rows.length === 0) throw new Error("Excel file is empty or invalid format.");
+          if(rawRows.length === 0) throw new Error("Excel file is empty or invalid format.");
+
+          // Firebase Security Keys Sanitize Logic (Preserves commas and brackets!)
+          const rows = rawRows.map(row => {
+            const safeRow = {};
+            for (let key in row) {
+              // Smart Replace: Keeps meaning exactly same without stripping () and ,
+              let safeKey = key
+                .replace(/\//g, '-')   // dd/mm/yyyy -> dd-mm-yyyy
+                .replace(/\[/g, '(')   // [Square] -> (Square)
+                .replace(/\]/g, ')')
+                .replace(/\./g, ' ')   // S.No. -> S No 
+                .replace(/[#$]/g, ''); // Removes # and $
+              
+              safeRow[safeKey] = row[key];
+            }
+            return safeRow;
+          });
 
           if (type === 'master') {
              await dbMaster.set(rows);
@@ -1896,11 +1912,11 @@
              const safeMonth = monthName.replace(/[.#$\[\]]/g, '_');
              await dbAttendance.child(safeMonth).set(rows);
              alert(`Attendance for ${monthName} successfully uploaded to Cloud!`);
-             populateAttendanceMenu(); // Refresh the menu
+             populateAttendanceMenu(); 
           }
         } catch(error) {
           console.error(error);
-          alert("Error uploading file. Please ensure it's a valid Excel format.");
+          alert("Error uploading file. Please ensure it's a valid Excel format and internet is active.");
         } finally {
           document.getElementById('loadingOverlay').classList.remove('show');
         }
@@ -2322,11 +2338,9 @@
     document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && document.getElementById('logoutModal').style.display === 'flex') closeLogoutModal(); });
 
     window.addEventListener('DOMContentLoaded', async function () {
-      // 1. Authorize via Cloud DB
       const authOk = await initAuth();
       if(!authOk) return;
       
-      // 2. Setup Dashboard
       setDate(); 
       const rows = await loadMasterData();
       
@@ -2336,7 +2350,6 @@
         
         calculateStats(rows);
         
-        // 3. Start Security Timers
         document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.onscroll = resetIdleTimer; 
         idleInterval = setInterval(timerIncrement, 1000);
       }, 1000);
