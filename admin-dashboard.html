@@ -830,7 +830,7 @@
       font-weight: 700; 
       position: sticky; 
       top: 0; 
-      z-index: 50; 
+      z-index: 100; /* FIXED HEADER OVERLAP ISSUE */
     }
     
     .excel-mirror-table tr:hover { 
@@ -1076,22 +1076,6 @@
       overflow-wrap: anywhere; 
     }
 
-    /* Staff View Additional Styling */
-    .calendar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 20px; }
-    .day-card { background: white; padding: 12px 8px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); text-align: center; border-bottom: 4px solid #cbd5e1; }
-    .day-card.present { border-bottom-color: #38a169; }
-    .day-card.absent { border-bottom-color: #e53e3e; }
-    .day-card.half { border-bottom-color: #d69e2e; }
-    .day-card.leave { border-bottom-color: #3182ce; }
-    .day-card.off { border-bottom-color: #a0aec0; }
-    .day-card .date-text { font-size: 12px; color: #718096; margin-bottom: 6px; font-weight: 500; }
-    .day-card .status-text { font-size: 16px; font-weight: 700; }
-    .day-card.present .status-text { color: #38a169; }
-    .day-card.absent .status-text { color: #e53e3e; }
-    .day-card.half .status-text { color: #b7791f; }
-    .day-card.leave .status-text { color: #2b6cb0; }
-    .day-card.off .status-text { color: #718096; }
-
     /* =========================================
        📱 MOBILE RESPONSIVE UI
        ========================================= */
@@ -1200,14 +1184,11 @@
             <div class="attendance-submenu" id="attendanceSubmenu"></div>
           </div>
           
-          <!-- Cloud Upload Options -->
-          <button type="button" onclick="openCloudUploadModal()" style="color: #d69e2e; font-weight: 600;">☁️ Upload Files</button>
-
-          <!-- Manage Files Option (NEW) -->
-          <button type="button" onclick="openManageFilesModal()" style="color: #e53e3e; font-weight: 600;">📂 Manage / Delete</button>
+          <!-- Cloud Upload Options & Manage Files Integrated -->
+          <button type="button" onclick="openCloudUploadModal()" style="color: #d69e2e; font-weight: 600;">☁️ Manage Cloud Files</button>
           
-          <!-- Staff View Option (NEW) -->
-          <button type="button" onclick="openStaffViewModal()" style="color: #38a169; font-weight: 600;">👁️ Staff View</button>
+          <!-- Staff View Redirect Option -->
+          <button type="button" onclick="openStaffViewModal()" style="color: #38a169; font-weight: 600;">👁️ Staff View Login</button>
           
           <!-- Admin Settings Button -->
           <button type="button" onclick="openAdminSettingsModal()" style="color: #004080; font-weight: 600;">⚙️ Admin Settings</button>
@@ -1259,80 +1240,82 @@
 
   </div>
 
-  <!-- Cloud Upload Modal -->
+  <!-- Cloud Upload & Manage Files Modal (Integrated) -->
   <div class="modal-overlay" id="cloudUploadModal" onclick="if(event.target.id==='cloudUploadModal') closeCloudUploadModal()">
     <div class="modal-content admin-settings-content">
       <div class="as-header">
-        <div style="font-size:20px; font-weight:700; color:#1a202c;">☁️ Cloud Upload</div>
+        <div style="font-size:20px; font-weight:700; color:#1a202c;">☁️ Cloud Management</div>
         <button class="fs-close-btn" style="width:32px; height:32px; font-size:16px;" onclick="closeCloudUploadModal()">&times;</button>
       </div>
       
       <div class="as-body">
-        <div class="radio-group" style="margin-bottom: 20px;">
-          <label class="radio-label">
-            <input type="radio" name="uploadTarget" value="master" checked onchange="toggleUploadType()"> Master Data
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="uploadTarget" value="attendance" onchange="toggleUploadType()"> Attendance
-          </label>
-        </div>
-
-        <div id="attendanceMonthDiv" class="floating-input-group" style="display:none; margin-bottom: 20px;">
-          <input type="text" id="uploadMonthName" placeholder=" " autocomplete="off">
-          <label>Month & Year (e.g. Oct-2026)</label>
-        </div>
-
-        <label class="file-upload-box" style="display: block;">
-          <input type="file" id="excelFileInput" accept=".xlsx, .xls">
-          <div class="file-upload-label" id="fileUploadLabel">📄 Click here to select Excel file</div>
-        </label>
         
-        <div style="font-size:12px; color:#e53e3e; margin-bottom: 20px; font-weight:600;">
-          * Warning: Uploading will overwrite existing cloud data.
+        <!-- Mode Tabs for Upload vs Manage -->
+        <div class="mode-tabs" style="margin-bottom: 25px;">
+          <button type="button" class="mode-tab-btn active" id="tabUploadFile" onclick="switchCloudTab('upload')">Upload File</button>
+          <button type="button" class="mode-tab-btn" id="tabManageFile" onclick="switchCloudTab('manage')">Manage Existing Files</button>
         </div>
 
-        <div class="floating-input-group">
-          <input type="password" id="uploadConfirmPwd" placeholder=" " autocomplete="new-password">
-          <label>Enter Admin Password to Confirm</label>
-          <span class="pwd-toggle" onclick="togglePwd('uploadConfirmPwd')">👁️</span>
+        <!-- Upload File Section -->
+        <div id="viewUploadFile">
+          <div class="radio-group" style="margin-bottom: 20px;">
+            <label class="radio-label">
+              <input type="radio" name="uploadTarget" value="master" checked onchange="toggleUploadType()"> Master Data
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="uploadTarget" value="attendance" onchange="toggleUploadType()"> Attendance
+            </label>
+          </div>
+
+          <div id="attendanceMonthDiv" class="floating-input-group" style="display:none; margin-bottom: 20px;">
+            <input type="text" id="uploadMonthName" placeholder=" " autocomplete="off">
+            <label>Month & Year (e.g. Oct-2026)</label>
+          </div>
+
+          <label class="file-upload-box" style="display: block;">
+            <input type="file" id="excelFileInput" accept=".xlsx, .xls">
+            <div class="file-upload-label" id="fileUploadLabel">📄 Click here to select Excel file</div>
+          </label>
+          
+          <div style="font-size:12px; color:#e53e3e; margin-bottom: 20px; font-weight:600;">
+            * Warning: Uploading will overwrite existing cloud data.
+          </div>
+
+          <div class="floating-input-group">
+            <input type="password" id="uploadConfirmPwd" placeholder=" " autocomplete="new-password">
+            <label>Enter Admin Password to Confirm</label>
+            <span class="pwd-toggle" onclick="togglePwd('uploadConfirmPwd')">👁️</span>
+          </div>
+
+          <button type="button" class="btn-modal btn-primary" style="width:100%;" onclick="submitCloudUpload()">Secure Upload</button>
         </div>
 
-        <button type="button" class="btn-modal btn-primary" style="width:100%;" onclick="submitCloudUpload()">Secure Upload</button>
-      </div>
-    </div>
-  </div>
+        <!-- Manage Files Section -->
+        <div id="viewManageFile" style="display: none;">
+          <div class="modal-section-title" style="font-size: 15px; font-weight: 600; color: #4a5568; margin-bottom: 10px;">Master Data File</div>
+          <div class="admin-list-container" style="max-height: auto; margin-bottom: 25px;">
+            <div class="admin-list-item">
+              <div class="admin-info">
+                <div class="admin-name">Master Data</div>
+                <div class="admin-id" id="mfMasterStatus">Checking...</div>
+              </div>
+              <div class="admin-actions-row">
+                <button class="btn-danger" onclick="deleteCloudFile('master')">🗑️ Delete</button>
+              </div>
+            </div>
+          </div>
 
-  <!-- Manage / Delete Files Modal -->
-  <div class="modal-overlay" id="manageFilesModal" onclick="if(event.target.id==='manageFilesModal') closeManageFilesModal()">
-    <div class="modal-content admin-settings-content">
-      <div class="as-header">
-        <div style="font-size:20px; font-weight:700; color:#1a202c;">📂 Manage Files</div>
-        <button class="fs-close-btn" style="width:32px; height:32px; font-size:16px;" onclick="closeManageFilesModal()">&times;</button>
-      </div>
-      
-      <div class="as-body">
-        <div class="modal-section-title">Master Data File</div>
-        <div class="admin-list-container" style="max-height: auto; margin-bottom: 25px;">
-          <div class="admin-list-item">
-            <div class="admin-info">
-              <div class="admin-name">Master Data</div>
-              <div class="admin-id" id="mfMasterStatus">Checking...</div>
-            </div>
-            <div class="admin-actions-row">
-              <button class="btn-danger" onclick="deleteCloudFile('master')">🗑️ Delete</button>
-            </div>
+          <div class="modal-section-title" style="font-size: 15px; font-weight: 600; color: #4a5568; margin-bottom: 10px;">Attendance Files</div>
+          <div class="admin-list-container" id="mfAttendanceList">
+            <!-- Dynamically populated -->
           </div>
         </div>
 
-        <div class="modal-section-title">Attendance Files</div>
-        <div class="admin-list-container" id="mfAttendanceList">
-          <!-- Dynamically populated -->
-        </div>
       </div>
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal (Inside Manage) -->
+  <!-- Delete Confirmation Modal -->
   <div class="modal-overlay" id="deleteFileConfirmModal" style="z-index: 2100;">
     <div class="modal-content" style="max-width: 400px;">
       <div class="modal-icon">⚠️</div>
@@ -1527,59 +1510,27 @@
     </div>
   </div>
 
-  <!-- Staff View Modal (Employee Mirror for Admin) -->
+  <!-- Staff View Modal (Redirect Interface) -->
   <div class="modal-overlay" id="staffViewModal" onclick="if(event.target.id==='staffViewModal') closeStaffViewModal()">
-    <div class="modal-content admin-settings-content" style="max-width: 950px; height: 90vh;">
+    <div class="modal-content admin-settings-content" style="max-width: 500px;">
       <div class="as-header">
-        <div style="font-size:20px; font-weight:700; color:#1a202c;">👁️ Staff View (Employee Mirror)</div>
+        <div style="font-size:20px; font-weight:700; color:#1a202c;">👁️ View Employee Dashboard</div>
         <button class="fs-close-btn" style="width:32px; height:32px; font-size:16px;" onclick="closeStaffViewModal()">&times;</button>
       </div>
       
-      <div class="as-body" style="background: #f4f7f9; padding: 20px;">
-        <!-- Search Area -->
-        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-          <div class="floating-input-group" style="margin-bottom: 0; flex: 1; min-width: 250px;">
-            <input type="text" id="svEmpId" placeholder=" " autocomplete="off" oninput="checkStaffForMirror(this.value)">
-            <label>Enter Employee ID</label>
-          </div>
-          <div id="svDetectMsg" style="font-size: 14px; font-weight: 600; color: #718096; flex: 1;">Waiting for ID...</div>
-          <button type="button" class="btn-modal btn-primary" id="btnSvLoad" disabled onclick="loadStaffMirror()" style="flex: none; padding: 10px 25px;">View Dashboard</button>
+      <div class="as-body" style="background: #ffffff; padding: 30px; min-height: auto;">
+        <div style="font-size:14px; color:#4a5568; margin-bottom: 25px; line-height:1.6;">
+          Enter an Employee ID below. You will be securely redirected to view their personal dashboard directly.
         </div>
-
-        <!-- Render Area -->
-        <div id="svRenderArea" style="display: none;">
-          <!-- Bio Data -->
-          <div class="biodata-container" style="box-shadow: none; margin-bottom: 20px; padding: 20px;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">
-              <div>
-                <div style="font-size:24px; font-weight:700; color:#1a202c;" id="svmName">Name</div>
-                <div style="font-size:14px; color:#718096; font-weight:500;" id="svmId">ID</div>
-              </div>
-              <div class="analytics-grid" style="margin-bottom:0; display:flex; gap:10px;">
-                <div class="stat-card present-stat" style="padding:10px; min-width:120px;">
-                  <div class="stat-title">Present</div>
-                  <div class="stat-number" id="svmPresent">0</div>
-                </div>
-                <div class="stat-card percent-stat" style="padding:10px; min-width:120px;">
-                  <div class="stat-title">Percentage</div>
-                  <div class="stat-number" id="svmPercent">0%</div>
-                </div>
-              </div>
-            </div>
-            
-            <div class="biodata-section-title">Personal Details</div>
-            <div class="biodata-grid" id="svmPersonalGrid"></div>
-          </div>
-          
-          <!-- Month Selection -->
-          <div style="margin-bottom: 15px; display: flex; gap: 15px; align-items: center;">
-            <span style="font-weight: 600; color: #4a5568;">Select Month:</span>
-            <select id="svmMonthSelect" class="search-select" onchange="renderStaffCalendar()"></select>
-          </div>
-
-          <!-- Calendar Grid -->
-          <div class="calendar-grid" id="svmCalendarGrid"></div>
+        
+        <div class="floating-input-group" style="margin-bottom: 10px;">
+          <input type="text" id="svEmpId" placeholder=" " autocomplete="off" oninput="checkStaffForMirror(this.value)">
+          <label>Employee ID</label>
         </div>
+        
+        <div id="svDetectMsg" style="font-size: 14px; font-weight: 600; color: #718096; margin-bottom: 25px; min-height:20px;">Waiting for ID...</div>
+        
+        <button type="button" class="btn-modal btn-primary" id="btnSvLoad" disabled onclick="executeStaffViewRedirect()" style="width: 100%; padding: 12px; font-size: 16px;">Open Dashboard Portal &rarr;</button>
       </div>
     </div>
   </div>
@@ -1964,7 +1915,7 @@
     }
 
     // ============================================================
-    // Cloud Upload Module (Excel -> Firebase DB)
+    // Cloud Upload Module & Manage Files Integrated
     // ============================================================
     function openCloudUploadModal() {
       document.getElementById('cloudUploadModal').style.display = 'flex';
@@ -1972,10 +1923,26 @@
       document.getElementById('excelFileInput').value = '';
       document.getElementById('uploadConfirmPwd').value = '';
       document.getElementById('uploadMonthName').value = '';
+      switchCloudTab('upload');
       toggleUploadType();
     }
     
     function closeCloudUploadModal() { document.getElementById('cloudUploadModal').style.display = 'none'; }
+    
+    function switchCloudTab(tab) {
+      if (tab === 'upload') {
+        document.getElementById('tabUploadFile').classList.add('active'); 
+        document.getElementById('tabManageFile').classList.remove('active');
+        document.getElementById('viewUploadFile').style.display = 'block'; 
+        document.getElementById('viewManageFile').style.display = 'none';
+      } else {
+        document.getElementById('tabUploadFile').classList.remove('active'); 
+        document.getElementById('tabManageFile').classList.add('active');
+        document.getElementById('viewUploadFile').style.display = 'none'; 
+        document.getElementById('viewManageFile').style.display = 'block';
+        loadManageFilesData();
+      }
+    }
 
     function toggleUploadType() {
       const type = document.querySelector('input[name="uploadTarget"]:checked').value;
@@ -2063,11 +2030,9 @@
     }
 
     // ============================================================
-    // Manage / Delete Files Module (NEW)
+    // Manage / Delete Files Module (Inside Cloud Modal)
     // ============================================================
-    function openManageFilesModal() {
-      document.getElementById('manageFilesModal').style.display = 'flex';
-      
+    function loadManageFilesData() {
       const masterStatusEl = document.getElementById('mfMasterStatus');
       masterStatusEl.textContent = (cachedMasterRows && cachedMasterRows.length > 0) ? `Active (${cachedMasterRows.length} records)` : 'No Master Data Found';
       masterStatusEl.style.color = (cachedMasterRows && cachedMasterRows.length > 0) ? '#38a169' : '#e53e3e';
@@ -2099,8 +2064,6 @@
         }
       }).catch(e => { attListEl.textContent = 'Error loading files.'; });
     }
-    
-    function closeManageFilesModal() { document.getElementById('manageFilesModal').style.display = 'none'; }
 
     let deleteTargetInfo = null;
     function deleteCloudFile(type, month = '') {
@@ -2117,6 +2080,7 @@
       document.getElementById('deleteFileConfirmModal').style.display = 'none';
       document.getElementById('loadingWelcome').classList.add('in'); 
       document.getElementById('loadingOverlay').classList.add('show');
+      closeCloudUploadModal();
 
       try {
         if (deleteTargetInfo.type === 'master') {
@@ -2137,7 +2101,8 @@
         alert("Error deleting file.");
       } finally {
         document.getElementById('loadingOverlay').classList.remove('show');
-        openManageFilesModal(); 
+        openCloudUploadModal(); 
+        switchCloudTab('manage');
       }
     }
 
@@ -2158,6 +2123,23 @@
     function formatDateVal(val) {
       if (val === undefined || val === null || val === '') return '-';
       return String(val).trim();
+    }
+    
+    // Convert Excel serial date to DD-MMM-YYYY format
+    function formatHeaderDate(val) {
+      const strVal = String(val).trim();
+      if (/^\d{5}$/.test(strVal)) {
+        const serial = Number(strVal);
+        if (serial > 30000 && serial < 70000) {
+          const dt = new Date(Math.round((serial - 25569) * 86400 * 1000));
+          const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const dd = String(dt.getUTCDate()).padStart(2, '0');
+          const mmm = months[dt.getUTCMonth()];
+          const yyyy = dt.getUTCFullYear();
+          return `${dd}-${mmm}-${yyyy}`;
+        }
+      }
+      return strVal;
     }
 
     function toggleWorkforceMenu(e) { 
@@ -2198,7 +2180,7 @@
     }
     
     window.addEventListener('click', function(e) { 
-      if(e.target.closest('#cloudUploadModal') || e.target.closest('#manageFilesModal') || e.target.closest('#deleteFileConfirmModal') || e.target.closest('.modal-content')) return;
+      if(e.target.closest('#cloudUploadModal') || e.target.closest('#staffViewModal') || e.target.closest('#deleteFileConfirmModal') || e.target.closest('.modal-content')) return;
       
       const dropdown = document.getElementById('workforceDropdown'); 
       if (dropdown.classList.contains('show')) dropdown.classList.remove('show'); 
@@ -2273,7 +2255,7 @@
       
       headersArr.forEach(h => { 
         const th = document.createElement('th'); 
-        th.textContent = h; 
+        th.textContent = formatHeaderDate(h); 
         headerRow.appendChild(th); 
       }); 
       
@@ -2298,7 +2280,8 @@
         headersArr.forEach(h => { 
           const safeKey = String(h).replace(/[\n\r.$#\[\]\/]/g, '_');
           const td = document.createElement('td'); 
-          td.textContent = formatDateVal(r[safeKey]); 
+          // Preserve exactly as in Excel sheet (no .toUpperCase() formatting)
+          td.textContent = (r[safeKey] !== undefined && r[safeKey] !== null) ? String(r[safeKey]).trim() : '-'; 
           tr.appendChild(td); 
         }); 
         
@@ -2488,117 +2471,54 @@
     }
 
     // ============================================================
-    // STAFF VIEW (EMPLOYEE MIRROR) MODULE 👁️ (NEW)
+    // STAFF VIEW (REDIRECT MODULE) 👁️ (NEW)
     // ============================================================
     function openStaffViewModal() {
       document.getElementById('staffViewModal').style.display = 'flex';
       document.getElementById('svEmpId').value = '';
       document.getElementById('svDetectMsg').className = '';
       document.getElementById('svDetectMsg').textContent = 'Waiting for ID...';
-      document.getElementById('svRenderArea').style.display = 'none';
       document.getElementById('btnSvLoad').disabled = true;
     }
     
     function closeStaffViewModal() { document.getElementById('staffViewModal').style.display = 'none'; }
 
     let svDetectedEmpId = null;
-    let svDetectedEmpName = null;
-    let svMasterRow = null;
 
     function checkStaffForMirror(inputVal) {
       const val = inputVal.trim(); const msgEl = document.getElementById('svDetectMsg'); const btn = document.getElementById('btnSvLoad');
-      svDetectedEmpId = null; svDetectedEmpName = null; svMasterRow = null;
+      svDetectedEmpId = null;
       if (!val) { msgEl.style.color = '#718096'; msgEl.textContent = 'Waiting for ID...'; btn.disabled = true; return; }
       
-      let foundRow = null;
+      let foundRow = null; let detectedName = '';
       for (let i = 0; i < cachedMasterRows.length; i++) {
         const row = cachedMasterRows[i]; const km = buildKeyMap(row); const id = getField(row, km, COLS.id);
-        if (id && String(id).toLowerCase() === val.toLowerCase()) { foundRow = row; svDetectedEmpId = String(id).toUpperCase(); break; }
+        if (id && String(id).toLowerCase() === val.toLowerCase()) { 
+          foundRow = row; 
+          svDetectedEmpId = String(id).toUpperCase(); 
+          detectedName = getField(foundRow, km, COLS.name) || 'Unknown Staff';
+          break; 
+        }
       }
-      if (foundRow) { 
-        const km = buildKeyMap(foundRow); svDetectedEmpName = getField(foundRow, km, COLS.name) || 'Unknown Staff'; svMasterRow = foundRow;
-        msgEl.style.color = '#38a169'; msgEl.textContent = `✓ Found: ${svDetectedEmpName}`; btn.disabled = false;
-      } else { msgEl.style.color = '#e53e3e'; msgEl.textContent = `✗ ID not found`; btn.disabled = true; }
-    }
-
-    async function loadStaffMirror() {
-      document.getElementById('svmName').textContent = svDetectedEmpName;
-      document.getElementById('svmId').textContent = "ID: " + svDetectedEmpId;
-      document.getElementById('svRenderArea').style.display = 'block';
       
-      const bioGrid = document.getElementById('svmPersonalGrid');
-      bioGrid.innerHTML = '';
-      cachedMasterHeaders.forEach(h => {
-        const safeKey = h.replace(/[\n\r.$#\[\]\/]/g, '_');
-        const val = formatDateVal(svMasterRow[safeKey]); 
-        bioGrid.innerHTML += `<div class="biodata-item"><span class="biodata-label">${h}</span><span class="biodata-value">${val}</span></div>`; 
-      });
-
-      const select = document.getElementById('svmMonthSelect');
-      select.innerHTML = '';
-      try {
-        const snap = await dbAttendance.once('value'); const data = snap.val() || {}; const months = Object.keys(data).reverse();
-        if(months.length === 0) {
-          select.innerHTML = '<option value="">No Attendance Data Uploaded</option>';
-        } else {
-          months.forEach(m => { select.innerHTML += `<option value="${m}">${m}</option>`; });
-        }
-        renderStaffCalendar();
-      } catch(e) { console.error(e); }
+      if (foundRow) { 
+        msgEl.style.color = '#38a169'; msgEl.textContent = `✓ Found: ${detectedName}`; btn.disabled = false;
+      } else { 
+        msgEl.style.color = '#e53e3e'; msgEl.textContent = `✗ ID not found in Master Data`; btn.disabled = true; 
+      }
     }
 
-    async function renderStaffCalendar() {
-      const month = document.getElementById('svmMonthSelect').value;
-      const grid = document.getElementById('svmCalendarGrid');
-      grid.innerHTML = '<div style="color:#718096; padding: 20px;">Loading calendar...</div>';
-      if(!month) return;
-
-      try {
-        const snapD = await dbAttendance.child(month).once('value'); const rows = snapD.val() || [];
-        const snapH = await dbAttendanceHeaders.child(month).once('value'); 
-        const hData = snapH.val() || [];
-        let headersArr = [];
-        if (Array.isArray(hData)) {
-          headersArr = hData;
-        } else {
-          const keys = Object.keys(hData).filter(k => !isNaN(k)).map(Number).sort((a, b) => a - b);
-          headersArr = keys.map(k => hData[k]);
-        }
-        
-        let empAttRow = null;
-        for (let i = 0; i < rows.length; i++) {
-          const row = rows[i]; const km = buildKeyMap(row); const id = getField(row, km, COLS.id);
-          if (id && String(id).toUpperCase() === svDetectedEmpId) { empAttRow = row; break; }
-        }
-
-        grid.innerHTML = '';
-        if(!empAttRow) { grid.innerHTML = '<div style="color:#e53e3e; padding: 20px;">Employee not found in this month\'s attendance file.</div>'; return; }
-
-        let pCount = 0, aCount = 0, hCount = 0, total = 0;
-        
-        headersArr.forEach(h => {
-          const safeKey = h.replace(/[\n\r.$#\[\]\/]/g, '_');
-          const rawVal = empAttRow[safeKey];
-          const val = String(rawVal || '').trim().toUpperCase();
-          
-          if (String(h).length > 20 || String(h).toLowerCase().includes('name') || String(h).toLowerCase().includes('id') || String(h).toLowerCase().includes('vendor')) return;
-          
-          let cClass = 'off', text = val || '-';
-          if(['PP', 'P', 'PRESENT'].includes(val)) { cClass = 'present'; pCount++; total++; }
-          else if(['AA', 'A', 'ABSENT'].includes(val)) { cClass = 'absent'; aCount++; total++; }
-          else if(['HD', 'HALF'].includes(val)) { cClass = 'half'; hCount++; total++; }
-          else if(['L', 'CL', 'SL'].includes(val)) { cClass = 'leave'; }
-
-          grid.innerHTML += `<div class="day-card ${cClass}"><div class="date-text">${h}</div><div class="status-text">${text}</div></div>`;
-        });
-
-        const presentScore = pCount + (hCount * 0.5);
-        document.getElementById('svmPresent').textContent = presentScore;
-        document.getElementById('svmPercent').textContent = (total > 0 ? Math.round((presentScore / total) * 100) : 0) + '%';
-        
-      } catch(e) {
-        grid.innerHTML = '<div style="color:#e53e3e; padding: 20px;">Error loading calendar data.</div>';
-      }
+    function executeStaffViewRedirect() {
+      if(!svDetectedEmpId) return;
+      // Set the session variable as if the employee logged in
+      sessionStorage.setItem('geekay_emp_id', svDetectedEmpId);
+      // Optional: Set a flag so the employee dashboard knows it was opened by an admin
+      sessionStorage.setItem('geekay_viewed_by_admin', 'true');
+      
+      closeStaffViewModal();
+      
+      // Open the employee dashboard directly in a new tab so admin doesn't lose their current session
+      window.open('./employee-dashboard.html', '_blank');
     }
 
     // ============================================================
