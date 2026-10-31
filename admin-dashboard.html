@@ -830,7 +830,7 @@
       font-weight: 700; 
       position: sticky; 
       top: 0; 
-      z-index: 100; /* FIXED HEADER OVERLAP ISSUE */
+      z-index: 100; /* Overlap Issue Fixed */
     }
     
     .excel-mirror-table tr:hover { 
@@ -1983,10 +1983,12 @@
           const sheet = wb.Sheets[wb.SheetNames[0]];
           
           // ✨ Magic 1: Extract Exact Headers & Rows safely preserving formats
-          const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false });
+          const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false, blankrows: false });
           if(rawData.length <= 1) throw new Error("Excel file is empty or invalid format.");
 
-          const headerRow = rawData[0].map(h => String(h).trim());
+          // Fix for Invalid Key Error: Handle completely empty headers gracefully by assigning a fallback name
+          let headerRow = rawData[0].map(h => String(h).trim());
+          headerRow = headerRow.map((h, i) => h === "" ? `Column_${i+1}` : h);
 
           // ✨ Magic 2: Create Safe Rows matching Header Order safely
           const rows = [];
@@ -1997,7 +1999,7 @@
             headerRow.forEach((h, index) => {
               let safeKey = h.replace(/[\n\r.$#\[\]\/]/g, '_');
               let cellVal = rowArr[index];
-              // Force exact string to preserve leading zeros
+              // Force exact string to preserve leading zeros and formatting
               safeRow[safeKey] = (cellVal !== undefined && cellVal !== null) ? String(cellVal).trim() : '';
               if (safeRow[safeKey] !== '') hasData = true;
             });
@@ -2125,7 +2127,7 @@
       return String(val).trim();
     }
     
-    // Convert Excel serial date to DD-MMM-YYYY format
+    // Fix for 5-digit Excel serial dates turning into readable DD-MMM-YYYY dates
     function formatHeaderDate(val) {
       const strVal = String(val).trim();
       if (/^\d{5}$/.test(strVal)) {
@@ -2280,8 +2282,8 @@
         headersArr.forEach(h => { 
           const safeKey = String(h).replace(/[\n\r.$#\[\]\/]/g, '_');
           const td = document.createElement('td'); 
-          // Preserve exactly as in Excel sheet (no .toUpperCase() formatting)
-          td.textContent = (r[safeKey] !== undefined && r[safeKey] !== null) ? String(r[safeKey]).trim() : '-'; 
+          // Preserve exactly as in Excel sheet (no .toUpperCase() formatting, blank defaults to '-')
+          td.textContent = (r[safeKey] !== undefined && r[safeKey] !== null && String(r[safeKey]).trim() !== '') ? String(r[safeKey]).trim() : '-'; 
           tr.appendChild(td); 
         }); 
         
