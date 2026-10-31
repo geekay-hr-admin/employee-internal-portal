@@ -1262,6 +1262,7 @@
           const c = candidates[i];
           if (!validYmd(c[0], c[1], c[2])) continue;
           const ymd = makeYmd(c[0], c[1], c[2]);
+          // Stricter Match: Even if year doesn't match, we format it based on the cycle month/year
           if (inCycleRange(ymd, cycle)) return { ymd: ymd, outside: false };
           outside = true;
         }
@@ -1285,12 +1286,19 @@
       if ((m = k.match(/^(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/))) {
         return result([[+m[1], +m[2] - 1, +m[3]]]);
       }
+      
+      // Fix for Dashboard strict mapping: if month matches, assume the cycle's year regardless of what Excel says
       if ((m = k.match(/^(\d{1,2})[\s\-\/.]*([A-Za-z]{3})[A-Za-z]*\.?(?:[\s\-\/.,]*(\d{2,4}))?/)) && m[2].toLowerCase() in MONTH_LOOKUP) {
-        return result(yearCandidates(m[3], MONTH_LOOKUP[m[2].toLowerCase()], +m[1], cycle));
+        const extractedMonth = MONTH_LOOKUP[m[2].toLowerCase()];
+        const matchedYear = (extractedMonth === cycle.startMonth) ? cycle.startYear : cycle.endYear;
+        return result([[matchedYear, extractedMonth, +m[1]]]);
       }
       if ((m = k.match(/^([A-Za-z]{3})[A-Za-z]*\.?[\s\-\/.]*(\d{1,2})(?:[\s\-\/.,]*(\d{2,4}))?/)) && m[1].toLowerCase() in MONTH_LOOKUP) {
-        return result(yearCandidates(m[3], MONTH_LOOKUP[m[1].toLowerCase()], +m[2], cycle));
+        const extractedMonth = MONTH_LOOKUP[m[1].toLowerCase()];
+        const matchedYear = (extractedMonth === cycle.startMonth) ? cycle.startYear : cycle.endYear;
+        return result([[matchedYear, extractedMonth, +m[2]]]);
       }
+      
       if ((m = k.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))) {
         let y = +m[3];
         if (m[3].length === 2) y += 2000;
