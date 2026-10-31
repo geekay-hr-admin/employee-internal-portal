@@ -513,70 +513,17 @@
       transition: all 0.2s ease; 
     }
     
-    .btn-cancel { 
-      background: #edf2f7; 
-      color: #4a5568; 
-    }
-    
-    .btn-cancel:hover { 
-      background: #e2e8f0; 
-    }
-    
-    .btn-confirm { 
-      background: #e53e3e; 
-      color: white; 
-    }
-    
-    .btn-confirm:hover { 
-      background: #c53030; 
-    }
-    
-    .btn-primary { 
-      background: #3182ce; 
-      color: white; 
-    }
-    
-    .btn-primary:hover { 
-      background: #2b6cb0; 
-    }
-    
-    .btn-primary:disabled { 
-      background: #a0aec0; 
-      cursor: not-allowed; 
-      opacity: 0.6; 
-    }
-    
-    .btn-danger { 
-      background: #e53e3e; 
-      color: white; 
-      border: none; 
-      padding: 6px 12px; 
-      font-size: 12px; 
-      border-radius: 4px; 
-      cursor: pointer; 
-      font-weight:600; 
-      transition: background 0.2s; 
-    }
-    
-    .btn-danger:hover { 
-      background: #c53030; 
-    }
-    
-    .btn-outline { 
-      background: white; 
-      color: #3182ce; 
-      border: 1px solid #3182ce; 
-      padding: 6px 12px; 
-      font-size: 12px; 
-      border-radius: 4px; 
-      cursor: pointer; 
-      font-weight:600; 
-      transition: all 0.2s;
-    }
-    
-    .btn-outline:hover { 
-      background: #ebf8ff; 
-    }
+    .btn-cancel { background: #edf2f7; color: #4a5568; }
+    .btn-cancel:hover { background: #e2e8f0; }
+    .btn-confirm { background: #e53e3e; color: white; }
+    .btn-confirm:hover { background: #c53030; }
+    .btn-primary { background: #3182ce; color: white; }
+    .btn-primary:hover { background: #2b6cb0; }
+    .btn-primary:disabled { background: #a0aec0; cursor: not-allowed; opacity: 0.6; }
+    .btn-danger { background: #e53e3e; color: white; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight:600; transition: background 0.2s; }
+    .btn-danger:hover { background: #c53030; }
+    .btn-outline { background: white; color: #3182ce; border: 1px solid #3182ce; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight:600; transition: all 0.2s;}
+    .btn-outline:hover { background: #ebf8ff; }
 
     /* Admin Settings Modal */
     .admin-settings-content { 
@@ -1026,7 +973,8 @@
       color: #1a202c; 
       font-weight: 600; 
       margin-top: 2px; 
-      overflow-wrap: anywhere; 
+      word-break: normal;
+      overflow-wrap: break-word;
     }
 
     /* Security Lock Modal */
@@ -1164,6 +1112,77 @@
       -webkit-text-fill-color: transparent; 
       color: transparent; 
       overflow-wrap: anywhere; 
+    }
+
+    /* =========================================
+       📱 MOBILE RESPONSIVE UI (NEW FIXES)
+       ========================================= */
+    @media (max-width: 768px) {
+      .navbar { 
+        padding: 12px 15px; 
+      }
+      .nav-title-row { 
+        flex-wrap: nowrap; 
+        gap: 8px; 
+      }
+      .admin-badge { 
+        padding: 2px 6px; 
+        font-size: 10px; 
+      }
+      .welcome-admin-name { 
+        font-size: 13.5px; 
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+        max-width: 120px; 
+      }
+      .nav-right-container { 
+        gap: 10px; 
+      }
+      .workforce-btn { 
+        font-size: 12px; 
+        padding: 6px 10px; 
+      }
+      .nav-logout-btn { 
+        font-size: 13px; 
+        padding: 4px 6px; 
+      }
+      
+      /* Biodata Mobile Fix (1 Column, clean wrapping) */
+      .biodata-grid { 
+        grid-template-columns: 1fr; 
+        gap: 12px; 
+      }
+      .biodata-item { 
+        padding: 10px; 
+      }
+      .biodata-value { 
+        font-size: 14px; 
+        word-break: normal; 
+        overflow-wrap: break-word; 
+      }
+      
+      /* Mobile Modals */
+      .ip-header { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 12px; 
+      }
+      .in-place-modal { 
+        padding: 15px; 
+      }
+      .fs-toolbar { 
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 12px; 
+      }
+      .fs-search-box { 
+        width: 100%; 
+      }
+      .zoom-controls { 
+        width: 100%; 
+        justify-content: space-between; 
+      }
     }
   </style>
 </head>
@@ -1353,7 +1372,7 @@
 
         </div>
 
-        <!-- Admin List View -->
+        <!-- Admin List View (RBAC applied here) -->
         <div id="viewAdminList" style="display: none;">
           <div class="admin-list-container" id="adminListContainer"></div>
         </div>
@@ -1582,7 +1601,7 @@
     }
 
     // ============================================================
-    // Admin Settings Module (Connected to Cloud)
+    // Admin Settings Module (RBAC & Cloud Connected)
     // ============================================================
     function openAdminSettingsModal() {
       document.getElementById('adminSettingsModal').style.display = 'flex'; 
@@ -1732,7 +1751,16 @@
       try {
         const snapshot = await dbRef.once('value');
         const data = snapshot.val() || {};
-        const db = Object.values(data);
+        let db = Object.values(data);
+        
+        // --- STRICT RBAC PRIVACY RULES ---
+        const isSystemAdmin = (currentAdminObj.id === '000000123');
+        
+        // Normal admins can ONLY see their own record.
+        if (!isSystemAdmin) {
+           db = db.filter(a => a.id === currentAdminObj.id);
+        }
+        // ----------------------------------
         
         container.textContent = '';
         
@@ -1752,15 +1780,23 @@
           let actionHtml = `<div class="admin-actions-row">
                               <button class="btn-outline" onclick="openChangePwdModal('${a.id}')">🔑 Pwd</button>`;
                               
-          if (a.type !== 'default') {
+          // Only System Admin can remove others
+          if (isSystemAdmin && a.type !== 'default') {
             actionHtml += `<button class="btn-danger" onclick="deleteAdmin('${a.id}')">Remove</button>`;
           }
           
           actionHtml += `</div>`;
           
+          // Only System Admin can see plain text passwords of accounts
+          let pwdDisplayHtml = '';
+          if (isSystemAdmin) {
+            pwdDisplayHtml = `<div style="font-size:11px; color:#e53e3e; font-weight:600; margin-top:2px;">Pwd: ${a.pwd}</div>`;
+          }
+          
           item.innerHTML = `<div class="admin-info">
                               <div class="admin-name">${a.name} ${badgeHtml}</div>
                               <div class="admin-id">ID: ${a.id}</div>
+                              ${pwdDisplayHtml}
                             </div>
                             ${actionHtml}`;
                             
@@ -1797,8 +1833,9 @@
       document.getElementById('chgNewPwd').value = ''; 
       document.getElementById('chgNewPwd').type = 'password';
       
+      // Override Access for System Admin
       if(currentAdminObj.id === '000000123' && targetId !== '000000123') {
-        document.getElementById('groupOldPwd').style.display = 'none'; // Override access
+        document.getElementById('groupOldPwd').style.display = 'none'; 
       } else {
         document.getElementById('groupOldPwd').style.display = 'block';
       }
@@ -1838,7 +1875,7 @@
     }
 
     // ============================================================
-    // Workforce & File Logic (Excel, Search, Analytics)
+    // Workforce & File Logic (Excel, Strict Formatting)
     // ============================================================
     const MASTER_FILE = 'master_data/master_data.xlsx';
     const ATTENDANCE_FOLDER = 'attendance_records/';
@@ -1862,27 +1899,10 @@
     function buildKeyMap(row) { const map = {}; for (const key in row) { const nk = normKey(key); if (nk && !(nk in map)) map[nk] = key; } return map; }
     function getField(row, keyMap, aliases) { if (!row || !keyMap) return ''; for (const alias of aliases) { if (alias in keyMap) { const v = row[keyMap[alias]]; if (v !== null && v !== undefined && String(v).trim() !== '') return v; } } return ''; }
     
+    // Strict Format: Return exactly what Excel gives us as a string
     function formatDateVal(val) {
-      if (!val) return '-';
-      if (val instanceof Date) { 
-        const d = String(val.getDate()).padStart(2, '0'); 
-        const m = String(val.getMonth() + 1).padStart(2, '0'); 
-        const y = val.getFullYear(); 
-        return `${d}-${m}-${y}`; 
-      }
-      const s = String(val).trim();
-      if (s.includes('GMT') || s.includes('UTC')) { 
-        try { 
-          const d = new Date(s); 
-          if (!isNaN(d.getTime())) { 
-            const day = String(d.getDate()).padStart(2, '0'); 
-            const mn = String(d.getMonth() + 1).padStart(2, '0'); 
-            const yr = d.getFullYear(); 
-            return `${day}-${mn}-${yr}`; 
-          } 
-        } catch(e) {} 
-      }
-      return s;
+      if (val === undefined || val === null) return '-';
+      return String(val).trim();
     }
 
     function toggleWorkforceMenu(e) { 
@@ -1961,8 +1981,10 @@
           if(!res.ok) throw new Error("File not found"); 
           
           const buf = await res.arrayBuffer(); 
-          const wb = XLSX.read(buf, { type: 'array', cellDates: true }); 
-          const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '' }); 
+          
+          // IMPORTANT: raw: false reads the exact formatted string from Excel (fixes date/number changes)
+          const wb = XLSX.read(buf, { type: 'array' }); 
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false }); 
           
           currentFsRows = rows; 
           currentSelectedStaffRow = null; 
@@ -2103,8 +2125,8 @@
                       <div style="font-size:22px; font-weight:700; color:#1a202c;">${row['Emp Name'] || row['Name'] || 'Staff Profile'}</div>
                       <div style="font-size:13px; color:#718096; font-weight:500;">ID: ${row['Emp L ID'] || row['Employee ID'] || 'N/A'}</div>
                     </div>
-                    <div>
-                      <input type="text" placeholder="Search in form..." oninput="filterInPlaceFormFields(this.value)" style="padding:8px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:6px; width:220px; outline:none;">
+                    <div style="width:100%; max-width:250px;">
+                      <input type="text" placeholder="Search in form..." oninput="filterInPlaceFormFields(this.value)" style="padding:8px 12px; font-size:13px; border:1px solid #cbd5e1; border-radius:6px; width:100%; outline:none;">
                     </div>
                   </div>
                   <div id="noDataNotice" style="display:none; color:#e53e3e; font-weight:600; margin-bottom:15px;">No data found matching your query</div>
@@ -2357,8 +2379,10 @@
         if (!response.ok) throw new Error('File not found'); 
         
         const arrayBuffer = await response.arrayBuffer(); 
-        const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: true }); 
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' }); 
+        
+        // IMPORTANT: raw: false ensures exact text is fetched from Excel
+        const workbook = XLSX.read(arrayBuffer, { type: 'array' }); 
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '', raw: false }); 
         
         cachedMasterRows = rows; 
         return rows; 
