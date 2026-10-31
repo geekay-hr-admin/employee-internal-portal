@@ -378,69 +378,6 @@
       color: #1a202c; 
       line-height: 1;
     }
-    
-    .section-title { 
-      font-size: 20px; 
-      font-weight: 600; 
-      margin-bottom: 20px; 
-      color: #2d3748; 
-    }
-    
-    .controls-grid { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-      gap: 20px; 
-      margin-bottom: 30px; 
-    }
-    
-    .control-card { 
-      background: white; 
-      padding: 30px 20px; 
-      border-radius: 12px; 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.04); 
-      text-align: center; 
-      border: 1px solid #e2e8f0; 
-      position: relative; 
-      overflow: hidden;
-    }
-    
-    .control-card.disabled { 
-      opacity: 0.7; 
-      cursor: not-allowed; 
-    }
-    
-    .control-card.disabled::after { 
-      content: 'Coming Soon'; 
-      position: absolute; 
-      top: 15px; 
-      right: -30px; 
-      background: #e2e8f0; 
-      color: #4a5568; 
-      font-size: 11px; 
-      font-weight: 700; 
-      padding: 4px 30px; 
-      transform: rotate(45deg); 
-      letter-spacing: 1px;
-    }
-    
-    .control-icon { 
-      font-size: 36px; 
-      margin-bottom: 15px; 
-      color: #a0aec0; 
-    }
-    
-    .control-title { 
-      font-size: 18px; 
-      font-weight: 600; 
-      color: #2d3748; 
-      margin-bottom: 8px; 
-    }
-    
-    .control-desc { 
-      font-size: 13px; 
-      color: #718096; 
-      line-height: 1.5; 
-    }
 
     /* Modals System */
     .modal-overlay { 
@@ -525,7 +462,7 @@
     .btn-outline { background: white; color: #3182ce; border: 1px solid #3182ce; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; font-weight:600; transition: all 0.2s;}
     .btn-outline:hover { background: #ebf8ff; }
 
-    /* Admin Settings Modal */
+    /* Admin Settings Modal & Upload Modal */
     .admin-settings-content { 
       max-width: 650px; 
       padding: 0; 
@@ -724,6 +661,31 @@
     
     .staff-detect-msg.success { color: #38a169; }
     .staff-detect-msg.error { color: #e53e3e; }
+
+    /* Custom File Input Upload Design */
+    .file-upload-box {
+      border: 2px dashed #cbd5e1;
+      padding: 25px;
+      text-align: center;
+      border-radius: 8px;
+      background: #f8fafc;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .file-upload-box:hover {
+      border-color: #3182ce;
+      background: #ebf8ff;
+    }
+    .file-upload-box input[type="file"] {
+      display: none;
+    }
+    .file-upload-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #4a5568;
+      cursor: pointer;
+    }
 
     /* Full Screen Live View */
     .fullscreen-modal { 
@@ -1115,7 +1077,7 @@
     }
 
     /* =========================================
-       📱 MOBILE RESPONSIVE UI (NEW FIXES)
+       📱 MOBILE RESPONSIVE UI (FIXES APPLIED)
        ========================================= */
     @media (max-width: 768px) {
       .navbar { 
@@ -1217,11 +1179,16 @@
           Workforce ▾
         </button>
         <div class="workforce-content" id="workforceDropdownContent">
-          <button type="button" onclick="openMasterDataPrompt()">📊 Master Data</button>
+          <button type="button" onclick="executeWorkforceAction('master')">📊 Master Data</button>
+          
           <div class="wf-item">
             <button type="button" onclick="toggleAttendanceSubmenu(event)">📅 Attendance ▾</button>
             <div class="attendance-submenu" id="attendanceSubmenu"></div>
           </div>
+          
+          <!-- Cloud Upload Options -->
+          <button type="button" onclick="openCloudUploadModal()" style="color: #d69e2e; font-weight: 600;">☁️ Upload Files</button>
+          
           <!-- Admin Settings Button -->
           <button type="button" onclick="openAdminSettingsModal()" style="color: #004080; font-weight: 600;">⚙️ Admin Settings</button>
         </div>
@@ -1270,22 +1237,48 @@
       </div>
     </div>
 
-    <div class="section-title">Management Controls</div>
-    <div class="controls-grid">
-      <div class="control-card disabled">
-        <div class="control-icon">📅</div>
-        <div class="control-title">Attendance Upload</div>
-        <div class="control-desc">Upload monthly attendance Excel files securely to the server.</div>
+    <!-- NOTE: Management Controls removed to keep UI Clean as requested -->
+  </div>
+
+  <!-- Cloud Upload Modal -->
+  <div class="modal-overlay" id="cloudUploadModal" onclick="if(event.target.id==='cloudUploadModal') closeCloudUploadModal()">
+    <div class="modal-content admin-settings-content">
+      <div class="as-header">
+        <div style="font-size:20px; font-weight:700; color:#1a202c;">☁️ Cloud Upload</div>
+        <button class="fs-close-btn" style="width:32px; height:32px; font-size:16px;" onclick="closeCloudUploadModal()">&times;</button>
       </div>
-      <div class="control-card disabled">
-        <div class="control-icon">👥</div>
-        <div class="control-title">Master Data Settings</div>
-        <div class="control-desc">Add new employees, edit details, or update resignations.</div>
-      </div>
-      <div class="control-card disabled">
-        <div class="control-icon">📊</div>
-        <div class="control-title">Generate Reports</div>
-        <div class="control-desc">Download complete data and attendance PDFs for all staff.</div>
+      
+      <div class="as-body">
+        <div class="radio-group" style="margin-bottom: 20px;">
+          <label class="radio-label">
+            <input type="radio" name="uploadTarget" value="master" checked onchange="toggleUploadType()"> Master Data
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="uploadTarget" value="attendance" onchange="toggleUploadType()"> Attendance
+          </label>
+        </div>
+
+        <div id="attendanceMonthDiv" class="floating-input-group" style="display:none; margin-bottom: 20px;">
+          <input type="text" id="uploadMonthName" placeholder=" " autocomplete="off">
+          <label>Month & Year (e.g. Oct-2026)</label>
+        </div>
+
+        <label class="file-upload-box" style="display: block;">
+          <input type="file" id="excelFileInput" accept=".xlsx, .xls">
+          <div class="file-upload-label" id="fileUploadLabel">📄 Click here to select Excel file</div>
+        </label>
+        
+        <div style="font-size:12px; color:#e53e3e; margin-bottom: 20px; font-weight:600;">
+          * Warning: Uploading will overwrite existing cloud data.
+        </div>
+
+        <div class="floating-input-group">
+          <input type="password" id="uploadConfirmPwd" placeholder=" " autocomplete="new-password">
+          <label>Enter Admin Password to Confirm</label>
+          <span class="pwd-toggle" onclick="togglePwd('uploadConfirmPwd')">👁️</span>
+        </div>
+
+        <button type="button" class="btn-modal btn-primary" style="width:100%;" onclick="submitCloudUpload()">Secure Upload</button>
       </div>
     </div>
   </div>
@@ -1382,9 +1375,8 @@
   </div>
 
   <!-- Change Password Modal -->
-  <div class="modal-overlay" id="changePwdModal" style="z-index: 2100;" onclick="if(event.target.id==='changePwdModal') closeChangePwdModal()">
+  <div class="modal-overlay" id="changePwdModal" style="z-index: 2100;" onclick="if(event.target.id==changePwdModal) closeChangePwdModal()">
     <div class="modal-content" style="max-width:400px; padding:30px;">
-      
       <div class="modal-title dark" style="font-size:18px; margin-bottom:20px; text-align:left;">Change Password</div>
       <div style="font-size:13px; color:#4a5568; margin-bottom:20px; text-align:left;" id="changePwdTargetName">For: </div>
       
@@ -1406,7 +1398,6 @@
         <button class="btn-modal btn-cancel" style="padding:10px;" onclick="closeChangePwdModal()">Cancel</button>
         <button class="btn-modal btn-primary" style="padding:10px;" onclick="submitChangePwd()">Save</button>
       </div>
-      
     </div>
   </div>
 
@@ -1419,19 +1410,6 @@
       <div class="modal-actions">
         <button class="btn-modal btn-cancel" onclick="closeLogoutModal()">Cancel</button>
         <button class="btn-modal btn-confirm" onclick="executeLogout()">Yes, Logout</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Workforce Choice Modal -->
-  <div class="modal-overlay" id="workforceChoiceModal" onclick="if(event.target.id==='workforceChoiceModal') closeWorkforceChoiceModal()">
-    <div class="modal-content">
-      <div class="modal-icon" id="choiceModalIcon">📂</div>
-      <div class="modal-title dark" id="choiceModalTitle">Open File</div>
-      <div class="modal-desc" id="choiceModalDesc">How would you like to view this file?</div>
-      <div class="modal-actions" style="flex-direction: column; gap: 10px;">
-        <button class="btn-modal btn-primary" onclick="executeWorkforceAction('live')">View Live Data (Full Screen)</button>
-        <button class="btn-modal btn-cancel" onclick="executeWorkforceAction('download')">Download Excel File</button>
       </div>
     </div>
   </div>
@@ -1483,7 +1461,6 @@
   <div class="modal-overlay" id="inactivityLockModal" style="background: rgba(0,0,0,0.5);">
     <div class="modal-content lock-modal">
       
-      <!-- Lock Step 1 -->
       <div id="lockStep1">
         <div class="lock-flex">
           <div class="lock-icon-wrapper">🔒</div>
@@ -1498,7 +1475,6 @@
         </div>
       </div>
       
-      <!-- Lock Step 2 -->
       <div id="lockStep2" style="display: none;">
         <div class="lock-flex">
           <div class="lock-icon-wrapper blue">🔑</div>
@@ -1539,6 +1515,8 @@
     
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('geekay_admins');
+    const dbMaster = firebase.database().ref('geekay_master_data');
+    const dbAttendance = firebase.database().ref('geekay_attendance');
     
     // Default System Admin Fallback
     const DEFAULT_ADMIN = { 
@@ -1549,6 +1527,9 @@
     };
     
     let currentAdminObj = null;
+    let cachedMasterRows = []; 
+    let currentSelectedStaffRow = null; 
+    let currentZoomLevel = 1.0;
 
     function togglePwd(id) {
       const el = document.getElementById(id);
@@ -1595,7 +1576,7 @@
         return true;
       } catch(e) {
         console.error("Firebase auth error", e);
-        alert("Database connection failed. Please check rules or internet.");
+        alert("Database connection failed. Please check internet connection.");
         return false;
       }
     }
@@ -1607,33 +1588,23 @@
       document.getElementById('adminSettingsModal').style.display = 'flex'; 
       switchAdminSettingsTab('add');
       
-      // Reset Inputs
       document.getElementById('newAdminEmpId').value = ''; 
-      
       document.getElementById('newAdminEmpPwd').value = ''; 
       document.getElementById('newAdminEmpPwd').type = 'password'; 
-      
       document.getElementById('newAdminEmpPwdConf').value = ''; 
       document.getElementById('newAdminEmpPwdConf').type = 'password';
-      
       document.getElementById('newAdminExtId').value = ''; 
       document.getElementById('newAdminExtName').value = ''; 
-      
       document.getElementById('newAdminExtPwd').value = ''; 
       document.getElementById('newAdminExtPwd').type = 'password'; 
-      
       document.getElementById('newAdminExtPwdConf').value = ''; 
       document.getElementById('newAdminExtPwdConf').type = 'password';
-      
       document.getElementById('staffDetectMsg').className = 'staff-detect-msg'; 
       document.getElementById('staffDetectMsg').textContent = 'Type ID to auto-detect name...'; 
-      
       document.getElementById('btnCreateExisting').disabled = true;
     }
     
-    function closeAdminSettingsModal() { 
-      document.getElementById('adminSettingsModal').style.display = 'none'; 
-    }
+    function closeAdminSettingsModal() { document.getElementById('adminSettingsModal').style.display = 'none'; }
     
     function switchAdminSettingsTab(tab) {
       if (tab === 'add') {
@@ -1722,14 +1693,13 @@
       
       if(newPwd !== confPwd) return alert("Passwords do not match!");
 
-      const safeId = newId.replace(/[.#$\[\]]/g, '_'); // Firebase key safety
+      const safeId = newId.replace(/[.#$\[\]]/g, '_'); 
       
       try {
         const snap = await dbRef.child(safeId).once('value');
         if (snap.exists()) return alert("An admin with this ID/Username already exists!");
         
         await dbRef.child(safeId).set({ id: newId, name: newName, pwd: newPwd, type: newType });
-        
         alert(`Admin account for ${newName} created successfully!`);
         
         document.getElementById('newAdminEmpPwd').value = ''; 
@@ -1753,14 +1723,11 @@
         const data = snapshot.val() || {};
         let db = Object.values(data);
         
-        // --- STRICT RBAC PRIVACY RULES ---
+        // STRICT RBAC PRIVACY RULES 
         const isSystemAdmin = (currentAdminObj.id === '000000123');
-        
-        // Normal admins can ONLY see their own record.
         if (!isSystemAdmin) {
            db = db.filter(a => a.id === currentAdminObj.id);
         }
-        // ----------------------------------
         
         container.textContent = '';
         
@@ -1784,10 +1751,9 @@
           if (isSystemAdmin && a.type !== 'default') {
             actionHtml += `<button class="btn-danger" onclick="deleteAdmin('${a.id}')">Remove</button>`;
           }
-          
           actionHtml += `</div>`;
           
-          // Only System Admin can see plain text passwords of accounts
+          // Only System Admin can see plain text passwords
           let pwdDisplayHtml = '';
           if (isSystemAdmin) {
             pwdDisplayHtml = `<div style="font-size:11px; color:#e53e3e; font-weight:600; margin-top:2px;">Pwd: ${a.pwd}</div>`;
@@ -1829,7 +1795,6 @@
       
       document.getElementById('chgOldPwd').value = ''; 
       document.getElementById('chgOldPwd').type = 'password'; 
-      
       document.getElementById('chgNewPwd').value = ''; 
       document.getElementById('chgNewPwd').type = 'password';
       
@@ -1843,9 +1808,7 @@
       document.getElementById('changePwdModal').style.display = 'flex';
     }
 
-    function closeChangePwdModal() { 
-      document.getElementById('changePwdModal').style.display = 'none'; 
-    }
+    function closeChangePwdModal() { document.getElementById('changePwdModal').style.display = 'none'; }
 
     async function submitChangePwd() {
       const targetId = document.getElementById('changePwdTargetId').value;
@@ -1865,29 +1828,90 @@
       }
       
       await dbRef.child(safeId).update({ pwd: newP });
-      
-      if(targetId === currentAdminObj.id) { 
-        currentAdminObj.pwd = newP; 
-      }
-      
+      if(targetId === currentAdminObj.id) { currentAdminObj.pwd = newP; }
       alert("Password changed successfully."); 
       closeChangePwdModal();
     }
 
     // ============================================================
-    // Workforce & File Logic (Excel, Strict Formatting)
+    // Cloud Upload Module (Excel -> Firebase DB)
     // ============================================================
-    const MASTER_FILE = 'master_data/master_data.xlsx';
-    const ATTENDANCE_FOLDER = 'attendance_records/';
-    const AVAILABLE_ATTENDANCE_FILES = ['Oct-2026', 'Sep-2026', 'Aug-2026'];
+    function openCloudUploadModal() {
+      document.getElementById('cloudUploadModal').style.display = 'flex';
+      document.getElementById('fileUploadLabel').textContent = "📄 Click here to select Excel file";
+      document.getElementById('excelFileInput').value = '';
+      document.getElementById('uploadConfirmPwd').value = '';
+      document.getElementById('uploadMonthName').value = '';
+      toggleUploadType();
+    }
     
-    let cachedMasterRows = []; 
-    let currentWorkforceType = ''; 
-    let selectedAttendanceMonth = ''; 
-    let currentFsRows = []; 
-    let currentSelectedStaffRow = null; 
-    let currentZoomLevel = 1.0;
-    
+    function closeCloudUploadModal() { document.getElementById('cloudUploadModal').style.display = 'none'; }
+
+    function toggleUploadType() {
+      const type = document.querySelector('input[name="uploadTarget"]:checked').value;
+      if(type === 'attendance') {
+        document.getElementById('attendanceMonthDiv').style.display = 'block';
+      } else {
+        document.getElementById('attendanceMonthDiv').style.display = 'none';
+      }
+    }
+
+    document.getElementById('excelFileInput').addEventListener('change', function(e) {
+      const fileName = e.target.files[0] ? e.target.files[0].name : "📄 Click here to select Excel file";
+      document.getElementById('fileUploadLabel').textContent = "✓ Selected: " + fileName;
+      document.getElementById('fileUploadLabel').style.color = "#3182ce";
+    });
+
+    async function submitCloudUpload() {
+      const type = document.querySelector('input[name="uploadTarget"]:checked').value;
+      const fileInput = document.getElementById('excelFileInput');
+      const pwd = document.getElementById('uploadConfirmPwd').value.trim();
+      let monthName = document.getElementById('uploadMonthName').value.trim();
+
+      if(fileInput.files.length === 0) return alert("Please select an Excel file.");
+      if(type === 'attendance' && !monthName) return alert("Please enter the Month & Year for Attendance.");
+      if(pwd !== currentAdminObj.pwd) return alert("Security Error: Incorrect Admin Password!");
+
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+
+      document.getElementById('loadingWelcome').classList.add('in'); 
+      document.getElementById('loadingOverlay').classList.add('show');
+      closeCloudUploadModal();
+
+      reader.onload = async (e) => {
+        try {
+          const data = e.target.result;
+          const wb = XLSX.read(data, { type: 'array' });
+          const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false });
+          
+          if(rows.length === 0) throw new Error("Excel file is empty or invalid format.");
+
+          if (type === 'master') {
+             await dbMaster.set(rows);
+             cachedMasterRows = rows;
+             calculateStats(rows);
+             alert("Master Data successfully uploaded and synced to Cloud!");
+          } else {
+             const safeMonth = monthName.replace(/[.#$\[\]]/g, '_');
+             await dbAttendance.child(safeMonth).set(rows);
+             alert(`Attendance for ${monthName} successfully uploaded to Cloud!`);
+             populateAttendanceMenu(); // Refresh the menu
+          }
+        } catch(error) {
+          console.error(error);
+          alert("Error uploading file. Please ensure it's a valid Excel format.");
+        } finally {
+          document.getElementById('loadingOverlay').classList.remove('show');
+        }
+      };
+      
+      reader.readAsArrayBuffer(file);
+    }
+
+    // ============================================================
+    // Workforce Data View Logic (From Cloud DB)
+    // ============================================================
     const COLS = { 
       id: ['epmlid', 'useremployeeid', 'employeeid', 'empid', 'userid', 'employeecode'], 
       name: ['empname', 'displayname', 'employeename', 'name'], 
@@ -1899,7 +1923,6 @@
     function buildKeyMap(row) { const map = {}; for (const key in row) { const nk = normKey(key); if (nk && !(nk in map)) map[nk] = key; } return map; }
     function getField(row, keyMap, aliases) { if (!row || !keyMap) return ''; for (const alias of aliases) { if (alias in keyMap) { const v = row[keyMap[alias]]; if (v !== null && v !== undefined && String(v).trim() !== '') return v; } } return ''; }
     
-    // Strict Format: Return exactly what Excel gives us as a string
     function formatDateVal(val) {
       if (val === undefined || val === null) return '-';
       return String(val).trim();
@@ -1914,23 +1937,37 @@
       e.stopPropagation(); 
       const sub = document.getElementById('attendanceSubmenu'); 
       sub.classList.toggle('show'); 
-      populateAttendanceMenu(); 
+      if(sub.classList.contains('show')) populateAttendanceMenu(); 
     }
     
-    function populateAttendanceMenu() { 
+    async function populateAttendanceMenu() { 
       const sub = document.getElementById('attendanceSubmenu'); 
-      sub.textContent = ''; 
-      
-      AVAILABLE_ATTENDANCE_FILES.forEach(file => { 
-        const btn = document.createElement('button'); 
-        btn.type = 'button'; 
-        btn.textContent = file; 
-        btn.onclick = function() { openAttendanceFile(file); }; 
-        sub.appendChild(btn); 
-      }); 
+      sub.textContent = 'Loading...'; 
+      try {
+        const snap = await dbAttendance.once('value');
+        const data = snap.val() || {};
+        const months = Object.keys(data);
+        
+        sub.textContent = '';
+        if(months.length === 0) {
+          sub.innerHTML = '<div style="padding:10px 16px; font-size:12px; color:#718096;">No records found</div>';
+        } else {
+          months.forEach(file => { 
+            const btn = document.createElement('button'); 
+            btn.type = 'button'; 
+            btn.textContent = file; 
+            btn.onclick = function(e) { e.stopPropagation(); executeWorkforceAction('attendance', file); }; 
+            sub.appendChild(btn); 
+          }); 
+        }
+      } catch(e) {
+        sub.textContent = 'Error loading.';
+      }
     }
     
-    window.addEventListener('click', function() { 
+    window.addEventListener('click', function(e) { 
+      if(e.target.closest('#cloudUploadModal') || e.target.closest('.modal-content')) return;
+      
       const dropdown = document.getElementById('workforceDropdown'); 
       if (dropdown.classList.contains('show')) dropdown.classList.remove('show'); 
       
@@ -1940,62 +1977,35 @@
       const searchDrop = document.getElementById('searchResultsDropdown'); 
       if (searchDrop) searchDrop.style.display = 'none'; 
     });
-    
-    function openMasterDataPrompt() { 
-      currentWorkforceType = 'master'; 
-      document.getElementById('choiceModalIcon').textContent = '📊'; 
-      document.getElementById('choiceModalTitle').textContent = 'Master Data'; 
-      document.getElementById('choiceModalDesc').textContent = 'How would you like to access Master Data?'; 
-      document.getElementById('workforceChoiceModal').style.display = 'flex'; 
-    }
-    
-    function openAttendanceFile(monthName) { 
-      selectedAttendanceMonth = monthName; 
-      currentWorkforceType = 'attendance'; 
-      document.getElementById('choiceModalIcon').textContent = '📅'; 
-      document.getElementById('choiceModalTitle').textContent = 'Attendance (' + selectedAttendanceMonth + ')'; 
-      document.getElementById('choiceModalDesc').textContent = 'How would you like to access this attendance file?'; 
-      document.getElementById('workforceChoiceModal').style.display = 'flex'; 
-    }
-    
-    function closeWorkforceChoiceModal() { 
-      document.getElementById('workforceChoiceModal').style.display = 'none'; 
-    }
 
-    async function executeWorkforceAction(action) {
-      closeWorkforceChoiceModal(); 
-      let fileUrl = MASTER_FILE; 
+    async function executeWorkforceAction(type, month = null) {
+      document.getElementById('workforceDropdown').classList.remove('show');
+      document.getElementById('loadingWelcome').classList.add('in'); 
+      document.getElementById('loadingOverlay').classList.add('show');
       
-      if (currentWorkforceType === 'attendance') {
-        fileUrl = ATTENDANCE_FOLDER + selectedAttendanceMonth + '.xlsx';
-      }
-      
-      if (action === 'download') {
-        window.open(fileUrl, '_blank');
-      } else {
-        document.getElementById('loadingWelcome').classList.add('in'); 
-        document.getElementById('loadingOverlay').classList.add('show');
+      try { 
+        let dataRows = [];
+        let title = '';
         
-        try { 
-          const res = await fetch(fileUrl + '?v=' + Date.now(), { cache: 'no-store' }); 
-          if(!res.ok) throw new Error("File not found"); 
-          
-          const buf = await res.arrayBuffer(); 
-          
-          // IMPORTANT: raw: false reads the exact formatted string from Excel (fixes date/number changes)
-          const wb = XLSX.read(buf, { type: 'array' }); 
-          const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: '', raw: false }); 
-          
-          currentFsRows = rows; 
-          currentSelectedStaffRow = null; 
-          document.getElementById('btnFormView').style.display = 'none'; 
-          
-          renderFullscreenTable(rows, currentWorkforceType === 'master' ? 'Master Data Viewer' : 'Attendance: ' + selectedAttendanceMonth); 
-        } catch (e) { 
-          alert("Error: Could not load file."); 
-        } finally { 
-          document.getElementById('loadingOverlay').classList.remove('show'); 
+        if (type === 'master') {
+          title = 'Master Data Viewer';
+          const snap = await dbMaster.once('value');
+          dataRows = snap.val() || [];
+        } else if (type === 'attendance' && month) {
+          title = `Attendance: ${month}`;
+          const snap = await dbAttendance.child(month).once('value');
+          dataRows = snap.val() || [];
         }
+
+        currentFsRows = dataRows; 
+        currentSelectedStaffRow = null; 
+        document.getElementById('btnFormView').style.display = 'none'; 
+        
+        renderFullscreenTable(dataRows, title); 
+      } catch (e) { 
+        alert("Error loading data from Cloud."); 
+      } finally { 
+        document.getElementById('loadingOverlay').classList.remove('show'); 
       }
     }
 
@@ -2006,7 +2016,7 @@
       container.textContent = '';
       
       if(!rows || rows.length === 0) { 
-        container.innerHTML = '<div style="padding:40px; text-align:center; color:#718096; font-size:16px;">No records found.</div>'; 
+        container.innerHTML = '<div style="padding:40px; text-align:center; color:#718096; font-size:16px;">No records found. Please upload data first.</div>'; 
         document.getElementById('fullscreenViewer').style.display = 'flex'; 
         return; 
       }
@@ -2059,48 +2069,25 @@
       document.getElementById('fullscreenViewer').style.display = 'flex';
     }
     
-    function closeFullscreenViewer() { 
-      document.getElementById('fullscreenViewer').style.display = 'none'; 
-    }
+    function closeFullscreenViewer() { document.getElementById('fullscreenViewer').style.display = 'none'; }
     
     function filterFullscreenTable(query) { 
       const q = query.toLowerCase(); 
       const table = document.getElementById('fsDataTable'); 
       if(!table) return; 
-      
       const trs = table.getElementsByTagName('tr'); 
       for(let i = 1; i < trs.length; i++) { 
-        const tds = trs[i].getElementsByTagName('td'); 
-        let found = false; 
-        
-        for(let j = 0; j < tds.length; j++) { 
-          if(tds[j].textContent.toLowerCase().includes(q)) { 
-            found = true; 
-            break; 
-          } 
-        } 
+        const tds = trs[i].getElementsByTagName('td'); let found = false; 
+        for(let j = 0; j < tds.length; j++) { if(tds[j].textContent.toLowerCase().includes(q)) { found = true; break; } } 
         trs[i].style.display = found ? '' : 'none'; 
       } 
     }
     
-    function clearFsSearch() { 
-      document.getElementById('fsSearchInput').value = ''; 
-      filterFullscreenTable(''); 
-    }
+    function clearFsSearch() { document.getElementById('fsSearchInput').value = ''; filterFullscreenTable(''); }
     
-    function adjustZoom(amount) { 
-      currentZoomLevel = Math.max(0.6, Math.min(1.8, currentZoomLevel + amount)); 
-      applyZoom(); 
-    }
-    
-    function resetZoom() { 
-      currentZoomLevel = 1.0; 
-      applyZoom(); 
-    }
-    
-    function applyZoom() { 
-      document.getElementById('fsContentInner').style.transform = `scale(${currentZoomLevel})`; 
-    }
+    function adjustZoom(amount) { currentZoomLevel = Math.max(0.6, Math.min(1.8, currentZoomLevel + amount)); applyZoom(); }
+    function resetZoom() { currentZoomLevel = 1.0; applyZoom(); }
+    function applyZoom() { document.getElementById('fsContentInner').style.transform = `scale(${currentZoomLevel})`; }
 
     function openInPlaceFormView() { 
       if(!currentSelectedStaffRow) { alert("Please select a staff row."); return; } 
@@ -2108,9 +2095,7 @@
       document.getElementById('inPlaceFormModal').style.display = 'flex'; 
     }
     
-    function closeInPlaceFormModal() { 
-      document.getElementById('inPlaceFormModal').style.display = 'none'; 
-    }
+    function closeInPlaceFormModal() { document.getElementById('inPlaceFormModal').style.display = 'none'; }
     
     function renderInPlaceForm(row) {
       const container = document.getElementById('ipBodyContainer'); 
@@ -2166,21 +2151,12 @@
       let visibleCount = 0; 
       
       cards.forEach(c => { 
-        const k = c.getAttribute('data-key'); 
-        const v = c.getAttribute('data-val'); 
+        const k = c.getAttribute('data-key'); const v = c.getAttribute('data-val'); 
         if(!q || k.includes(q) || v.includes(q)) { 
-          c.style.display = 'flex'; 
-          visibleCount++; 
-          if(q && (k.includes(q) || v.includes(q))) {
-            c.style.background = '#feebc8'; 
-          } else {
-            c.style.background = '#f8fafc'; 
-          }
-        } else {
-          c.style.display = 'none'; 
-        }
+          c.style.display = 'flex'; visibleCount++; 
+          if(q && (k.includes(q) || v.includes(q))) c.style.background = '#feebc8'; else c.style.background = '#f8fafc'; 
+        } else { c.style.display = 'none'; }
       }); 
-      
       document.getElementById('noDataNotice').style.display = (visibleCount === 0 && q) ? 'block' : 'none'; 
     }
 
@@ -2189,10 +2165,7 @@
       const dropdown = document.getElementById('searchResultsDropdown'); 
       const q = query.trim().toLowerCase();
       
-      if(!q || cachedMasterRows.length === 0) { 
-        dropdown.style.display = 'none'; 
-        return; 
-      }
+      if(!q || cachedMasterRows.length === 0) { dropdown.style.display = 'none'; return; }
       
       const mode = document.getElementById('searchModeSelect').value; 
       const matches = [];
@@ -2200,20 +2173,12 @@
       for(let i = 0; i < cachedMasterRows.length; i++) {
         const row = cachedMasterRows[i]; 
         const km = buildKeyMap(row); 
-        const id = getField(row, km, COLS.id); 
-        const name = getField(row, km, COLS.name); 
+        const id = getField(row, km, COLS.id); const name = getField(row, km, COLS.name); 
         let matchFound = false;
         
-        for(let key in row) { 
-          if(String(row[key]).toLowerCase().includes(q)) { 
-            matchFound = true; break; 
-          } 
-        }
+        for(let key in row) { if(String(row[key]).toLowerCase().includes(q)) { matchFound = true; break; } }
         
-        if(matchFound && id) { 
-          matches.push({ id: id, name: name || 'Staff', row: row }); 
-          if(matches.length >= 10) break; 
-        }
+        if(matchFound && id) { matches.push({ id: id, name: name || 'Staff', row: row }); if(matches.length >= 10) break; }
       }
       
       dropdown.textContent = '';
@@ -2231,70 +2196,33 @@
           div.innerHTML = `<span><strong>${m.name}</strong> (${m.id})</span> <span style="font-size:12px; color:#3182ce;">View Profile &rarr;</span>`;
           
           div.onclick = function(e) {
-            e.stopPropagation(); 
-            dropdown.style.display = 'none'; 
-            document.getElementById('globalSearchInput').value = m.id;
-            
+            e.stopPropagation(); dropdown.style.display = 'none'; document.getElementById('globalSearchInput').value = m.id;
             if(mode === 'master' || mode === 'all') { 
-              currentSelectedStaffRow = m.row; 
-              renderInPlaceForm(m.row); 
-              document.getElementById('inPlaceFormModal').style.display = 'flex'; 
-            } else { 
-              alert("Attendance lookup for ID: " + m.id); 
-            }
+              currentSelectedStaffRow = m.row; renderInPlaceForm(m.row); document.getElementById('inPlaceFormModal').style.display = 'flex'; 
+            } else { alert("Attendance lookup for ID: " + m.id); }
           }; 
-          
           dropdown.appendChild(div);
         }); 
       }
-      
       dropdown.style.display = 'block';
     }
     
-    function clearGlobalSearch() { 
-      document.getElementById('globalSearchInput').value = ''; 
-      document.getElementById('searchResultsDropdown').style.display = 'none'; 
-    }
+    function clearGlobalSearch() { document.getElementById('globalSearchInput').value = ''; document.getElementById('searchResultsDropdown').style.display = 'none'; }
 
     function downloadStaffPdf() {
       if(!currentSelectedStaffRow) { alert("No staff record selected."); return; }
-      
-      const { jsPDF } = window.jspdf; 
-      const doc = new jsPDF('p', 'mm', 'a4'); 
-      
-      doc.setFont("helvetica", "bold"); 
-      doc.setFontSize(16); 
-      doc.setTextColor(0, 64, 128); 
-      doc.text("Geekay Human Resources Pvt. Ltd.", 14, 18); 
-      
-      doc.setFontSize(11); 
-      doc.setTextColor(100, 100, 100); 
-      doc.text("Employee Bio-Data & Profile Record", 14, 25); 
-      
-      doc.setLineWidth(0.4); 
-      doc.setLineColor(200, 200, 200); 
-      doc.line(14, 29, 196, 29);
-      
-      let yPos = 38; 
-      doc.setFontSize(10);
-      
+      const { jsPDF } = window.jspdf; const doc = new jsPDF('p', 'mm', 'a4'); 
+      doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.setTextColor(0, 64, 128); doc.text("Geekay Human Resources Pvt. Ltd.", 14, 18); 
+      doc.setFontSize(11); doc.setTextColor(100, 100, 100); doc.text("Employee Bio-Data & Profile Record", 14, 25); 
+      doc.setLineWidth(0.4); doc.setLineColor(200, 200, 200); doc.line(14, 29, 196, 29);
+      let yPos = 38; doc.setFontSize(10);
       for(let key in currentSelectedStaffRow) { 
         const rawVal = currentSelectedStaffRow[key]; 
         const val = (rawVal !== undefined && rawVal !== null && String(rawVal).trim() !== '') ? formatDateVal(rawVal) : '-'; 
-        
         if(yPos > 275) { doc.addPage(); yPos = 20; } 
-        
-        doc.setFont("helvetica", "bold"); 
-        doc.setTextColor(60, 60, 60); 
-        doc.text(String(key) + ":", 14, yPos); 
-        
-        doc.setFont("helvetica", "normal"); 
-        doc.setTextColor(20, 20, 20); 
-        doc.text(String(val), 65, yPos); 
-        
-        yPos += 7.5; 
+        doc.setFont("helvetica", "bold"); doc.setTextColor(60, 60, 60); doc.text(String(key) + ":", 14, yPos); 
+        doc.setFont("helvetica", "normal"); doc.setTextColor(20, 20, 20); doc.text(String(val), 65, yPos); yPos += 7.5; 
       }
-      
       const staffName = currentSelectedStaffRow['Emp Name'] || currentSelectedStaffRow['Name'] || 'Staff'; 
       doc.save(staffName.replace(/[^a-z0-9]/gi, '_') + '_BioData.pdf');
     }
@@ -2310,83 +2238,47 @@
     
     function triggerLockScreen() { 
       clearInterval(idleInterval); 
-      document.getElementById('dashboardSection').style.filter = 'blur(8px)'; 
-      document.getElementById('dashboardSection').style.pointerEvents = 'none'; 
-      document.getElementById('mainNavbar').style.filter = 'blur(8px)'; 
-      document.getElementById('mainNavbar').style.pointerEvents = 'none'; 
-      
-      document.getElementById('inactivityLockModal').style.display = 'flex'; 
-      document.getElementById('lockStep1').style.display = 'block'; 
-      document.getElementById('lockStep2').style.display = 'none'; 
-      document.getElementById('unlockPwd').value = ''; 
-      
+      document.getElementById('dashboardSection').style.filter = 'blur(8px)'; document.getElementById('dashboardSection').style.pointerEvents = 'none'; 
+      document.getElementById('mainNavbar').style.filter = 'blur(8px)'; document.getElementById('mainNavbar').style.pointerEvents = 'none'; 
+      document.getElementById('inactivityLockModal').style.display = 'flex'; document.getElementById('lockStep1').style.display = 'block'; document.getElementById('lockStep2').style.display = 'none'; document.getElementById('unlockPwd').value = ''; 
       renderUnlockStatus(null); 
     }
     
-    function showLockPasswordStep() { 
-      document.getElementById('lockStep1').style.display = 'none'; 
-      document.getElementById('lockStep2').style.display = 'block'; 
-      document.getElementById('unlockPwd').focus(); 
-    }
+    function showLockPasswordStep() { document.getElementById('lockStep1').style.display = 'none'; document.getElementById('lockStep2').style.display = 'block'; document.getElementById('unlockPwd').focus(); }
     
     function renderUnlockStatus(state) { 
-      const el = document.getElementById('unlockStatus'); 
-      const btn = document.getElementById('btnUnlockContinue'); 
-      el.textContent = ''; 
-      
-      if (!state) { 
-        el.className = 'input-status'; 
-        btn.disabled = true; 
-        return; 
-      } 
-      
-      el.className = 'input-status ' + state + ' show'; 
-      el.textContent = (state === 'valid' ? '\u2714 Verified' : '\u2716 Invalid'); 
-      btn.disabled = (state !== 'valid'); 
+      const el = document.getElementById('unlockStatus'); const btn = document.getElementById('btnUnlockContinue'); el.textContent = ''; 
+      if (!state) { el.className = 'input-status'; btn.disabled = true; return; } 
+      el.className = 'input-status ' + state + ' show'; el.textContent = (state === 'valid' ? '\u2714 Verified' : '\u2716 Invalid'); btn.disabled = (state !== 'valid'); 
     }
     
     document.getElementById('unlockPwd').addEventListener('input', function() { 
       const pwd = this.value.trim(); 
-      if (!pwd) renderUnlockStatus(null); 
-      else if (pwd === currentAdminObj.pwd) renderUnlockStatus('valid'); 
-      else renderUnlockStatus('invalid'); 
+      if (!pwd) renderUnlockStatus(null); else if (pwd === currentAdminObj.pwd) renderUnlockStatus('valid'); else renderUnlockStatus('invalid'); 
     });
     
-    document.getElementById('unlockPwd').addEventListener('keydown', function(e) { 
-      if(e.key === 'Enter' && !document.getElementById('btnUnlockContinue').disabled) unlockSession(); 
-    });
+    document.getElementById('unlockPwd').addEventListener('keydown', function(e) { if(e.key === 'Enter' && !document.getElementById('btnUnlockContinue').disabled) unlockSession(); });
     
     function unlockSession() { 
       if(document.getElementById('unlockPwd').value.trim() === currentAdminObj.pwd) { 
-        document.getElementById('dashboardSection').style.filter = 'none'; 
-        document.getElementById('dashboardSection').style.pointerEvents = 'auto'; 
-        document.getElementById('mainNavbar').style.filter = 'none'; 
-        document.getElementById('mainNavbar').style.pointerEvents = 'auto'; 
-        
+        document.getElementById('dashboardSection').style.filter = 'none'; document.getElementById('dashboardSection').style.pointerEvents = 'auto'; 
+        document.getElementById('mainNavbar').style.filter = 'none'; document.getElementById('mainNavbar').style.pointerEvents = 'auto'; 
         document.getElementById('inactivityLockModal').style.display = 'none'; 
-        
-        resetIdleTimer(); 
-        idleInterval = setInterval(timerIncrement, 1000); 
+        resetIdleTimer(); idleInterval = setInterval(timerIncrement, 1000); 
       } 
     }
 
     // ============================================================
-    // Boot Initialization
+    // Boot Initialization (Fetches Data from Cloud DB)
     // ============================================================
     async function loadMasterData() { 
       try { 
-        const response = await fetch(MASTER_FILE + '?v=' + Date.now(), { cache: 'no-store' }); 
-        if (!response.ok) throw new Error('File not found'); 
-        
-        const arrayBuffer = await response.arrayBuffer(); 
-        
-        // IMPORTANT: raw: false ensures exact text is fetched from Excel
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' }); 
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '', raw: false }); 
-        
+        const snap = await dbMaster.once('value');
+        const rows = snap.val() || [];
         cachedMasterRows = rows; 
         return rows; 
       } catch (e) { 
+        console.error("Cloud Error", e);
         return []; 
       } 
     }
@@ -2394,50 +2286,28 @@
     function calculateStats(rows) { 
       if (!rows || rows.length === 0) return; 
       let total = 0, active = 0, inactive = 0, resigned = 0; 
-      const firstMap = buildKeyMap(rows[0]); 
-      let idKey = null; 
+      const firstMap = buildKeyMap(rows[0]); let idKey = null; 
       
-      for (const alias of COLS.id) { 
-        if (alias in firstMap) { idKey = firstMap[alias]; break; } 
-      } 
-      
+      for (const alias of COLS.id) { if (alias in firstMap) { idKey = firstMap[alias]; break; } } 
       if (!idKey) return; 
       
       for (let i = 0; i < rows.length; i++) { 
         const row = rows[i]; 
         if (row[idKey]) { 
-          total++; 
-          const km = buildKeyMap(row); 
-          const lwd = getField(row, km, COLS.lwd); 
-          const statusRaw = getField(row, km, COLS.status); 
-          
+          total++; const km = buildKeyMap(row); const lwd = getField(row, km, COLS.lwd); const statusRaw = getField(row, km, COLS.status); 
           if (lwd && lwd !== '-') resigned++; 
-          else { 
-            const su = statusRaw.toUpperCase(); 
-            if (['INACTIVE', 'IN-ACTIVE', 'IN ACTIVE'].includes(su)) inactive++; 
-            else active++; 
-          } 
+          else { const su = statusRaw.toUpperCase(); if (['INACTIVE', 'IN-ACTIVE', 'IN ACTIVE'].includes(su)) inactive++; else active++; } 
         } 
       } 
-      
-      animateValue("statTotalEmp", 0, total, 1000); 
-      animateValue("statActiveEmp", 0, active, 1000); 
-      animateValue("statInactiveEmp", 0, inactive, 1000); 
-      animateValue("statResignedEmp", 0, resigned, 1000); 
+      animateValue("statTotalEmp", 0, total, 1000); animateValue("statActiveEmp", 0, active, 1000); animateValue("statInactiveEmp", 0, inactive, 1000); animateValue("statResignedEmp", 0, resigned, 1000); 
     }
     
     function animateValue(id, start, end, duration) { 
-      const obj = document.getElementById(id); 
-      if(!obj) return; 
-      let startTimestamp = null; 
-      
+      const obj = document.getElementById(id); if(!obj) return; let startTimestamp = null; 
       const step = (timestamp) => { 
-        if (!startTimestamp) startTimestamp = timestamp; 
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1); 
-        obj.innerHTML = Math.floor(progress * (end - start) + start); 
-        if (progress < 1) window.requestAnimationFrame(step); 
+        if (!startTimestamp) startTimestamp = timestamp; const progress = Math.min((timestamp - startTimestamp) / duration, 1); 
+        obj.innerHTML = Math.floor(progress * (end - start) + start); if (progress < 1) window.requestAnimationFrame(step); 
       }; 
-      
       window.requestAnimationFrame(step); 
     }
     
@@ -2446,23 +2316,10 @@
       document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', options); 
     }
     
-    function openLogoutModal() { 
-      document.getElementById('logoutModal').style.display = 'flex'; 
-    }
-    
-    function closeLogoutModal() { 
-      document.getElementById('logoutModal').style.display = 'none'; 
-    }
-    
-    function executeLogout() { 
-      if(idleInterval) clearInterval(idleInterval); 
-      sessionStorage.removeItem('geekay_emp_id'); 
-      window.location.href = './index.html'; 
-    }
-    
-    document.addEventListener('keydown', function(e) { 
-      if (e.key === 'Escape' && document.getElementById('logoutModal').style.display === 'flex') closeLogoutModal(); 
-    });
+    function openLogoutModal() { document.getElementById('logoutModal').style.display = 'flex'; }
+    function closeLogoutModal() { document.getElementById('logoutModal').style.display = 'none'; }
+    function executeLogout() { if(idleInterval) clearInterval(idleInterval); sessionStorage.removeItem('geekay_emp_id'); window.location.href = './index.html'; }
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && document.getElementById('logoutModal').style.display === 'flex') closeLogoutModal(); });
 
     window.addEventListener('DOMContentLoaded', async function () {
       // 1. Authorize via Cloud DB
@@ -2480,10 +2337,7 @@
         calculateStats(rows);
         
         // 3. Start Security Timers
-        document.onmousemove = resetIdleTimer; 
-        document.onkeypress = resetIdleTimer; 
-        document.onclick = resetIdleTimer; 
-        document.onscroll = resetIdleTimer; 
+        document.onmousemove = resetIdleTimer; document.onkeypress = resetIdleTimer; document.onclick = resetIdleTimer; document.onscroll = resetIdleTimer; 
         idleInterval = setInterval(timerIncrement, 1000);
       }, 1000);
     });
