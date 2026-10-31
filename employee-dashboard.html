@@ -13,6 +13,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
+  <!-- Firebase Cloud Integration -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
   <style>
     * { box-sizing: border-box; }
 
@@ -647,15 +651,30 @@
 
   <script>
     // ============================================================
+    // FIREBASE INITIALIZATION & DATABASE LOGIC (GLOBAL CLOUD DB)
+    // ============================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyC9mE0Xo1GWBin2ERwJOskd8Z8QUhRAmrw",
+      authDomain: "geekay-hr-portal.firebaseapp.com",
+      databaseURL: "https://geekay-hr-portal-default-rtdb.firebaseio.com",
+      projectId: "geekay-hr-portal",
+      storageBucket: "geekay-hr-portal.firebasestorage.app",
+      messagingSenderId: "1069583469203",
+      appId: "1:1069583469203:web:ba7505ca7c024251b7db66"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const dbMaster = firebase.database().ref('geekay_master_data');
+    const dbAttendance = firebase.database().ref('geekay_attendance');
+
+    // ============================================================
     // Settings
     // ============================================================
-    const MASTER_FILE = 'master_data/master_data.xlsx';
-    const ATTENDANCE_FOLDER = 'attendance_records/';   // files named like Oct-2026.xlsx
     const LANG_STORAGE_KEY = 'geekayPortalLang';
-    const SESSION_SECONDS = 120;          // dashboard stays open for 2 minutes
-    const MONTH_LOOKBACK = 12;            // how many past cycles are looked for
-    const CYCLE_START_DAY = 21;           // a cycle runs from the 21st to the 20th of the next month (use 1 for calendar months)
-    const OLD_CYCLE_DAYS = 15;            // a cycle that ended more than this many days ago is not shown as "Soon" any more
+    const SESSION_SECONDS = 120;          
+    const MONTH_LOOKBACK = 12;            
+    const CYCLE_START_DAY = 21;           
+    const OLD_CYCLE_DAYS = 15;            
     const ENG_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     // ============================================================
@@ -876,7 +895,7 @@
         secBasic: '1. बुनियादी जानकारी',
         empName: 'कर्मचारी का नाम',
         status: 'स्थिति',
-        dob: 'जन्म तिथि (DOB)',
+        dob: 'जन्म तिथि (DOJ)',
         esi: 'ESI नंबर',
         secContact: '2. संपर्क जानकारी',
         mobile: 'मोबाइल नंबर',
@@ -1028,7 +1047,6 @@
     }
 
     function formatDate(d) {
-      // Small shift avoids Excel rounding showing the previous day
       const x = new Date(d.getTime() + 60000);
       const dd = String(x.getDate()).padStart(2, '0');
       return dd + '-' + t('months')[x.getMonth()] + '-' + x.getFullYear();
@@ -1040,7 +1058,6 @@
       return String(v).trim();
     }
 
-    // Column headers that are Excel serial numbers (for example 45678) become dates
     function formatHeader(key) {
       const k = String(key).trim();
       if (/^\d{5}$/.test(k)) {
@@ -1062,7 +1079,6 @@
       document.getElementById(id).textContent = v;
     }
 
-    // Finds one employee in a list of rows. The ID column is detected once.
     function findRecord(rows, empId) {
       const result = { record: null, keyMap: null, idColumnFound: false };
       if (!rows || !rows.length) return result;
@@ -1085,60 +1101,44 @@
     }
 
     // ============================================================
-    // Data loading
+    // Database Cloud Loading Logic (NEW FIREBASE LOGIC)
     // ============================================================
     async function loadMasterData() {
       try {
-        const response = await fetch(MASTER_FILE + '?v=' + Date.now(), { cache: 'no-store' });
-        if (!response.ok) { masterError = 'msgFileNotFound'; return; }
-        const arrayBuffer = await response.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
-        if (!workbook.SheetNames.length) { masterError = 'msgEmptyBook'; return; }
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
-        if (!rows.length) { masterError = 'msgEmptyBook'; return; }
+        const snap = await dbMaster.once('value');
+        const rows = snap.val();
+        
+        if (!rows || rows.length === 0) { 
+          masterError = 'msgFileNotFound'; 
+          return; 
+        }
+        
         cachedMasterData = rows;
         masterLoadedAt = Date.now();
       } catch (e) {
-        console.error('Master data load failed', e);
+        console.error('Cloud data load failed', e);
         masterError = 'msgSystem';
       }
     }
 
-    // True only when a real file exists (not a web page returned for a missing file)
-    async function fileExists(url) {
-      try {
-        let res = await fetch(url, { method: 'HEAD', cache: 'no-store' });
-        if (res.status === 405 || res.status === 501) {
-          res = await fetch(url, { cache: 'no-store' });
-        }
-        if (!res.ok) return false;
-        const type = (res.headers.get('content-type') || '').toLowerCase();
-        return type.indexOf('text/html') === -1;
-      } catch (e) {
-        return false;
-      }
-    }
-
     // ------------------------------------------------------------
-    // Attendance cycles (21st to 20th). A cycle is named after the month it starts in:
-    // Oct-2026.xlsx = 21 Oct 2026 to 20 Nov 2026
+    // Attendance cycles logic
     // ------------------------------------------------------------
     const MONTH_LOOKUP = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
     const CLOCK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 15 14"></polyline></svg>';
 
     function pad2(n) { return String(n).padStart(2, '0'); }
-    function makeYmd(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }   // m = 0..11
+    function makeYmd(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }   
     function ymdParts(ymd) { const p = ymd.split('-'); return { y: +p[0], m: +p[1] - 1, d: +p[2] }; }
     function validYmd(y, m, d) {
       const c = new Date(y, m, d);
       return c.getFullYear() === y && c.getMonth() === m && c.getDate() === d;
     }
-    function daysBetween(a, b) {   // b minus a, in days
+    function daysBetween(a, b) {   
       const pa = ymdParts(a), pb = ymdParts(b);
       return Math.round((Date.UTC(pb.y, pb.m, pb.d) - Date.UTC(pa.y, pa.m, pa.d)) / 86400000);
     }
 
-    // Today in India (IST), so a wrong phone date or time zone does not change the result
     function getTodayYmd() {
       try {
         const s = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
@@ -1174,7 +1174,6 @@
       };
     }
 
-    // Example: "21 Oct – 20 Nov" (or with years when withYear is true)
     function cycleLabel(cycleStr, withYear) {
       const c = cycleInfo(cycleStr);
       const first = c.days[0], last = c.days[c.days.length - 1];
@@ -1201,8 +1200,6 @@
       return [[cycle.startYear, month, day], [cycle.endYear, month, day]];
     }
 
-    // Reads a column header and tells which date of this cycle it is.
-    // Works for: 21 / 5 (day numbers), 45678 (Excel date number), 2026-10-21, 21-Oct, 21-Oct-2026, Oct 21, 21/10/2026, 10/21/26
     function parseHeaderDate(key, cycle) {
       const k = String(key).trim();
       const none = { ymd: '', outside: false };
@@ -1246,7 +1243,7 @@
       if ((m = k.match(/^(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{2,4})/))) {
         let y = +m[3];
         if (m[3].length === 2) y += 2000;
-        return result([[y, +m[2] - 1, +m[1]], [y, +m[1] - 1, +m[2]]]);   // day-first, then month-first
+        return result([[y, +m[2] - 1, +m[1]], [y, +m[1] - 1, +m[2]]]);   
       }
       if ((m = k.match(/^(\d{1,2})[-\/.](\d{1,2})$/))) {
         const list = [];
@@ -1259,7 +1256,6 @@
       return none;
     }
 
-    // Any date value from Excel (date cell, Excel number or text like 05-01-2020) to YYYY-MM-DD
     function rawToYmd(raw) {
       if (raw === '' || raw === null || raw === undefined) return '';
       if (isDateObject(raw)) {
@@ -1296,7 +1292,6 @@
       return s !== '' && s !== '-';
     }
 
-    // Which Excel column belongs to which date, and which dates HR has already filled for anybody
     function buildCycleColumns(rows, cycle) {
       const dateKey = new Map();
       let outsideCount = 0;
@@ -1320,51 +1315,61 @@
       return { rows: [], hasFile: false, dateKey: new Map(), updated: new Set(), mismatch: false, failed: !!failed };
     }
 
+    // NEW LOGIC: Fetches dynamic month list from Firebase Attendance DB
     async function probeAttendanceMonths() {
-      const cur = currentCycleStart();
-      const names = [];
-      let m = cur.m;
-      let y = cur.y;
-      for (let i = 0; i < MONTH_LOOKBACK; i++) {
-        names.push(cycleKey(y, m));
-        m--;
-        if (m < 0) { m = 11; y--; }
+      try {
+        const snap = await dbAttendance.once('value');
+        const data = snap.val() || {};
+        const monthsInCloud = Object.keys(data);
+        
+        // Reverse array to show latest month first
+        monthsInCloud.reverse();
+        
+        const found = new Set(monthsInCloud);
+        existingCycles = found;
+        availableMonths = monthsInCloud;
+        
+        // Fallback if cloud is completely empty, show current cycle name as empty template
+        if(availableMonths.length === 0) {
+          const cur = currentCycleStart();
+          const curName = cycleKey(cur.y, cur.m);
+          availableMonths = [curName];
+          existingCycles = new Set();
+        }
+      } catch(e) {
+        console.error("Cloud Probe error", e);
+        availableMonths = [];
       }
-      const found = new Set();
-      await Promise.all(names.map(async function (name) {
-        if (await fileExists(ATTENDANCE_FOLDER + name + '.xlsx')) found.add(name);
-      }));
-      existingCycles = found;
-      // Newest first. The current cycle is always shown, even before its Excel file arrives.
-      availableMonths = names.filter(function (name, i) { return i === 0 || found.has(name); });
     }
 
     function preloadSystemData() {
       if (preloadPromise) return preloadPromise;
       preloadPromise = (async function () {
         masterError = null;
-        if (location.protocol === 'file:') { masterError = 'msgFileProtocol'; return; }
         await Promise.all([loadMasterData(), probeAttendanceMonths()]);
       })().then(function () {
-        if (!cachedMasterData) preloadPromise = null;   // allow a retry next time
+        if (!cachedMasterData) preloadPromise = null;  
       });
       return preloadPromise;
     }
 
     async function getCycleData(cycleStr) {
       if (monthCache.has(cycleStr)) return monthCache.get(cycleStr);
+      
       const cycle = cycleInfo(cycleStr);
       let rows = [];
       let hasFile = false;
+      
       if (existingCycles.has(cycleStr)) {
-        const response = await fetch(ATTENDANCE_FOLDER + cycleStr + '.xlsx?v=' + Date.now(), { cache: 'no-store' });
-        if (!response.ok) throw new Error('MONTH_NOT_FOUND');
-        const buffer = await response.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: 'array', cellDates: true, dateNF: 'yyyy-mm-dd' });
-        if (!workbook.SheetNames.length) throw new Error('MONTH_EMPTY');
-        rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
+        // Safe fetch from Firebase Cloud
+        const safeMonth = cycleStr.replace(/[.#$\[\]]/g, '_');
+        const snap = await dbAttendance.child(safeMonth).once('value');
+        rows = snap.val() || [];
+        
+        if (rows.length === 0) throw new Error('MONTH_EMPTY');
         hasFile = true;
       }
+      
       const cols = buildCycleColumns(rows, cycle);
       const data = { rows: rows, hasFile: hasFile, dateKey: cols.dateKey, updated: cols.updated, mismatch: cols.mismatch, failed: false };
       monthCache.set(cycleStr, data);
@@ -1586,7 +1591,7 @@
 
       try {
         const cd = await getCycleData(monthStr);
-        if (currentData !== owner) return;   // logged out meanwhile
+        if (currentData !== owner) return;  
         const found = findRecord(cd.rows, owner.empId);
         owner.currentMonth = monthStr;
         owner.cycleData = cd;
@@ -1600,7 +1605,7 @@
         err.className = 'empty-note';
         err.textContent = t('msgLoadMonth');
         grid.appendChild(err);
-        renderMonthTabs();   // restore the highlight on the cycle that is really shown
+        renderMonthTabs();   
       }
     }
 
@@ -1616,7 +1621,6 @@
       return formatValue(v);
     }
 
-    // Same as pick(), but returns the original Excel value (needed for dates)
     function pickRaw(group) {
       const d = currentData;
       if (!d) return '';
@@ -1673,7 +1677,7 @@
       setText('modalBankName', bank);
       setText('modalIfsc', ifsc);
 
-      // Status: an LWD means Resigned; otherwise the Status column is used
+      // Status logic
       let statusKey = null;
       let statusShown = statusRaw;
       if (lwd && lwd !== '-') {
@@ -1696,7 +1700,7 @@
       aboutBadge.textContent = statusShown;
       aboutBadge.className = badgeClass;
 
-      // Bank account: hidden by default except the last 4 digits
+      // Bank account Masking
       currentAccountFull = account;
       currentAccountMasked = account.length > 4 ? '*'.repeat(account.length - 4) + account.slice(-4) : account;
       const toggleBtn = document.getElementById('toggleAccBtn');
@@ -1711,7 +1715,7 @@
 
       updateCopyButtons();
 
-      // ---------- Attendance: the whole cycle is built as a template and filled from the Excel file ----------
+      // Attendance Cycle Logic
       const cycle = cycleInfo(d.currentMonth);
       const cd = d.cycleData || emptyCycleData(false);
       const todayYmd = getTodayYmd();
@@ -1747,23 +1751,23 @@
           else if (CODE_HOLIDAY.includes(val))    { cardClass = 'off';     labelKey = 'lblHoliday'; }
           else if (CODE_OFF.includes(val))        { cardClass = 'off';     labelKey = 'lblOff'; }
         } else if ((dojYmd && day.ymd < dojYmd) || (lwdYmd && day.ymd > lwdYmd)) {
-          cardClass = 'na';                       // before joining or after the last working day
+          cardClass = 'na';                       
           statusText = '\u2014';
         } else if (day.ymd > todayYmd) {
-          cardClass = 'future';                   // the day has not come yet
+          cardClass = 'future';                   
           statusText = '\u00A0';
         } else if (isToday) {
-          cardClass = 'pending';                  // today: added after the day is completed
+          cardClass = 'pending';                  
           labelKey = 'lblToday';
           showClock = true;
           hasPending = true;
         } else if (cd.updated.has(day.ymd) || oldCycle) {
-          cardClass = 'norecord';                 // HR filled this day for others, not for this employee
+          cardClass = 'norecord';                 
           labelKey = 'lblNoRecord';
           statusText = '\u2014';
           hasNoRecord = true;
         } else {
-          cardClass = 'pending';                  // not uploaded yet
+          cardClass = 'pending';                  
           labelKey = 'lblSoon';
           showClock = true;
           hasPending = true;
@@ -1798,7 +1802,6 @@
         grid.appendChild(card);
       });
 
-      // Cycle dates and "updated up to" line
       document.getElementById('cycleRange').textContent = cycleLabel(d.currentMonth, true);
       let lastUpdated = '';
       cycle.days.forEach(function (day) { if (cd.updated.has(day.ymd)) lastUpdated = day.ymd; });
@@ -1809,7 +1812,6 @@
       }
       document.getElementById('updatedUpTo').textContent = t('updatedUpTo') + ': ' + upToText;
 
-      // Notes above the cards (only when they are needed)
       const notes = document.getElementById('attendanceNotes');
       notes.textContent = '';
       function addNote(key) {
@@ -1823,7 +1825,6 @@
       if (hasPending) addNote('pendingNote');
       if (hasNoRecord) addNote('noRecordNote');
 
-      // A half day counts as 0.5 present and 0.5 absent. Leave, weekly off and holidays are not working days.
       const totalCount = cntPresent + cntAbsent + cntHalf;
       const presentCount = cntPresent + cntHalf * 0.5;
       const absentCount = cntAbsent + cntHalf * 0.5;
@@ -1992,22 +1993,19 @@
     }
 
     // ============================================================
-    // Startup Process for Dashboard (NEW AUTO-LOAD LOGIC)
+    // Startup Process (FIREBASE CLOUD INTEGRATION)
     // ============================================================
     window.addEventListener('DOMContentLoaded', async function () {
       const loggedInEmpId = sessionStorage.getItem('geekay_emp_id');
       
-      // If no valid session, kick out immediately
       if (!loggedInEmpId) {
         window.location.href = './index.html';
         return;
       }
 
-      // Initialize UI strings
       loadSavedLanguage();
       applyStaticTranslations();
 
-      // Start Dashboard Loading
       document.getElementById('loadingWelcome').classList.add('in');
       document.getElementById('loadingOverlay').classList.add('show');
       document.getElementById('loadingName').textContent = t('checking');
@@ -2015,8 +2013,8 @@
       try {
         await preloadSystemData();
 
-        if (!cachedMasterData) {
-          alert("Error: Master Data not found. Please contact Admin.");
+        if (!cachedMasterData || cachedMasterData.length === 0) {
+          alert("Error: Master Data not found in Cloud Database. Please contact Admin.");
           sessionStorage.removeItem('geekay_emp_id');
           window.location.href = './index.html';
           return;
@@ -2025,7 +2023,7 @@
         const found = findRecord(cachedMasterData, loggedInEmpId);
         
         if (!found.record) {
-          alert("Error: Invalid Employee ID.");
+          alert("Error: Invalid Employee ID. Your record was not found in the Database.");
           sessionStorage.removeItem('geekay_emp_id');
           window.location.href = './index.html';
           return;
@@ -2041,7 +2039,6 @@
           currentMonth: availableMonths.length > 0 ? availableMonths[0] : null
         };
 
-        // Try to load attendance (don't break if missing)
         if (currentData.currentMonth) {
           try {
             const cd = await getCycleData(currentData.currentMonth);
@@ -2059,7 +2056,7 @@
 
       } catch (error) {
         console.error("Critical Dashboard Error:", error);
-        alert("System Error: Could not load data. Please check files on GitHub.");
+        alert("System Error: Could not load data from Cloud.");
         sessionStorage.removeItem('geekay_emp_id');
         window.location.href = './index.html';
       }
