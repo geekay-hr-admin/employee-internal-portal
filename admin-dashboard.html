@@ -1110,7 +1110,6 @@
         padding: 4px 6px; 
       }
       
-      /* Biodata Mobile Fix (1 Column, clean wrapping) */
       .biodata-grid { 
         grid-template-columns: 1fr; 
         gap: 12px; 
@@ -1124,7 +1123,6 @@
         overflow-wrap: break-word; 
       }
       
-      /* Mobile Modals */
       .ip-header { 
         flex-direction: column; 
         align-items: flex-start; 
@@ -1886,22 +1884,38 @@
           
           if(rawRows.length === 0) throw new Error("Excel file is empty or invalid format.");
 
-          // Firebase Security Keys Sanitize Logic (Preserves commas and brackets!)
-          const rows = rawRows.map(row => {
-            const safeRow = {};
-            for (let key in row) {
-              // Smart Replace: Keeps meaning exactly same without stripping () and ,
-              let safeKey = key
-                .replace(/\//g, '-')   // dd/mm/yyyy -> dd-mm-yyyy
-                .replace(/\[/g, '(')   // [Square] -> (Square)
-                .replace(/\]/g, ')')
-                .replace(/\./g, ' ')   // S.No. -> S No 
-                .replace(/[#$]/g, ''); // Removes # and $
-              
-              safeRow[safeKey] = row[key];
+          // 🛡️ BULLETPROOF FIREBASE SANITIZER
+          // இது undefined, hidden spaces மற்றும் Firebase அனுமதிக்காத குறியீடுகளைத் தானாகவே சரிசெய்யும்.
+          function sanitizeForFirebase(obj) {
+            if (obj === null || obj === undefined) return '';
+            if (typeof obj !== 'object') return obj;
+            if (Array.isArray(obj)) return obj.map(sanitizeForFirebase);
+            
+            const safeObj = {};
+            for (let key in obj) {
+              if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                let val = obj[key];
+                
+                // 1. undefined மதிப்புகளை காலி ஸ்ட்ரிங்காக ('') மாற்றுகிறது.
+                if (val === undefined || val === null) val = '';
+                
+                // 2. தலைப்புகளில் உள்ள எரர்களை சரிசெய்கிறது.
+                let safeKey = String(key)
+                  .replace(/[\n\r]/g, ' ') // Remove hidden Enter keys (Newlines)
+                  .replace(/\./g, ' ')     // . -> Space
+                  .replace(/\$/g, '')      // Remove $
+                  .replace(/#/g, '')       // Remove #
+                  .replace(/\[/g, '(')     // [ -> (
+                  .replace(/\]/g, ')')     // ] -> )
+                  .replace(/\//g, '-');    // / -> -
+                  
+                safeObj[safeKey] = sanitizeForFirebase(val);
+              }
             }
-            return safeRow;
-          });
+            return safeObj;
+          }
+
+          const rows = sanitizeForFirebase(rawRows);
 
           if (type === 'master') {
              await dbMaster.set(rows);
@@ -1909,14 +1923,15 @@
              calculateStats(rows);
              alert("Master Data successfully uploaded and synced to Cloud!");
           } else {
-             const safeMonth = monthName.replace(/[.#$\[\]]/g, '_');
+             const safeMonth = monthName.replace(/[.#$\[\]\/]/g, '_');
              await dbAttendance.child(safeMonth).set(rows);
              alert(`Attendance for ${monthName} successfully uploaded to Cloud!`);
              populateAttendanceMenu(); 
           }
         } catch(error) {
-          console.error(error);
-          alert("Error uploading file. Please ensure it's a valid Excel format and internet is active.");
+          console.error("Upload Error:", error);
+          // துல்லியமான எரர் மெசேஜை யூசருக்குக் காட்டும்
+          alert("Error: " + error.message + "\n\n(Tip: Check your Excel file for empty columns or special characters.)");
         } finally {
           document.getElementById('loadingOverlay').classList.remove('show');
         }
@@ -1940,7 +1955,7 @@
     function getField(row, keyMap, aliases) { if (!row || !keyMap) return ''; for (const alias of aliases) { if (alias in keyMap) { const v = row[keyMap[alias]]; if (v !== null && v !== undefined && String(v).trim() !== '') return v; } } return ''; }
     
     function formatDateVal(val) {
-      if (val === undefined || val === null) return '-';
+      if (val === undefined || val === null || val === '') return '-';
       return String(val).trim();
     }
 
@@ -2139,7 +2154,7 @@
           const val = formatDateVal(row[key]); 
           html += `<div class="biodata-item ip-field-card" data-key="${key.toLowerCase()}" data-val="${val.toLowerCase()}">
                      <span class="biodata-label">${key}</span>
-                     <span class="biodata-value">${val !== '' ? val : '-'}</span>
+                     <span class="biodata-value">${val}</span>
                    </div>`; 
         } 
       }
@@ -2151,7 +2166,7 @@
           const val = formatDateVal(row[key]); 
           html += `<div class="biodata-item ip-field-card" data-key="${key.toLowerCase()}" data-val="${val.toLowerCase()}">
                      <span class="biodata-label">${key}</span>
-                     <span class="biodata-value">${val !== '' ? val : '-'}</span>
+                     <span class="biodata-value">${val}</span>
                    </div>`; 
         } 
       }
