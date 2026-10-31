@@ -1204,7 +1204,11 @@
     function currentCycleStart() {
       const p = ymdParts(getTodayYmd());
       let y = p.y, m = p.m;
-      if (p.d < CYCLE_START_DAY) { m--; if (m < 0) { m = 11; y--; } }
+      // Payroll cycle naming fix: If date is >= 21, we are in the cycle that pays out next month.
+      if (p.d >= CYCLE_START_DAY) { 
+          m++; 
+          if (m > 11) { m = 0; y++; } 
+      }
       return { y: y, m: m };
     }
 
@@ -1212,8 +1216,15 @@
       const parts = cycleStr.split('-');
       const sm = ENG_MONTHS.indexOf(parts[0]);
       const sy = parseInt(parts[1], 10);
-      const start = new Date(sy, sm, CYCLE_START_DAY);
-      const end = new Date(sy, sm + 1, CYCLE_START_DAY - 1);
+      
+      // Fix: Payroll Cycle ends in the named month. So "Oct" means Sep 21 to Oct 20.
+      let startM = sm - 1;
+      let startY = sy;
+      if (startM < 0) { startM = 11; startY--; }
+      
+      const start = new Date(startY, startM, CYCLE_START_DAY);
+      const end = new Date(sy, sm, CYCLE_START_DAY - 1);
+      
       const days = [];
       for (let cur = start; cur.getTime() <= end.getTime(); cur = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1)) {
         days.push({ ymd: makeYmd(cur.getFullYear(), cur.getMonth(), cur.getDate()), y: cur.getFullYear(), m: cur.getMonth(), d: cur.getDate() });
@@ -1221,7 +1232,7 @@
       return {
         cycleStr: cycleStr, days: days,
         startYmd: days[0].ymd, endYmd: days[days.length - 1].ymd,
-        startMonth: sm, startYear: sy, endMonth: end.getMonth(), endYear: end.getFullYear()
+        startMonth: startM, startYear: startY, endMonth: sm, endYear: sy
       };
     }
 
