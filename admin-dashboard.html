@@ -89,6 +89,7 @@
       font-size: 16px; 
       font-weight: 700; 
       color: #1a202c; 
+      transition: opacity 0.5s ease;
     }
     
     .nav-date-text { 
@@ -831,6 +832,7 @@
       position: sticky; 
       top: 0; 
       z-index: 100; /* Overlap Issue Fixed */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
     
     .excel-mirror-table tr:hover { 
@@ -1187,9 +1189,6 @@
           <!-- Cloud Upload Options & Manage Files Integrated -->
           <button type="button" onclick="openCloudUploadModal()" style="color: #d69e2e; font-weight: 600;">☁️ Manage Cloud Files</button>
           
-          <!-- Staff View Redirect Option -->
-          <button type="button" onclick="openStaffViewModal()" style="color: #38a169; font-weight: 600;">👁️ Staff View Login</button>
-          
           <!-- Admin Settings Button -->
           <button type="button" onclick="openAdminSettingsModal()" style="color: #004080; font-weight: 600;">⚙️ Admin Settings</button>
         </div>
@@ -1216,6 +1215,13 @@
           <option value="attendance">Attendance Details</option>
         </select>
       </div>
+    </div>
+
+    <!-- Staff View Trigger (Moved from dropdown) -->
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 25px;">
+        <button type="button" onclick="openStaffViewModal()" style="background: #38a169; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background 0.2s;">
+          👁️ Staff View
+        </button>
     </div>
 
     <!-- Quick Stats -->
@@ -1621,6 +1627,43 @@
       }
     }
 
+    // 1-Time Greeting Animation Logic
+    function playGreetingAnimation(adminName) {
+      const greeted = sessionStorage.getItem('admin_greeted');
+      const tinyEl = document.querySelector('.welcome-tiny');
+      const nameEl = document.getElementById('navAdminName');
+      
+      if (!greeted) {
+         const hour = new Date().getHours();
+         let greetText = 'Welcome';
+         if (hour >= 5 && hour < 12) greetText = 'Good Morning';
+         else if (hour >= 12 && hour < 17) greetText = 'Good Afternoon';
+         else if (hour >= 17 && hour < 20) greetText = 'Good Evening';
+
+         tinyEl.style.display = 'none';
+         nameEl.textContent = "Welcome";
+         
+         setTimeout(() => {
+            nameEl.style.opacity = 0;
+            setTimeout(() => {
+               nameEl.textContent = greetText;
+               nameEl.style.opacity = 1;
+               setTimeout(() => {
+                  nameEl.style.opacity = 0;
+                  setTimeout(() => {
+                     tinyEl.style.display = 'inline';
+                     nameEl.textContent = adminName;
+                     nameEl.style.opacity = 1;
+                     sessionStorage.setItem('admin_greeted', 'true');
+                  }, 500);
+               }, 2000);
+            }, 500);
+         }, 2000);
+      } else {
+         nameEl.textContent = adminName;
+      }
+    }
+
     async function initAuth() {
       const loggedInId = sessionStorage.getItem('geekay_emp_id');
       
@@ -1649,8 +1692,9 @@
            return false;
         }
 
-        // Set dynamic names
-        document.getElementById('navAdminName').textContent = currentAdminObj.name;
+        // Set dynamic names with 1-time Greeting Animation
+        playGreetingAnimation(currentAdminObj.name);
+        
         document.getElementById('loadingAdminName').textContent = currentAdminObj.name;
         document.querySelectorAll('.lock-admin-name').forEach(el => el.textContent = currentAdminObj.name);
         
@@ -1999,8 +2043,18 @@
             headerRow.forEach((h, index) => {
               let safeKey = h.replace(/[\n\r.$#\[\]\/]/g, '_');
               let cellVal = rowArr[index];
+              
               // Force exact string to preserve leading zeros and formatting
-              safeRow[safeKey] = (cellVal !== undefined && cellVal !== null) ? String(cellVal).trim() : '';
+              let strVal = (cellVal !== undefined && cellVal !== null) ? String(cellVal).trim() : '';
+              
+              // Fix Scientific Notation E+11 for large numbers
+              if (strVal.includes('E+') || strVal.includes('e+')) {
+                 try {
+                    strVal = BigInt(Math.round(Number(cellVal))).toString();
+                 } catch(err) { /* Ignore fallback */ }
+              }
+
+              safeRow[safeKey] = strVal;
               if (safeRow[safeKey] !== '') hasData = true;
             });
             if(hasData) rows.push(safeRow);
@@ -2283,7 +2337,27 @@
           const safeKey = String(h).replace(/[\n\r.$#\[\]\/]/g, '_');
           const td = document.createElement('td'); 
           // Preserve exactly as in Excel sheet (no .toUpperCase() formatting, blank defaults to '-')
-          td.textContent = (r[safeKey] !== undefined && r[safeKey] !== null && String(r[safeKey]).trim() !== '') ? String(r[safeKey]).trim() : '-'; 
+          let valStr = (r[safeKey] !== undefined && r[safeKey] !== null && String(r[safeKey]).trim() !== '') ? String(r[safeKey]).trim() : '-'; 
+          td.textContent = valStr; 
+          
+          // Color Coding Logic for Attendance View
+          if (titleText.includes("Attendance")) {
+             const upVal = valStr.toUpperCase();
+             if (upVal === 'P' || upVal === 'PP' || upVal === 'PRESENT') {
+                td.style.backgroundColor = '#c6f6d5';
+                td.style.color = '#22543d';
+                td.style.fontWeight = '700';
+             } else if (upVal === 'A' || upVal === 'AA' || upVal === 'ABSENT') {
+                td.style.backgroundColor = '#fed7d7';
+                td.style.color = '#822727';
+                td.style.fontWeight = '700';
+             } else if (upVal === 'WO' || upVal === 'WOFF') {
+                td.style.backgroundColor = '#fef08a';
+                td.style.color = '#854d0e';
+                td.style.fontWeight = '700';
+             }
+          }
+
           tr.appendChild(td); 
         }); 
         
@@ -2514,7 +2588,7 @@
       if(!svDetectedEmpId) return;
       // Set the session variable as if the employee logged in
       sessionStorage.setItem('geekay_emp_id', svDetectedEmpId);
-      // Optional: Set a flag so the employee dashboard knows it was opened by an admin
+      // Set a flag so the employee dashboard knows it was opened by an admin
       sessionStorage.setItem('geekay_viewed_by_admin', 'true');
       
       closeStaffViewModal();
