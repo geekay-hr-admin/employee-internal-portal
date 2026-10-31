@@ -1670,12 +1670,15 @@
     // ============================================================
     // Dashboard
     // ============================================================
+    
+    // Strict modification to only extract Details from Master Data, ignoring Attendance file fallbacks
     function pick(group) {
       const d = currentData;
       if (!d) return '';
       let v = '';
-      if (d.masterRow) v = getField(d.masterRow, d.masterKeyMap, COLS[group]);
-      if (v === '' && d.attRow) v = getField(d.attRow, d.attKeyMap, COLS[group]);
+      if (d.masterRow) {
+        v = getField(d.masterRow, d.masterKeyMap, COLS[group]);
+      }
       return formatValue(v);
     }
 
@@ -1683,8 +1686,9 @@
       const d = currentData;
       if (!d) return '';
       let v = '';
-      if (d.masterRow) v = getField(d.masterRow, d.masterKeyMap, COLS[group]);
-      if (v === '' && d.attRow) v = getField(d.attRow, d.attKeyMap, COLS[group]);
+      if (d.masterRow) {
+        v = getField(d.masterRow, d.masterKeyMap, COLS[group]);
+      }
       return v;
     }
 
