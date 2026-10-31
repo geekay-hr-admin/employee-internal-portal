@@ -331,7 +331,7 @@
     .pdf-option:hover { border-bottom-color: #3182ce; color: #3182ce; }
     .pdf-option:focus-visible { outline: 2px solid #3182ce; outline-offset: 2px; }
 
-    /* PDF page layout (fixed width so the PDF looks the same on phone and laptop) */
+    /* PDF page layout */
     .pdf-root { width: 900px; padding: 8px 12px; background: #ffffff; color: #2d3748; }
     .pdf-root .pdf-head { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #3182ce; }
     .pdf-root .pdf-company { font-size: 22px; font-weight: 700; color: #3182ce; }
@@ -1557,7 +1557,7 @@
     function renderMonthTabs() {
       const container = document.getElementById('monthTabsContainer');
       container.textContent = '';
-      if (!currentData || availableMonths.length <= 1) {
+      if (!currentData || availableMonths.length === 0) {
         container.style.display = 'none';
         return;
       }
@@ -1993,19 +1993,22 @@
     }
 
     // ============================================================
-    // Startup Process (FIREBASE CLOUD INTEGRATION)
+    // Startup Process for Dashboard (NEW AUTO-LOAD LOGIC)
     // ============================================================
     window.addEventListener('DOMContentLoaded', async function () {
       const loggedInEmpId = sessionStorage.getItem('geekay_emp_id');
       
+      // If no valid session, kick out immediately
       if (!loggedInEmpId) {
         window.location.href = './index.html';
         return;
       }
 
+      // Initialize UI strings
       loadSavedLanguage();
       applyStaticTranslations();
 
+      // Start Dashboard Loading
       document.getElementById('loadingWelcome').classList.add('in');
       document.getElementById('loadingOverlay').classList.add('show');
       document.getElementById('loadingName').textContent = t('checking');
@@ -2013,7 +2016,7 @@
       try {
         await preloadSystemData();
 
-        if (!cachedMasterData || cachedMasterData.length === 0) {
+        if (!cachedMasterData) {
           alert("Error: Master Data not found in Cloud Database. Please contact Admin.");
           sessionStorage.removeItem('geekay_emp_id');
           window.location.href = './index.html';
@@ -2039,6 +2042,7 @@
           currentMonth: availableMonths.length > 0 ? availableMonths[0] : null
         };
 
+        // Try to load attendance (don't break if missing)
         if (currentData.currentMonth) {
           try {
             const cd = await getCycleData(currentData.currentMonth);
@@ -2056,7 +2060,7 @@
 
       } catch (error) {
         console.error("Critical Dashboard Error:", error);
-        alert("System Error: Could not load data from Cloud.");
+        alert("System Error: Could not load data. Please check internet connection.");
         sessionStorage.removeItem('geekay_emp_id');
         window.location.href = './index.html';
       }
