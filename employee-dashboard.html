@@ -64,6 +64,28 @@
     }
     .session-timer.low { background: #fed7d7; color: #c53030; }
 
+    /* Admin Close Button */
+    .admin-close-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #e53e3e;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .admin-close-btn:hover { background: #c53030; }
+
     /* ---------- Language switch ---------- */
     .lang-switch { display: inline-flex; align-items: center; gap: 20px; }
     .lang-btn {
@@ -431,6 +453,7 @@
     /* ---------- Responsive ---------- */
     @media (max-width: 600px) {
       .session-timer { right: 8px; padding: 3px 8px; font-size: 12px; }
+      .admin-close-btn { right: 8px; width: 24px; height: 24px; font-size: 14px; }
       .dashboard-header { flex-direction: column; align-items: flex-start; }
       .action-buttons { width: 100%; gap: 14px; }
       .analytics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -453,7 +476,11 @@
 <body>
 
   <!-- Top navbar -->
-  <div class="navbar" id="mainNavbar">Geekay Human Resources Pvt. Ltd.<span class="session-timer" id="sessionTimer" data-i18n-title="sessionLeft" style="display:none;">02:00</span></div>
+  <div class="navbar" id="mainNavbar">
+    Geekay Human Resources Pvt. Ltd.
+    <span class="session-timer" id="sessionTimer" data-i18n-title="sessionLeft" style="display:none;">02:00</span>
+    <button type="button" class="admin-close-btn" id="adminCloseBtn" onclick="window.close()" title="Close Tab">&times;</button>
+  </div>
 
   <!-- Dashboard -->
   <div class="dashboard-section" id="dashboardSection">
@@ -477,7 +504,7 @@
         <div class="action-buttons" id="actionButtons">
           <button type="button" class="btn btn-primary" onclick="openStaffModal()" data-i18n="viewStaff">View Staff Details</button>
           <button type="button" class="btn btn-secondary" id="pdfBtn" onclick="openPdfChoice()" data-i18n="downloadPdf">Download PDF</button>
-          <button type="button" class="btn btn-light" onclick="logout()" data-i18n="logout">Logout</button>
+          <button type="button" class="btn btn-light" id="logoutBtn" onclick="logout()" data-i18n="logout">Logout</button>
         </div>
       </div>
 
@@ -676,6 +703,9 @@
     const CYCLE_START_DAY = 21;           
     const OLD_CYCLE_DAYS = 15;            
     const ENG_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    // Global Admin View Flag
+    const IS_ADMIN_VIEW = sessionStorage.getItem('geekay_viewed_by_admin') === 'true';
 
     // ============================================================
     // Translations
@@ -1055,7 +1085,15 @@
     function formatValue(v) {
       if (v === null || v === undefined) return '';
       if (isDateObject(v)) return isNaN(v.getTime()) ? '' : formatDate(v);
-      return String(v).trim();
+      const strVal = String(v).trim();
+      
+      // Protect Scientific Notation from Master Data (E+11 bug fix)
+      if (strVal.includes('E+') || strVal.includes('e+')) {
+         try {
+            return BigInt(Math.round(Number(v))).toString();
+         } catch(e) {}
+      }
+      return strVal;
     }
 
     function formatHeader(key) {
@@ -1089,9 +1127,13 @@
       }
       if (idKey === null) return result;
       result.idColumnFound = true;
+      
+      // Strict Exact Matching implemented here
+      const strictEmpId = String(empId).trim().toLowerCase();
+      
       for (let i = 0; i < rows.length; i++) {
         const v = rows[i][idKey];
-        if (v !== null && v !== undefined && String(v).trim().toUpperCase() === empId) {
+        if (v !== null && v !== undefined && String(v).trim().toLowerCase() === strictEmpId) {
           result.record = rows[i];
           result.keyMap = buildKeyMap(rows[i]);
           break;
@@ -1333,8 +1375,15 @@
         const data = snap.val() || {};
         const monthsInCloud = Object.keys(data);
         
-        // Reverse array to show latest month first
-        monthsInCloud.reverse();
+        // Month Tab Re-Ordering Fix (Current Cycle Month First)
+        const curCycleObj = currentCycleStart();
+        const curCycleName = cycleKey(curCycleObj.y, curCycleObj.m);
+        
+        monthsInCloud.sort((a, b) => {
+          if (a === curCycleName) return -1;
+          if (b === curCycleName) return 1;
+          return 0; // retain natural order for others
+        });
         
         const found = new Set(monthsInCloud);
         existingCycles = found;
@@ -1342,9 +1391,7 @@
         
         // Fallback if cloud is completely empty, show current cycle name as empty template
         if(availableMonths.length === 0) {
-          const cur = currentCycleStart();
-          const curName = cycleKey(cur.y, cur.m);
-          availableMonths = [curName];
+          availableMonths = [curCycleName];
           existingCycles = new Set();
         }
       } catch(e) {
@@ -1644,10 +1691,20 @@
     function showDashboard() {
       document.getElementById('dashboardSection').style.display = 'block';
       document.getElementById('mainNavbar').style.display = 'block';
+      
+      // Admin View specific UI modifications
+      if (IS_ADMIN_VIEW) {
+        document.getElementById('adminCloseBtn').style.display = 'flex';
+        document.getElementById('logoutBtn').style.display = 'none';
+      }
+      
       window.scrollTo(0, 0);
       renderMonthTabs();
       renderDashboard();
-      startSessionTimer();
+      
+      if (!IS_ADMIN_VIEW) {
+        startSessionTimer();
+      }
     }
 
     function renderDashboard() {
