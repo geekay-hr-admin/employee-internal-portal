@@ -9,8 +9,7 @@
   <!-- Fonts: Poppins for English, Noto Sans Tamil for Tamil, Noto Sans Devanagari for Hindi -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Libraries: Excel reading & Firebase Cloud -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- Firebase Cloud Integration -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -768,6 +767,7 @@
     
     firebase.initializeApp(firebaseConfig);
     const dbRef = firebase.database().ref('geekay_admins');
+    const dbMaster = firebase.database().ref('geekay_master_data');
     
     // Default Admin Settings
     const DEFAULT_ADMIN = { 
@@ -780,7 +780,6 @@
     // ============================================================
     // Settings & Constants
     // ============================================================
-    const MASTER_FILE = 'master_data/master_data.xlsx';
     const LANG_STORAGE_KEY = 'geekayPortalLang';
     const LOADING_MIN_MS = 1500;          
     const ID_CHECK_DELAY_MS = 1000;       
@@ -818,9 +817,9 @@
         welcomeLoading: 'Welcome',
         msgFileProtocol: 'Open this page from a web server (or hosting). Browsers block reading local files.',
         msgIdColumn: 'Employee ID column not found in the Master Data file.',
-        msgFileNotFound: 'Master Data file not found.',
+        msgFileNotFound: 'Master Data file not found on Cloud.',
         msgEmptyBook: 'The Master Data file is empty.',
-        msgSystem: 'System error. Data could not be loaded.',
+        msgSystem: 'System error. Data could not be loaded from Cloud.',
         msgNoPassword: 'Your password could not be created because your name or date of birth is missing.',
         msgInvalidAdmin: 'Invalid Admin Credentials.'
       },
@@ -852,7 +851,7 @@
         welcomeLoading: 'வரவேற்கிறோம்',
         msgFileProtocol: 'இந்தப் பக்கத்தை இணையதள சேவையகம் வழியாகத் திறக்கவும்.',
         msgIdColumn: 'Master Data கோப்பில் ஊழியர் ID column கிடைக்கவில்லை.',
-        msgFileNotFound: 'Master Data கோப்பு கிடைக்கவில்லை.',
+        msgFileNotFound: 'Master Data கிளவுடில் கிடைக்கவில்லை.',
         msgEmptyBook: 'Master Data கோப்பு காலியாக உள்ளது.',
         msgSystem: 'கணினிப் பிழை. தரவை ஏற்ற முடியவில்லை.',
         msgNoPassword: 'உங்கள் பெயர் அல்லது பிறந்த தேதி இல்லாததால் password உருவாக்க முடியவில்லை.',
@@ -886,7 +885,7 @@
         welcomeLoading: 'स्वागत है',
         msgFileProtocol: 'इस पेज को वेब सर्वर से खोलें।',
         msgIdColumn: 'Master Data फ़ाइल में कर्मचारी ID कॉलम नहीं मिला।',
-        msgFileNotFound: 'Master Data फ़ाइल नहीं मिली।',
+        msgFileNotFound: 'Master Data फ़ाइल क्लाउड पर नहीं मिली।',
         msgEmptyBook: 'Master Data फ़ाइल खाली है।',
         msgSystem: 'सिस्टम में त्रुटि। डेटा लोड नहीं हो सका।',
         msgNoPassword: 'आपका नाम या जन्म तिथि उपलब्ध न होने से पासवर्ड नहीं बन सका।',
@@ -1018,26 +1017,22 @@
     }
 
     // ============================================================
-    // Excel Data Loading Logic
+    // Master Data Loading Logic (NOW READS FROM CLOUD DATABASE)
     // ============================================================
     async function loadMasterData() {
       try {
-        const response = await fetch(MASTER_FILE + '?v=' + Date.now(), { cache: 'no-store' });
-        if (!response.ok) { masterError = 'msgFileNotFound'; return; }
+        const snap = await dbMaster.once('value');
+        const rows = snap.val();
         
-        const arrayBuffer = await response.arrayBuffer();
-        const workbook = XLSX.read(arrayBuffer, { type: 'array', cellDates: true });
-        
-        if (!workbook.SheetNames.length) { masterError = 'msgEmptyBook'; return; }
-        
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { defval: '' });
-        
-        if (!rows.length) { masterError = 'msgEmptyBook'; return; }
+        if (!rows || rows.length === 0) { 
+           masterError = 'msgFileNotFound'; 
+           return; 
+        }
         
         cachedMasterData = rows;
         masterLoadedAt = Date.now();
       } catch (e) {
-        console.error('Master data load failed', e);
+        console.error('Cloud data load failed', e);
         masterError = 'msgSystem';
       }
     }
@@ -1046,7 +1041,6 @@
       if (preloadPromise) return preloadPromise;
       preloadPromise = (async function () {
         masterError = null;
-        if (location.protocol === 'file:') { masterError = 'msgFileProtocol'; return; }
         await loadMasterData();
       })().then(function () {
         if (!cachedMasterData) preloadPromise = null;  
@@ -1327,7 +1321,7 @@
          return; 
       }
 
-      // --- EMPLOYEE LOGIN LOGIC (EXCEL VALIDATION) ---
+      // --- EMPLOYEE LOGIN LOGIC (CLOUD VALIDATION) ---
       if (cachedMasterData && Date.now() - masterLoadedAt > MASTER_TTL_MS) {
         cachedMasterData = null;
         preloadPromise = null;
