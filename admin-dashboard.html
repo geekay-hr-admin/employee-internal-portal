@@ -2015,23 +2015,27 @@
           const wb = XLSX.read(data, { type: 'array' });
           const sheet = wb.Sheets[wb.SheetNames[0]];
           
-          // ✨ Magic 1: Extract Exact Headers (1st row)
-          const headerRowObj = XLSX.utils.sheet_to_json(sheet, { header: 1 })[0] || [];
-          const headerRow = headerRowObj.map(h => String(h).trim()); // Ensure string
-          
-          const rawRows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
-          if(rawRows.length === 0) throw new Error("Excel file is empty or invalid format.");
+          // ✨ Magic 1: Extract Exact Headers & Rows safely preserving formats
+          const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: false });
+          if(rawData.length <= 1) throw new Error("Excel file is empty or invalid format.");
+
+          const headerRow = rawData[0].map(h => String(h).trim());
 
           // ✨ Magic 2: Create Safe Rows matching Header Order safely
-          const rows = rawRows.map(row => {
+          const rows = [];
+          for(let i = 1; i < rawData.length; i++) {
+            const rowArr = rawData[i];
             const safeRow = {};
-            headerRow.forEach(h => {
-              // Create a Firebase-safe key without losing original meaning
-              let safeKey = h.replace(/[\n\r.$#\[\]\/]/g, '_'); 
-              safeRow[safeKey] = row[h] !== undefined ? row[h] : '';
+            let hasData = false;
+            headerRow.forEach((h, index) => {
+              let safeKey = h.replace(/[\n\r.$#\[\]\/]/g, '_');
+              let cellVal = rowArr[index];
+              // Force exact string to preserve leading zeros
+              safeRow[safeKey] = (cellVal !== undefined && cellVal !== null) ? String(cellVal).trim() : '';
+              if (safeRow[safeKey] !== '') hasData = true;
             });
-            return safeRow;
-          });
+            if(hasData) rows.push(safeRow);
+          }
 
           if (type === 'master') {
              await dbMasterHeaders.set(headerRow);
@@ -2225,7 +2229,13 @@
           const snapD = await dbAttendance.child(month).once('value'); 
           dataRows = snapD.val() || [];
           const snapH = await dbAttendanceHeaders.child(month).once('value'); 
-          headersArr = snapH.val() || [];
+          const hData = snapH.val() || [];
+          if (Array.isArray(hData)) {
+            headersArr = hData;
+          } else {
+            const keys = Object.keys(hData).filter(k => !isNaN(k)).map(Number).sort((a, b) => a - b);
+            headersArr = keys.map(k => hData[k]);
+          }
         }
 
         currentFsRows = dataRows; 
@@ -2252,7 +2262,7 @@
         return; 
       }
       
-      if (!headersArr || headersArr.length === 0) headersArr = Object.keys(rows[0]);
+      if (!headersArr || headersArr.length === 0) headersArr = cachedMasterHeaders;
 
       const table = document.createElement('table'); 
       table.className = 'excel-mirror-table'; 
@@ -2339,7 +2349,7 @@
       const biodataDiv = document.createElement('div'); 
       biodataDiv.className = 'biodata-container';
       
-      const headers = row._originalHeaders || Object.keys(row);
+      const headers = row._originalHeaders || cachedMasterHeaders;
       const nameKey = headers.find(h => String(h).toLowerCase().replace(/[^a-z0-9]/g, '') === 'empname' || String(h).toLowerCase().replace(/[^a-z0-9]/g, '') === 'name');
       const idKey = headers.find(h => COLS.id.includes(String(h).toLowerCase().replace(/[^a-z0-9]/g, '')));
       
@@ -2461,7 +2471,7 @@
       doc.setLineWidth(0.4); doc.setLineColor(200, 200, 200); doc.line(14, 29, 196, 29);
       let yPos = 38; doc.setFontSize(10);
       
-      const headers = currentSelectedStaffRow._originalHeaders || Object.keys(currentSelectedStaffRow);
+      const headers = currentSelectedStaffRow._originalHeaders || cachedMasterHeaders;
       headers.forEach(h => {
         if(h === '_originalHeaders') return;
         const safeKey = h.replace(/[\n\r.$#\[\]\/]/g, '_');
@@ -2545,7 +2555,15 @@
 
       try {
         const snapD = await dbAttendance.child(month).once('value'); const rows = snapD.val() || [];
-        const snapH = await dbAttendanceHeaders.child(month).once('value'); const headersArr = snapH.val() || [];
+        const snapH = await dbAttendanceHeaders.child(month).once('value'); 
+        const hData = snapH.val() || [];
+        let headersArr = [];
+        if (Array.isArray(hData)) {
+          headersArr = hData;
+        } else {
+          const keys = Object.keys(hData).filter(k => !isNaN(k)).map(Number).sort((a, b) => a - b);
+          headersArr = keys.map(k => hData[k]);
+        }
         
         let empAttRow = null;
         for (let i = 0; i < rows.length; i++) {
@@ -2633,7 +2651,13 @@
         cachedMasterRows = snapD.val() || []; 
         
         const snapH = await dbMasterHeaders.once('value'); 
-        cachedMasterHeaders = snapH.val() || [];
+        const hData = snapH.val() || [];
+        if (Array.isArray(hData)) {
+          cachedMasterHeaders = hData;
+        } else {
+          const keys = Object.keys(hData).filter(k => !isNaN(k)).map(Number).sort((a, b) => a - b);
+          cachedMasterHeaders = keys.map(k => hData[k]);
+        }
         
         return cachedMasterRows; 
       } catch (e) { 
