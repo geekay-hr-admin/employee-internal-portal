@@ -331,7 +331,7 @@
     .pdf-option:hover { border-bottom-color: #3182ce; color: #3182ce; }
     .pdf-option:focus-visible { outline: 2px solid #3182ce; outline-offset: 2px; }
 
-    /* PDF page layout */
+    /* PDF page layout (fixed width so the PDF looks the same on phone and laptop) */
     .pdf-root { width: 900px; padding: 8px 12px; background: #ffffff; color: #2d3748; }
     .pdf-root .pdf-head { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #3182ce; }
     .pdf-root .pdf-company { font-size: 22px; font-weight: 700; color: #3182ce; }
@@ -1292,16 +1292,27 @@
       return s !== '' && s !== '-';
     }
 
+    // 🔥 THE BULLETPROOF FIX: Scans ALL rows to bypass Firebase empty key drops
     function buildCycleColumns(rows, cycle) {
       const dateKey = new Map();
       let outsideCount = 0;
+      
       if (rows.length) {
-        Object.keys(rows[0]).forEach(function (key) {
+        // Collect all unique keys from all rows
+        const allKeys = new Set();
+        rows.forEach(function (r) {
+          if (r && typeof r === 'object') {
+            Object.keys(r).forEach(function (k) { allKeys.add(k); });
+          }
+        });
+        
+        allKeys.forEach(function (key) {
           const r = parseHeaderDate(key, cycle);
           if (r.ymd) { if (!dateKey.has(r.ymd)) dateKey.set(r.ymd, key); }
           else if (r.outside) outsideCount++;
         });
       }
+      
       const updated = new Set();
       dateKey.forEach(function (key, ymd) {
         for (let i = 0; i < rows.length; i++) {
@@ -1993,7 +2004,7 @@
     }
 
     // ============================================================
-    // Startup Process for Dashboard (NEW AUTO-LOAD LOGIC)
+    // Startup Process (FIREBASE CLOUD INTEGRATION & DYNAMIC MONTHS)
     // ============================================================
     window.addEventListener('DOMContentLoaded', async function () {
       const loggedInEmpId = sessionStorage.getItem('geekay_emp_id');
@@ -2016,7 +2027,7 @@
       try {
         await preloadSystemData();
 
-        if (!cachedMasterData) {
+        if (!cachedMasterData || cachedMasterData.length === 0) {
           alert("Error: Master Data not found in Cloud Database. Please contact Admin.");
           sessionStorage.removeItem('geekay_emp_id');
           window.location.href = './index.html';
