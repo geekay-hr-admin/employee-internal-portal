@@ -1741,7 +1741,7 @@
     }
 
     // ============================================================
-    // PAYSLIP DOWNLOAD LOGIC 📄 (VIA APPS SCRIPT WEB APP)
+    // PAYSLIP DOWNLOAD LOGIC 📄 (DIRECT DOWNLOAD WITH INDICATOR)
     // ============================================================
     const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwUXA1vZpcwwdRLhx7BJcrfDEZybRhlmYD4Qvywu-hcgM7eP5HoTKAixIAUUS5PPfU_/exec"; 
     
@@ -1758,38 +1758,51 @@
     async function loadPayslipMonths() {
       const selectEl = document.getElementById('payslipMonthSelect');
       const btnEl = document.getElementById('btnDownloadPayslip');
-      selectEl.innerHTML = '<option value="">Loading...</option>';
+      selectEl.innerHTML = '<option value="">Loading months...</option>';
       btnEl.disabled = true;
 
       try {
-        // Read directly from Firebase Memory (Set by Admin Sync Dashboard)
         const snap = await dbPayslipMeta.once('value');
         const data = snap.val() || {};
-        const months = Object.keys(data);
         
-        const publishedMonths = [];
-        months.forEach(k => {
-          if (data[k].published) {
-            publishedMonths.push({ key: k, display: data[k].monthDisplay, date: data[k].lastUpdated });
-          }
-        });
+        // Define recent months to display (Available & Not Available)
+        const allPossibleMonths = [
+          "Oct-2026", "Sep-2026", "Aug-2026", "Jul-2026", "Jun-2026", "May-2026",
+          "Apr-2026", "Mar-2026", "Feb-2026", "Jan-2026", "Dec-2025", "Nov-2025"
+        ];
 
-        if (publishedMonths.length === 0) {
-          selectEl.innerHTML = '<option value="">' + (currentLang === 'ta' ? 'ரசீதுகள் எதுவும் இல்லை' : currentLang === 'hi' ? 'कोई पर्ची उपलब्ध नहीं है' : 'No payslips available yet') + '</option>';
-          return;
-        }
-
-        publishedMonths.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
         selectEl.innerHTML = '<option value="">' + (currentLang === 'ta' ? '-- மாதத்தைத் தேர்ந்தெடுக்கவும் --' : currentLang === 'hi' ? '-- महीना चुनें --' : '-- Select Month --') + '</option>';
-        publishedMonths.forEach(m => {
+        
+        allPossibleMonths.forEach(monthKey => {
+          const safeKey = monthKey.replace(/[.#$[\]\/]/g, '_');
+          const isPublished = data[safeKey] && data[safeKey].published;
+          
           const opt = document.createElement('option');
-          opt.value = m.key;
-          opt.textContent = m.display;
+          opt.value = monthKey;
+          
+          if (isPublished) {
+            opt.textContent = `🟢 ${monthKey} (Available)`;
+            opt.style.color = "#22543d";
+            opt.style.fontWeight = "600";
+          } else {
+            opt.textContent = `🔴 ${monthKey} (Not Available)`;
+            opt.style.color = "#a0aec0";
+          }
+          
           selectEl.appendChild(opt);
         });
         
-        selectEl.onchange = () => { btnEl.disabled = !selectEl.value; };
+        selectEl.onchange = () => {
+          const selectedVal = selectEl.value;
+          if (!selectedVal) {
+             btnEl.disabled = true;
+             return;
+          }
+          const safeKey = selectedVal.replace(/[.#$[\]\/]/g, '_');
+          const isSelectedPub = data[safeKey] && data[safeKey].published;
+          btnEl.disabled = !isSelectedPub;
+        };
+
       } catch (e) {
         console.error(e);
         selectEl.innerHTML = '<option value="">Error loading data</option>';
@@ -1797,10 +1810,9 @@
     }
 
     async function downloadEmployeePayslip() {
-      const monthKey = document.getElementById('payslipMonthSelect').options[document.getElementById('payslipMonthSelect').selectedIndex].text;
-      const pwdInput = prompt("For security, please enter your login password again to download the payslip:");
+      const selectEl = document.getElementById('payslipMonthSelect');
+      const monthKey = selectEl.value;
       
-      if (!pwdInput) return; 
       if (!monthKey || !currentData) return;
       
       const empId = currentData.empId;
@@ -1808,11 +1820,11 @@
       const errMsg = document.getElementById('payslipErrorMsg');
       
       btn.disabled = true;
-      btn.innerHTML = '⏳ Securely Fetching...';
+      btn.innerHTML = '⏳ Downloading...';
       errMsg.style.display = 'none';
 
       try {
-        const requestUrl = `${APPS_SCRIPT_WEB_APP_URL}?empId=${encodeURIComponent(empId)}&pwd=${encodeURIComponent(pwdInput)}&month=${encodeURIComponent(monthKey)}`;
+        const requestUrl = `${APPS_SCRIPT_WEB_APP_URL}?empId=${encodeURIComponent(empId)}&month=${encodeURIComponent(monthKey)}`;
         const response = await fetch(requestUrl);
         const result = await response.json();
         
@@ -1839,8 +1851,8 @@
       } catch (e) {
         console.error("Payslip fetch error:", e);
         errMsg.textContent = e.message.includes("Invalid") ? 
-          "Incorrect password or Account Locked out." : 
-          "Sorry, your payslip is not available. Please try again.";
+          "Invalid details or Account Locked out." : 
+          "Sorry, your payslip for this month is not available right now. Please try again.";
         errMsg.style.display = 'block';
       } finally {
         btn.disabled = false;
