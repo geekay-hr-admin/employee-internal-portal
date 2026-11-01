@@ -480,9 +480,14 @@
           </div>
         </div>
         
-        <button type="button" class="btn-primary" id="btnStartUpload" style="width: 100%; justify-content: center; padding: 12px; font-size: 15px;" onclick="startBulkUpload()">
-          🚀 Start Upload
-        </button>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn-primary" id="btnStartUpload" style="flex: 1; justify-content: center; padding: 12px; font-size: 15px;" onclick="startBulkUpload()">
+            🚀 Start Upload
+          </button>
+          <button type="button" class="btn-danger" id="btnStopUpload" style="display: none; flex: 1; justify-content: center; padding: 12px; font-size: 15px;" onclick="stopBulkUpload()">
+            🛑 Stop / Cancel Upload
+          </button>
+        </div>
       </div>
 
       <!-- Manage & Publish Section -->
@@ -595,9 +600,10 @@
     }
 
     // ============================================================
-    // BULK UPLOAD LOGIC 🚀
+    // BULK UPLOAD LOGIC 🚀 (WITH EMERGENCY STOP & MICRO-DELAY)
     // ============================================================
     let selectedFiles = [];
+    let isUploadCancelled = false;
 
     document.getElementById('pdfFilesInput').addEventListener('change', function(e) {
       selectedFiles = Array.from(e.target.files);
@@ -612,66 +618,80 @@
       }
     });
 
+    function stopBulkUpload() {
+      isUploadCancelled = true;
+      document.getElementById('progressStatus').textContent = "Stopping upload...";
+    }
+
     async function startBulkUpload() {
       const monthInput = document.getElementById('uploadMonthInput').value.trim();
       
       if (!monthInput) return alert("Please enter the Month & Year (e.g. Oct-2026).");
       if (selectedFiles.length === 0) return alert("Please select at least one PDF file to upload.");
       
-      // Formatting Month strictly for Cloud DB keys
-      const safeMonthKey = monthInput.replace(/[.#$\[\]\/]/g, '_'); 
+      isUploadCancelled = false;
+      const safeMonthKey = monthInput.replace(/[.#$[\]\/]/g, '_'); 
       const folderPath = `Payslips/${safeMonthKey}`;
 
-      document.getElementById('btnStartUpload').disabled = true;
+      document.getElementById('btnStartUpload').style.display = 'none';
+      document.getElementById('btnStopUpload').style.display = 'flex';
       document.getElementById('uploadProgressContainer').style.display = 'block';
       const progressCount = document.getElementById('progressCount');
       const progressBar = document.getElementById('uploadProgressBar');
+      const progressStatus = document.getElementById('progressStatus');
 
       let successCount = 0;
       let errorCount = 0;
 
-      // Upload files sequentially (to avoid freezing the browser on 1000 files)
       for (let i = 0; i < selectedFiles.length; i++) {
+        // Check if Admin clicked Stop
+        if (isUploadCancelled) {
+          alert(`Upload Stopped by Admin!\nSuccessfully uploaded: ${successCount} files before cancellation.`);
+          break;
+        }
+
         const file = selectedFiles[i];
         
-        // Update UI
         progressCount.textContent = `${i + 1} / ${selectedFiles.length}`;
+        progressStatus.textContent = `Uploading: ${file.name}`;
         const percentage = Math.round(((i + 1) / selectedFiles.length) * 100);
         progressBar.style.width = `${percentage}%`;
 
-        // Exact filename matching logic (EMP101.pdf)
         const exactFileName = file.name; 
         const fileRef = storageRef.child(`${folderPath}/${exactFileName}`);
 
         try {
           await fileRef.put(file);
           successCount++;
+          // ⏳ Micro-delay (100ms) to let the browser breathe and prevent hanging on 700+ files
+          await new Promise(resolve => setTimeout(resolve, 100));
         } catch (e) {
           console.error("Failed to upload: " + exactFileName, e);
           errorCount++;
         }
       }
 
-      // Update Metadata in Database
-      try {
-        const snap = await dbPayslipMeta.child(safeMonthKey).once('value');
-        const existingData = snap.val();
-        
-        const payload = {
-            monthDisplay: monthInput,
-            folderPath: folderPath,
-            fileCount: (existingData && existingData.fileCount ? existingData.fileCount : 0) + successCount,
-            published: existingData ? existingData.published : false, // Keep existing status or default to false
-            lastUpdated: new Date().toISOString()
-        };
-        
-        await dbPayslipMeta.child(safeMonthKey).update(payload);
-        
-        alert(`Upload Complete!\nSuccess: ${successCount}\nFailed: ${errorCount}`);
-        
-      } catch (e) {
-        console.error("Meta Update failed:", e);
-        alert("Files uploaded, but metadata update failed.");
+      // Update Metadata in Database if any files were successfully uploaded
+      if (successCount > 0) {
+        try {
+          const snap = await dbPayslipMeta.child(safeMonthKey).once('value');
+          const existingData = snap.val();
+          
+          const payload = {
+              monthDisplay: monthInput,
+              folderPath: folderPath,
+              fileCount: (existingData && existingData.fileCount ? existingData.fileCount : 0) + successCount,
+              published: existingData ? existingData.published : false, 
+              lastUpdated: new Date().toISOString()
+          };
+          
+          await dbPayslipMeta.child(safeMonthKey).update(payload);
+          if (!isUploadCancelled) {
+            alert(`Upload Complete!\nSuccess: ${successCount}\nFailed: ${errorCount}`);
+          }
+        } catch (e) {
+          console.error("Meta Update failed:", e);
+        }
       }
 
       // Reset Upload UI
@@ -681,7 +701,8 @@
       document.getElementById('fileUploadLabel').style.color = "#4a5568";
       document.getElementById('uploadProgressContainer').style.display = 'none';
       progressBar.style.width = `0%`;
-      document.getElementById('btnStartUpload').disabled = false;
+      document.getElementById('btnStartUpload').style.display = 'flex';
+      document.getElementById('btnStopUpload').style.display = 'none';
       selectedFiles = [];
     }
 
@@ -704,7 +725,6 @@
            return;
         }
 
-        // Sort descending (latest updated first)
         months.sort((a, b) => new Date(data[b].lastUpdated) - new Date(data[a].lastUpdated));
 
         months.forEach(key => {
@@ -759,7 +779,6 @@
       } catch (e) {
         console.error(e);
         alert("Failed to update status. Please try again.");
-        // Revert UI toggle on error
         loadManageData();
       }
     }
@@ -775,7 +794,7 @@
       const dbKey = document.getElementById('deleteTargetId').value;
       const pwd = document.getElementById('deleteAdminPwd').value.trim();
 
-      if (pwd !== loggedInAdminObj.pwd) {
+      if (!loggedInAdminObj || pwd !== loggedInAdminObj.pwd) {
           return alert("Security Error: Incorrect Admin Password!");
       }
 
@@ -789,17 +808,12 @@
         if (!metaData) throw new Error("Metadata not found.");
 
         const folderPath = metaData.folderPath;
-        
-        // ⚠️ WARNING: Firebase Client SDK does NOT support bulk deleting entire folders in Storage.
-        // We must list all items in the folder and delete them one by one.
         const listRef = storageRef.child(folderPath);
         const res = await listRef.listAll();
         
-        // Delete all files in parallel
         const deletePromises = res.items.map(itemRef => itemRef.delete());
         await Promise.all(deletePromises);
 
-        // Remove from Realtime DB Meta
         await dbPayslipMeta.child(dbKey).remove();
         
         alert("Folder and all contained payslips deleted successfully.");
@@ -807,7 +821,7 @@
 
       } catch (e) {
         console.error("Deletion Error:", e);
-        alert("Error occurred during deletion. If the folder contains 1000+ files, this might take time or require partial retry.");
+        alert("Error occurred during deletion.");
       } finally {
         document.getElementById('loadingOverlay').classList.remove('show');
       }
