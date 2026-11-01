@@ -1028,7 +1028,7 @@
         notUpdatedYet: 'अभी अपडेट नहीं हुआ',
         pendingNote: '"जल्द" चिह्नित दिनों की उपस्थिति प्रक्रिया में है और अपडेट होते ही यहाँ दिखाई देगी। आज की उपस्थिति दिन पूरा होने के बाद जोड़ी जाएगी। आपके धैर्य के लिए धन्यवाद।',
         noRecordNote: '"रिकॉर्ड नहीं" चिह्नित दिनों के लिए आपकी उपस्थिति दर्ज नहीं है। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgCycleMismatch: 'इस उपस्थिति फ़ाइल की तारीखें इस अवधि से मेल नहीं खातीं। कृपया HR / एडमिन विभाग से संपर्क करें।',
+        msgCycleMismatch: 'इस उपस्थिति फ़ाइल की तारीखें इस अवधि से मेल ক্যাম नहीं खातीं। कृपया HR / एडमिन विभाग से संपर्क करें।',
         msgFileProtocol: 'इस पेज को वेब सर्वर (होस्टिंग) से खोलें। कंप्यूटर की फ़ाइल के रूप में खोलने पर डेटा पढ़ा नहीं जा सकता।',
         msgIdColumn: 'Master Data फ़ाइल में कर्मचारी ID कॉलम नहीं मिला। कृपया HR / एडमिन विभाग से संपर्क करें।',
         msgFileNotFound: 'Master Data फ़ाइल नहीं मिली। कृपया HR / एडमिन विभाग से संपर्क करें।',
@@ -2244,6 +2244,45 @@
     // ============================================================
     // Startup Process (FIREBASE CLOUD INTEGRATION & DYNAMIC MONTHS)
     // ============================================================
+    
+    // ============================================================
+    // NEW: SILENT LOGIN ACTIVITY TRACKER 📈
+    // ============================================================
+    async function recordLoginActivity(empId, empName) {
+      if (IS_ADMIN_VIEW) return; // Do not track if an admin is viewing the dashboard
+
+      try {
+        const dbLogs = firebase.database().ref('geekay_login_logs');
+        const now = new Date();
+        
+        const dateISO = now.toISOString().split('T')[0]; // YYYY-MM-DD
+        const dateString = now.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+        const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        
+        // Detect Device Type
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const deviceType = isMobile ? "Mobile" : "Desktop";
+
+        // Unique Key for the log entry
+        const logKey = empId + "_" + now.getTime();
+
+        const logData = {
+          empId: empId,
+          empName: empName,
+          dateISO: dateISO,
+          dateString: dateString,
+          timeString: timeString,
+          timestamp: now.getTime(),
+          deviceType: deviceType
+        };
+
+        // Silently push to Firebase
+        await dbLogs.child(logKey).set(logData);
+      } catch (e) {
+        console.error("Tracking error (silent):", e);
+      }
+    }
+    
     window.addEventListener('DOMContentLoaded', async function () {
       const loggedInEmpId = sessionStorage.getItem('geekay_emp_id');
       
@@ -2308,6 +2347,10 @@
         await loadAnnouncements();
 
         hideLoadingOverlay();
+        // NEW: Record Login Activity
+        const empNameForLog = pick('name') || 'Employee';
+        recordLoginActivity(loggedInEmpId, empNameForLog);
+
         showDashboard();
 
       } catch (error) {
@@ -2321,4 +2364,3 @@
   </script>
 </body>
 </html>
-```eof
