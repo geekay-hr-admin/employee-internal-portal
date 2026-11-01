@@ -1208,16 +1208,13 @@
           Workforce ▾
         </button>
         <div class="workforce-content" id="workforceDropdownContent">
-          <button type="button" onclick="executeWorkforceAction('master')">📊 Master Data</button>
-          
-          <div class="wf-item">
-            <button type="button" onclick="toggleAttendanceSubmenu(event)">📅 Attendance ▾</button>
-            <div class="attendance-submenu" id="attendanceSubmenu"></div>
-          </div>
           
           <!-- NEW: Announcements Button -->
           <button type="button" onclick="openAnnouncementsModal()" style="color: #2b6cb0; font-weight: 600;">📢 Announcements</button>
 
+          <!-- NEW: Manage Payslips Button Linked -->
+          <button type="button" onclick="window.open('./payslip_upload.html', '_blank')" style="color: #d69e2e; font-weight: 600;">📄 Manage Payslips</button>
+          
           <!-- NEW: User Activity Logs Button Linked -->
           <button type="button" onclick="window.open('./employee_login_activity_log.html', '_blank')" style="color: #38a169; font-weight: 600;">📈 User Activity Logs</button>
           
@@ -1253,7 +1250,20 @@
     </div>
 
     <!-- Export & Staff View Triggers (Flex Row) -->
-    <div class="action-buttons-flex" style="display: flex; justify-content: flex-end; gap: 15px; margin-bottom: 25px;">
+    <div class="action-buttons-flex" style="display: flex; justify-content: flex-end; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+        
+        <!-- NEW: Moved from Dropdown to Main Dashboard -->
+        <button type="button" onclick="executeWorkforceAction('master')" style="background: #2b6cb0; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background 0.2s;">
+          👥 Master Data Viewer
+        </button>
+        
+        <div class="workforce-dropdown" id="dashboardAttDropdown" style="display: inline-block;">
+          <button type="button" onclick="toggleDashAttendanceSubmenu(event)" style="background: #2b6cb0; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background 0.2s;">
+            📅 Attendance Viewer ▾
+          </button>
+          <div class="attendance-submenu" id="dashAttendanceSubmenu" style="top: 100%; right: 0; left: auto; margin-top: 5px;"></div>
+        </div>
+
         <!-- NEW: Custom Report & Export Button -->
         <button type="button" onclick="openCustomExportModal()" style="background: #3182ce; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background 0.2s;">
           📊 Custom Report & Export
@@ -2394,28 +2404,47 @@
     function toggleAttendanceSubmenu(e) { 
       e.stopPropagation(); 
       const sub = document.getElementById('attendanceSubmenu'); 
+      if(sub) {
+          sub.classList.toggle('show'); 
+          if(sub.classList.contains('show')) populateAttendanceMenu(); 
+      }
+    }
+    
+    function toggleDashAttendanceSubmenu(e) {
+      e.stopPropagation(); 
+      const sub = document.getElementById('dashAttendanceSubmenu'); 
       sub.classList.toggle('show'); 
       if(sub.classList.contains('show')) populateAttendanceMenu(); 
     }
     
     async function populateAttendanceMenu() { 
-      const sub = document.getElementById('attendanceSubmenu'); 
-      sub.textContent = 'Loading...'; 
+      const sub = document.getElementById('attendanceSubmenu') || document.getElementById('dashAttendanceSubmenu');
+      const dashSub = document.getElementById('dashAttendanceSubmenu'); 
+      const msg = '<div style="padding:10px 16px; font-size:12px; color:#718096;">No records found</div>';
+          if(sub) sub.innerHTML = msg;
+          if(dashSub) dashSub.innerHTML = msg; 
       try {
         const snap = await dbAttendance.once('value');
         const data = snap.val() || {};
         const months = Object.keys(data).reverse();
         
-        sub.textContent = '';
+        if(sub) sub.textContent = ''; if(dashSub) dashSub.textContent = '';
         if(months.length === 0) {
-          sub.innerHTML = '<div style="padding:10px 16px; font-size:12px; color:#718096;">No records found</div>';
+          const msg = '<div style="padding:10px 16px; font-size:12px; color:#718096;">No records found</div>';
+          if(sub) sub.innerHTML = msg;
+          if(dashSub) dashSub.innerHTML = msg;
         } else {
           months.forEach(file => { 
             const btn = document.createElement('button'); 
             btn.type = 'button'; 
             btn.textContent = file; 
             btn.onclick = function(e) { e.stopPropagation(); executeWorkforceAction('attendance', file); }; 
-            sub.appendChild(btn); 
+            if(sub) sub.appendChild(btn);
+            if(dashSub && dashSub !== sub) {
+                const btnClone = btn.cloneNode(true);
+                btnClone.onclick = btn.onclick;
+                dashSub.appendChild(btnClone);
+            } 
           }); 
         }
       } catch(e) {
@@ -2431,6 +2460,9 @@
       
       const sub = document.getElementById('attendanceSubmenu'); 
       if (sub && sub.classList.contains('show')) sub.classList.remove('show'); 
+      
+      const dashSub = document.getElementById('dashAttendanceSubmenu');
+      if (dashSub && dashSub.classList.contains('show')) dashSub.classList.remove('show'); 
       
       const searchDrop = document.getElementById('searchResultsDropdown'); 
       if (searchDrop) searchDrop.style.display = 'none'; 
