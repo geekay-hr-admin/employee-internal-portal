@@ -8,7 +8,7 @@
   
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- Firebase (V8 Compat for Global Scope Integration) -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -42,6 +42,10 @@
     .list-item:last-child { border-bottom: none; }
     .item-info { display: flex; flex-direction: column; gap: 4px; }
     .item-title { font-size: 15px; font-weight: 700; color: #1a202c; display: flex; align-items: center; gap: 8px; }
+    
+    /* New: File Count Badge */
+    .file-count-badge { background: #edf2f7; color: #4a5568; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px; border: 1px solid #cbd5e1; }
+
     .item-actions { display: flex; gap: 15px; align-items: center; }
 
     /* Toggle Switch */
@@ -99,11 +103,10 @@
 
   <script>
     // ============================================================
-    // CONFIGURATION (USER PROVIDED URL)
+    // CONFIGURATION
     // ============================================================
     const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwUXA1vZpcwwdRLhx7BJcrfDEZybRhlmYD4Qvywu-hcgM7eP5HoTKAixIAUUS5PPfU_/exec"; 
 
-    // Firebase (Used for storing Publish/Draft state ONLY)
     const firebaseConfig = {
       apiKey: "AIzaSyC9mE0Xo1GWBin2ERwJOskd8Z8QUhRAmrw",
       authDomain: "geekay-hr-portal.firebaseapp.com",
@@ -119,16 +122,16 @@
     // ============================================================
     async function syncWithDrive() {
       const container = document.getElementById('manageListContainer');
-      document.getElementById('loadingText').textContent = "Scanning Google Drive Folders...";
+      document.getElementById('loadingText').textContent = "Scanning Google Drive Folders & Counting Files...";
       document.getElementById('loadingOverlay').classList.add('show');
 
       try {
-        // 1. Get Folder List from Google Drive (Via Apps Script)
+        // 1. Get Folder List & File Count from Google Drive
         const response = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?action=listFolders`);
         const result = await response.json();
         
         if (!result.success) throw new Error("Failed to scan Drive.");
-        const driveFolders = result.folders; // Array of folder names e.g., ["Oct-2026"]
+        const driveFolders = result.folders; // Array of objects [{name: "Oct-2026", fileCount: 700}, ...]
 
         // 2. Get Metadata (Publish State) from Firebase
         const snap = await dbPayslipMeta.once('value');
@@ -141,17 +144,18 @@
            return;
         }
 
-        // Sort folders descending (assuming Mon-YYYY format)
+        // Sort folders descending
         driveFolders.sort((a, b) => {
-           let d1 = new Date("01-" + a); let d2 = new Date("01-" + b);
+           let d1 = new Date("01-" + a.name); let d2 = new Date("01-" + b.name);
            return d2 - d1;
         });
 
-        driveFolders.forEach(folderName => {
+        driveFolders.forEach(folderObj => {
+          const folderName = folderObj.name;
+          const fileCount = folderObj.fileCount;
           const safeKey = folderName.replace(/[.#$[\]\/]/g, '_');
-          // If it exists in Firebase, use its publish state. Otherwise, default to Draft (false)
-          const isPub = firebaseMeta[safeKey] ? firebaseMeta[safeKey].published : false;
           
+          const isPub = firebaseMeta[safeKey] ? firebaseMeta[safeKey].published : false;
           const statusClass = isPub ? 'text-pub' : 'text-unpub';
           const statusText = isPub ? 'Published' : 'Draft';
           const checkedAttr = isPub ? 'checked' : '';
@@ -161,7 +165,10 @@
           item.innerHTML = `
             <div class="item-info">
               <div class="item-title">📁 ${folderName}</div>
-              <div style="font-size: 12px; color:#718096;">Stored in Google Drive</div>
+              <div style="font-size: 12px; color:#718096; display: flex; align-items: center; gap: 8px;">
+                <span>Stored in Google Drive</span> 
+                <span class="file-count-badge">${fileCount} PDF(s) inside</span>
+              </div>
             </div>
             
             <div class="item-actions">
@@ -181,7 +188,7 @@
 
       } catch (e) {
         console.error(e);
-        container.innerHTML = '<div style="padding: 20px; color:#e53e3e; text-align:center;">Error scanning Drive. Check permissions.</div>';
+        container.innerHTML = '<div style="padding: 20px; color:#e53e3e; text-align:center;">Error scanning Drive. Did you deploy as a New Version?</div>';
       } finally {
         document.getElementById('loadingOverlay').classList.remove('show');
       }
@@ -190,7 +197,6 @@
     async function togglePublishStatus(dbKey, folderName, isChecked) {
       const txtEl = document.getElementById(`statustext_${dbKey}`);
       try {
-        // Save state to Firebase
         await dbPayslipMeta.child(dbKey).update({ 
             monthDisplay: folderName,
             published: isChecked,
@@ -218,17 +224,15 @@
       document.getElementById('loadingOverlay').classList.add('show');
 
       try {
-        // 1. Tell Apps Script to Trash the folder in Drive
         const response = await fetch(`${APPS_SCRIPT_WEB_APP_URL}?action=deleteFolder&folderName=${encodeURIComponent(folderName)}`);
         const result = await response.json();
         
         if (!result.success) throw new Error("Could not delete from Drive.");
 
-        // 2. Remove from Firebase memory
         await dbPayslipMeta.child(dbKey).remove();
         
         alert(`Folder ${folderName} deleted successfully.`);
-        syncWithDrive(); // Refresh list
+        syncWithDrive(); 
 
       } catch (e) {
         console.error("Deletion Error:", e);
@@ -237,7 +241,6 @@
       }
     }
 
-    // Auto-run scan on load
     window.addEventListener('DOMContentLoaded', syncWithDrive);
   </script>
 </body>
