@@ -601,9 +601,9 @@
       text-align: left; 
     }
     
-    .floating-input-group input { 
+    .floating-input-group input, .floating-input-group textarea { 
       width: 100%; 
-      padding: 15px 120px 10px 5px; 
+      padding: 15px 5px 10px 5px; 
       font-size: 16px; 
       font-weight: 600; 
       letter-spacing: 0.5px; 
@@ -613,6 +613,11 @@
       background: transparent; 
       outline: none; 
       transition: all 0.3s ease; 
+      font-family: inherit;
+    }
+    
+    .floating-input-group input[type="password"] {
+      padding-right: 40px;
     }
     
     .floating-input-group label { 
@@ -625,12 +630,14 @@
       pointer-events: none; 
     }
     
-    .floating-input-group input:focus { 
+    .floating-input-group input:focus, .floating-input-group textarea:focus { 
       border-bottom-color: #3182ce; 
     }
     
     .floating-input-group input:focus ~ label, 
-    .floating-input-group input:not(:placeholder-shown) ~ label { 
+    .floating-input-group input:not(:placeholder-shown) ~ label,
+    .floating-input-group textarea:focus ~ label, 
+    .floating-input-group textarea:not(:placeholder-shown) ~ label { 
       top: -10px; 
       font-size: 12px; 
       color: #3182ce; 
@@ -1078,6 +1085,21 @@
       overflow-wrap: anywhere; 
     }
 
+    /* Custom Checkbox Grid */
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .ce-cb-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     /* =========================================
        📱 MOBILE RESPONSIVE UI
        ========================================= */
@@ -1145,6 +1167,13 @@
         width: 100%; 
         justify-content: space-between; 
       }
+      .action-buttons-flex {
+        flex-direction: column;
+      }
+      .action-buttons-flex button {
+        width: 100%;
+        justify-content: center;
+      }
     }
   </style>
 </head>
@@ -1186,6 +1215,9 @@
             <div class="attendance-submenu" id="attendanceSubmenu"></div>
           </div>
           
+          <!-- NEW: Announcements Button -->
+          <button type="button" onclick="openAnnouncementsModal()" style="color: #2b6cb0; font-weight: 600;">📢 Announcements</button>
+          
           <!-- Cloud Upload Options & Manage Files Integrated -->
           <button type="button" onclick="openCloudUploadModal()" style="color: #d69e2e; font-weight: 600;">☁️ Manage Cloud Files</button>
           
@@ -1217,8 +1249,12 @@
       </div>
     </div>
 
-    <!-- Staff View Trigger (Moved from dropdown) -->
-    <div style="display: flex; justify-content: flex-end; margin-bottom: 25px;">
+    <!-- Export & Staff View Triggers (Flex Row) -->
+    <div class="action-buttons-flex" style="display: flex; justify-content: flex-end; gap: 15px; margin-bottom: 25px;">
+        <!-- NEW: Custom Report & Export Button -->
+        <button type="button" onclick="openCustomExportModal()" style="background: #3182ce; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background 0.2s;">
+          📊 Custom Report & Export
+        </button>
         <button type="button" onclick="openStaffViewModal()" style="background: #38a169; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: background 0.2s;">
           👁️ Staff View
         </button>
@@ -1306,6 +1342,8 @@
                 <div class="admin-id" id="mfMasterStatus">Checking...</div>
               </div>
               <div class="admin-actions-row">
+                <!-- NEW: Original File Download Button -->
+                <button class="btn-outline" onclick="downloadCloudFile('master')">⬇️ Download</button>
                 <button class="btn-danger" onclick="deleteCloudFile('master')">🗑️ Delete</button>
               </div>
             </div>
@@ -1583,6 +1621,94 @@
     </div>
   </div>
 
+  <!-- NEW: Announcements Modal -->
+  <div class="modal-overlay" id="announcementsModal" onclick="if(event.target.id==='announcementsModal') closeAnnouncementsModal()">
+    <div class="modal-content admin-settings-content">
+      <div class="as-header">
+        <div style="font-size:20px; font-weight:700; color:#1a202c;">📢 Notice Board</div>
+        <button class="fs-close-btn" style="width:32px; height:32px; font-size:16px;" onclick="closeAnnouncementsModal()">&times;</button>
+      </div>
+      
+      <div class="as-body">
+        <div class="mode-tabs" style="margin-bottom: 25px;">
+          <button type="button" class="mode-tab-btn active" id="tabNewNotice" onclick="switchAnnouncementTab('new')">Post New Notice</button>
+          <button type="button" class="mode-tab-btn" id="tabManageNotices" onclick="switchAnnouncementTab('manage')">Manage Notices</button>
+        </div>
+
+        <!-- Post New Notice -->
+        <div id="viewNewNotice">
+          <div class="floating-input-group">
+            <input type="text" id="noticeTitle" placeholder=" " autocomplete="off">
+            <label>Notice Title (e.g. Diwali Holiday)</label>
+          </div>
+          
+          <div class="floating-input-group">
+            <textarea id="noticeMessage" placeholder=" " rows="3"></textarea>
+            <label>Full Announcement Message</label>
+          </div>
+          
+          <div class="modal-section-title" style="margin-bottom:10px;">Display Style</div>
+          <div class="radio-group" style="margin-bottom: 25px;">
+            <label class="radio-label">
+              <input type="radio" name="noticeType" value="popup" checked> Center Pop-up
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="noticeType" value="marquee"> Top Bar Scrolling
+            </label>
+          </div>
+
+          <div class="floating-input-group">
+            <input type="datetime-local" id="noticeExpiry" placeholder=" ">
+            <label style="top:-10px; font-size:12px; color:#3182ce; font-weight:600;">Active Until (Expiry Date & Time)</label>
+          </div>
+
+          <button type="button" class="btn-modal btn-primary" style="width:100%;" onclick="saveAnnouncement()">🚀 Publish Announcement</button>
+        </div>
+
+        <!-- Manage Existing Notices -->
+        <div id="viewManageNotices" style="display: none;">
+          <div class="admin-list-container" id="noticeListContainer" style="max-height: 400px;">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW: Custom Report & Export Modal -->
+  <div class="modal-overlay" id="customExportModal" onclick="if(event.target.id==='customExportModal') closeCustomExportModal()">
+    <div class="modal-content admin-settings-content" style="max-width: 750px;">
+      <div class="as-header">
+        <div style="font-size:20px; font-weight:700; color:#1a202c;">📊 Custom Report & Export</div>
+        <button class="fs-close-btn" style="width:32px; height:32px; font-size:16px;" onclick="closeCustomExportModal()">&times;</button>
+      </div>
+      
+      <div class="as-body" style="padding: 20px 30px;">
+        <div style="font-size:14px; color:#4a5568; margin-bottom: 15px;">
+          Select the columns you want to include in your custom Excel report.
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+          <button type="button" class="btn-outline" style="font-size:13px;" onclick="selectAllExport(true)">☑️ Select All</button>
+          <button type="button" class="btn-outline" style="font-size:13px;" onclick="selectAllExport(false)">☐ Deselect All</button>
+          <button type="button" class="btn-outline" style="font-size:13px; border-color:#d69e2e; color:#d69e2e;" onclick="resetExport()">🔄 Reset Default</button>
+        </div>
+        
+        <div class="admin-list-container" style="padding: 15px; max-height: 300px; background: #f8fafc;">
+          <div class="checkbox-grid" id="ceCheckboxGrid">
+            <!-- Checkboxes generated by JS -->
+          </div>
+        </div>
+        
+        <div style="margin-top: 25px; display: flex; justify-content: flex-end; gap: 15px;">
+          <button type="button" class="btn-modal btn-cancel" onclick="closeCustomExportModal()">Cancel</button>
+          <button type="button" class="btn-modal btn-primary" onclick="executeCustomExport()">⬇️ Export to Excel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ============================================================
     // FIREBASE INITIALIZATION & AUTH LOGIC (CLOUD DB)
@@ -1603,6 +1729,7 @@
     const dbMasterHeaders = firebase.database().ref('geekay_master_headers');
     const dbAttendance = firebase.database().ref('geekay_attendance');
     const dbAttendanceHeaders = firebase.database().ref('geekay_attendance_headers');
+    const dbAnnouncements = firebase.database().ref('geekay_announcements'); // NEW DB Ref for Announcements
     
     // Default System Admin Fallback
     const DEFAULT_ADMIN = { 
@@ -2112,6 +2239,8 @@
                 <div class="admin-id">Attendance Records</div>
               </div>
               <div class="admin-actions-row">
+                <!-- NEW: Download Original File Button -->
+                <button class="btn-outline" onclick="downloadCloudFile('attendance', '${m}')">⬇️ Download</button>
                 <button class="btn-danger" onclick="deleteCloudFile('attendance', '${m}')">🗑️ Delete</button>
               </div>
             `;
@@ -2159,6 +2288,62 @@
         document.getElementById('loadingOverlay').classList.remove('show');
         openCloudUploadModal(); 
         switchCloudTab('manage');
+      }
+    }
+
+    // NEW: Download Original File Function
+    async function downloadCloudFile(type, month = null) {
+      document.getElementById('loadingWelcome').classList.add('in'); 
+      document.getElementById('loadingOverlay').classList.add('show');
+      
+      try {
+        let headers = [];
+        let rows = [];
+        let filename = '';
+        
+        if (type === 'master') {
+          headers = cachedMasterHeaders;
+          rows = cachedMasterRows;
+          filename = 'Master_Data_Original.xlsx';
+        } else {
+          const snapD = await dbAttendance.child(month).once('value'); 
+          rows = snapD.val() || [];
+          const snapH = await dbAttendanceHeaders.child(month).once('value'); 
+          const hData = snapH.val() || [];
+          if (Array.isArray(hData)) {
+            headers = hData;
+          } else {
+            const keys = Object.keys(hData).filter(k => !isNaN(k)).map(Number).sort((a, b) => a - b);
+            headers = keys.map(k => hData[k]);
+          }
+          filename = `Attendance_${month}_Original.xlsx`;
+        }
+        
+        if (!rows || rows.length === 0) {
+           alert("No data found to download.");
+           return;
+        }
+
+        // Convert JSON array of safe-keyed objects back to pure AoA matching exact original headers
+        const aoa = [headers];
+        rows.forEach(r => {
+          const rowArr = headers.map(h => {
+             const safeKey = String(h).replace(/[\n\r.$#\[\]\/]/g, '_');
+             return (r[safeKey] !== undefined && r[safeKey] !== null) ? r[safeKey] : '';
+          });
+          aoa.push(rowArr);
+        });
+        
+        const ws = XLSX.utils.aoa_to_sheet(aoa);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        XLSX.writeFile(wb, filename);
+        
+      } catch (e) {
+        console.error(e);
+        alert("Error generating original file.");
+      } finally {
+        document.getElementById('loadingOverlay').classList.remove('show');
       }
     }
 
@@ -2236,7 +2421,7 @@
     }
     
     window.addEventListener('click', function(e) { 
-      if(e.target.closest('#cloudUploadModal') || e.target.closest('#staffViewModal') || e.target.closest('#deleteFileConfirmModal') || e.target.closest('.modal-content')) return;
+      if(e.target.closest('#cloudUploadModal') || e.target.closest('#staffViewModal') || e.target.closest('#deleteFileConfirmModal') || e.target.closest('#announcementsModal') || e.target.closest('#customExportModal') || e.target.closest('.modal-content')) return;
       
       const dropdown = document.getElementById('workforceDropdown'); 
       if (dropdown.classList.contains('show')) dropdown.classList.remove('show'); 
@@ -2547,7 +2732,7 @@
     }
 
     // ============================================================
-    // STAFF VIEW (REDIRECT MODULE) 👁️ (NEW)
+    // STAFF VIEW (REDIRECT MODULE) 👁️
     // ============================================================
     function openStaffViewModal() {
       document.getElementById('staffViewModal').style.display = 'flex';
@@ -2595,6 +2780,231 @@
       
       // Open the employee dashboard directly in a new tab so admin doesn't lose their current session
       window.open('./employee-dashboard.html', '_blank');
+    }
+
+    // ============================================================
+    // NEW: LIVE ANNOUNCEMENTS / NOTICE BOARD 📢
+    // ============================================================
+    function openAnnouncementsModal() {
+      document.getElementById('announcementsModal').style.display = 'flex';
+      switchAnnouncementTab('new');
+      document.getElementById('noticeTitle').value = '';
+      document.getElementById('noticeMessage').value = '';
+      document.getElementById('noticeExpiry').value = '';
+    }
+
+    function closeAnnouncementsModal() { document.getElementById('announcementsModal').style.display = 'none'; }
+
+    function switchAnnouncementTab(tab) {
+      if (tab === 'new') {
+        document.getElementById('tabNewNotice').classList.add('active'); 
+        document.getElementById('tabManageNotices').classList.remove('active');
+        document.getElementById('viewNewNotice').style.display = 'block'; 
+        document.getElementById('viewManageNotices').style.display = 'none';
+      } else {
+        document.getElementById('tabNewNotice').classList.remove('active'); 
+        document.getElementById('tabManageNotices').classList.add('active');
+        document.getElementById('viewNewNotice').style.display = 'none'; 
+        document.getElementById('viewManageNotices').style.display = 'block';
+        loadManageNotices();
+      }
+    }
+
+    async function saveAnnouncement() {
+      const title = document.getElementById('noticeTitle').value.trim();
+      const msg = document.getElementById('noticeMessage').value.trim();
+      const type = document.querySelector('input[name="noticeType"]:checked').value;
+      const expiry = document.getElementById('noticeExpiry').value;
+
+      if (!title || !msg || !expiry) return alert("Please fill Title, Message, and Expiry Date & Time.");
+
+      const noticeId = "NTC_" + Date.now();
+      const payload = {
+        id: noticeId,
+        title: title,
+        message: msg,
+        type: type,
+        expiry: expiry,
+        createdAt: new Date().toISOString(),
+        author: currentAdminObj.name
+      };
+
+      try {
+        await dbAnnouncements.child(noticeId).set(payload);
+        alert("Announcement published successfully!");
+        document.getElementById('noticeTitle').value = '';
+        document.getElementById('noticeMessage').value = '';
+        document.getElementById('noticeExpiry').value = '';
+        switchAnnouncementTab('manage');
+      } catch (e) {
+        console.error(e);
+        alert("Error publishing announcement.");
+      }
+    }
+
+    async function loadManageNotices() {
+      const container = document.getElementById('noticeListContainer');
+      container.textContent = 'Loading...';
+
+      try {
+        const snap = await dbAnnouncements.once('value');
+        const data = snap.val() || {};
+        const notices = Object.values(data).sort((a, b) => b.id.localeCompare(a.id));
+        
+        container.textContent = '';
+        if (notices.length === 0) {
+          container.innerHTML = '<div style="padding:15px; color:#718096; font-size:14px;">No notices published yet.</div>';
+          return;
+        }
+
+        const now = new Date();
+        
+        notices.forEach(n => {
+          const expiryDate = new Date(n.expiry);
+          const isExpired = expiryDate < now;
+          const statusBadge = isExpired ? 
+            `<span class="badge-type badge-external">Expired</span>` : 
+            `<span class="badge-type badge-staff">Active</span>`;
+
+          const item = document.createElement('div');
+          item.className = 'admin-list-item';
+          item.style.alignItems = 'flex-start';
+          item.innerHTML = `
+            <div class="admin-info" style="flex:1;">
+              <div class="admin-name">${n.title} ${statusBadge}</div>
+              <div class="admin-id" style="margin-bottom:5px;">Type: ${n.type === 'popup' ? 'Pop-up' : 'Scrolling Bar'} | Expires: ${expiryDate.toLocaleString('en-US', {dateStyle:'medium', timeStyle:'short'})}</div>
+              <div style="font-size:12px; color:#4a5568; line-height:1.4;">${n.message}</div>
+            </div>
+            <div class="admin-actions-row" style="flex-direction:column; gap:8px;">
+              <button class="btn-outline" style="width:100%;" onclick="republishNotice('${n.id}')">🔄 Republish</button>
+              <button class="btn-danger" style="width:100%;" onclick="deleteNotice('${n.id}')">🗑️ Delete</button>
+            </div>
+          `;
+          container.appendChild(item);
+        });
+      } catch (e) {
+        console.error(e);
+        container.textContent = 'Error loading notices.';
+      }
+    }
+
+    async function republishNotice(id) {
+      try {
+        const snap = await dbAnnouncements.child(id).once('value');
+        const notice = snap.val();
+        if(!notice) return;
+        
+        switchAnnouncementTab('new');
+        document.getElementById('noticeTitle').value = notice.title;
+        document.getElementById('noticeMessage').value = notice.message;
+        document.querySelector(`input[name="noticeType"][value="${notice.type}"]`).checked = true;
+        
+        alert("Notice details copied to the form. Please set a NEW Expiry Date and click Publish.");
+        document.getElementById('noticeExpiry').focus();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function deleteNotice(id) {
+      if (confirm("Are you sure you want to permanently delete this announcement?")) {
+        try {
+          await dbAnnouncements.child(id).remove();
+          loadManageNotices();
+        } catch(e) {
+          alert("Error deleting notice.");
+        }
+      }
+    }
+
+    // ============================================================
+    // NEW: CUSTOM REPORT & EXPORT (CLEAN UI) 📊
+    // ============================================================
+    function openCustomExportModal() {
+      if (!cachedMasterHeaders || cachedMasterHeaders.length === 0) {
+        alert("Master data not loaded yet. Please upload data first.");
+        return;
+      }
+      
+      const grid = document.getElementById('ceCheckboxGrid');
+      grid.textContent = '';
+      
+      cachedMasterHeaders.forEach((h, index) => {
+        const div = document.createElement('div');
+        div.className = 'ce-cb-wrapper';
+        
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = h;
+        cb.className = 'ce-col-cb';
+        cb.id = 'ce_cb_' + index;
+        cb.checked = true; // Default selected
+        
+        const lbl = document.createElement('label');
+        lbl.htmlFor = 'ce_cb_' + index;
+        lbl.textContent = h;
+        lbl.style.fontSize = '13px';
+        lbl.style.cursor = 'pointer';
+        lbl.style.color = '#2d3748';
+        lbl.style.fontWeight = '500';
+        
+        div.appendChild(cb);
+        div.appendChild(lbl);
+        grid.appendChild(div);
+      });
+      
+      document.getElementById('customExportModal').style.display = 'flex';
+    }
+
+    function closeCustomExportModal() { document.getElementById('customExportModal').style.display = 'none'; }
+
+    function selectAllExport(state) {
+      const checkboxes = document.querySelectorAll('.ce-col-cb');
+      checkboxes.forEach(cb => cb.checked = state);
+    }
+    
+    function resetExport() {
+      selectAllExport(true);
+    }
+
+    function executeCustomExport() {
+      const checkboxes = document.querySelectorAll('.ce-col-cb:checked');
+      if (checkboxes.length === 0) return alert("Please select at least one column to export.");
+      
+      const selectedHeaders = Array.from(checkboxes).map(cb => cb.value);
+      
+      if (!cachedMasterRows || cachedMasterRows.length === 0) return alert("No data available to export.");
+
+      document.getElementById('loadingWelcome').classList.add('in'); 
+      document.getElementById('loadingOverlay').classList.add('show');
+      closeCustomExportModal();
+
+      setTimeout(() => {
+        try {
+          const aoa = [selectedHeaders];
+          
+          cachedMasterRows.forEach(r => {
+            const rowArr = selectedHeaders.map(h => {
+               const safeKey = String(h).replace(/[\n\r.$#\[\]\/]/g, '_');
+               return (r[safeKey] !== undefined && r[safeKey] !== null) ? r[safeKey] : '';
+            });
+            aoa.push(rowArr);
+          });
+          
+          const ws = XLSX.utils.aoa_to_sheet(aoa);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Custom_Report");
+          
+          const dateStr = new Date().toISOString().split('T')[0];
+          XLSX.writeFile(wb, `Geekay_Custom_Report_${dateStr}.xlsx`);
+          
+        } catch (e) {
+          console.error(e);
+          alert("Error exporting data.");
+        } finally {
+          document.getElementById('loadingOverlay').classList.remove('show');
+        }
+      }, 500); // slight delay for smooth UI transition
     }
 
     // ============================================================
