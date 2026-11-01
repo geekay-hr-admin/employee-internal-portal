@@ -22,6 +22,7 @@
   <!-- Firebase Cloud Integration -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
   <style>
     * { box-sizing: border-box; }
@@ -547,6 +548,7 @@
 
         <div class="action-buttons" id="actionButtons">
           <button type="button" class="btn btn-primary" onclick="openStaffModal()" data-i18n="viewStaff">View Staff Details</button>
+          <button type="button" class="btn btn-secondary" style="color: #d69e2e;" onclick="openPayslipModal()" data-i18n="downloadPayslip">📄 Payslip</button>
           <button type="button" class="btn btn-secondary" id="pdfBtn" onclick="openPdfChoice()" data-i18n="downloadPdf">Download PDF</button>
           <button type="button" class="btn btn-light" id="logoutBtn" onclick="logout()" data-i18n="logout">Logout</button>
         </div>
@@ -714,15 +716,6 @@
     </div>
   </div>
 
-  <!-- Loading screen (shown on start) -->
-  <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
-    <div class="rainbow-ring"></div>
-    <div class="loading-welcome" id="loadingWelcome">
-      <div class="lw-small" data-i18n="welcomeLoading">Welcome</div>
-      <div class="lw-name" id="loadingName"></div>
-    </div>
-  </div>
-
   <!-- PDF choice pop-up -->
   <div class="modal-overlay" id="pdfModal" onclick="pdfOverlayClick(event)">
     <div class="modal-content pdf-choice">
@@ -731,6 +724,38 @@
       <button type="button" class="pdf-option" onclick="generatePDF('attendance')" data-i18n="pdfAttendance">Attendance only</button>
       <button type="button" class="pdf-option" onclick="generatePDF('staff')" data-i18n="pdfStaff">Staff details only</button>
       <button type="button" class="pdf-option" onclick="generatePDF('all')" data-i18n="pdfAll">Overall details (Attendance + Staff details)</button>
+    </div>
+  </div>
+
+  <!-- Payslip choice pop-up -->
+  <div class="modal-overlay" id="payslipModal" onclick="if(event.target.id==='payslipModal') closePayslipModal()">
+    <div class="modal-content pdf-choice" style="max-width: 400px; padding: 25px;">
+      <button type="button" class="close-modal" onclick="closePayslipModal()" aria-label="Close">&times;</button>
+      <div class="modal-header" style="border-bottom: none; padding-bottom: 0; margin-bottom: 10px; color: #d69e2e;" data-i18n="payslipTitle">📄 Download Payslip</div>
+      <div style="font-size: 13.5px; color: #718096; margin-bottom: 20px; text-align: left;" data-i18n="payslipDesc">
+        Select the month to download your salary slip.
+      </div>
+      
+      <div style="text-align: left; margin-bottom: 20px;">
+        <select id="payslipMonthSelect" style="width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-family: inherit; font-size: 14px; color: #1a202c; outline: none; background: #f8fafc; cursor: pointer;">
+          <option value="">Loading available months...</option>
+        </select>
+      </div>
+      
+      <button type="button" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px; font-size: 15px; border-radius: 6px; background: #3182ce; color: white;" onclick="downloadEmployeePayslip()" id="btnDownloadPayslip" disabled>
+        ⬇️ Download PDF
+      </button>
+      
+      <div id="payslipErrorMsg" style="color: #e53e3e; font-size: 13px; font-weight: 600; margin-top: 15px; display: none; background: #fff5f5; padding: 10px; border-radius: 6px; border-left: 3px solid #e53e3e;"></div>
+    </div>
+  </div>
+
+  <!-- Loading screen (shown on start) -->
+  <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
+    <div class="rainbow-ring"></div>
+    <div class="loading-welcome" id="loadingWelcome">
+      <div class="lw-small" data-i18n="welcomeLoading">Welcome</div>
+      <div class="lw-name" id="loadingName"></div>
     </div>
   </div>
 
@@ -752,6 +777,8 @@
     const dbMaster = firebase.database().ref('geekay_master_data');
     const dbAttendance = firebase.database().ref('geekay_attendance');
     const dbAnnouncements = firebase.database().ref('geekay_announcements'); // NEW DB Ref for Announcements
+    const dbPayslipMeta = firebase.database().ref('geekay_payslip_meta');
+    const storageRef = firebase.storage().ref();
 
     // ============================================================
     // Settings
@@ -858,7 +885,10 @@
         msgLoadMonth: 'This month could not be loaded. Please try again.',
         msgPdf: 'PDF could not be created. Please try again.',
         announcementLabel: 'Announcement',
-        btnUnderstood: 'Understood'
+        btnUnderstood: 'Understood',
+        downloadPayslip: '📄 Payslip',
+        payslipTitle: '📄 Download Payslip',
+        payslipDesc: 'Select the month to download your salary slip.'
       },
       ta: {
         locale: 'ta-IN',
@@ -948,7 +978,10 @@
         msgLoadMonth: 'இந்த மாதத்தின் பதிவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
         msgPdf: 'PDF உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
         announcementLabel: 'அறிவிப்பு',
-        btnUnderstood: 'புரிந்தது'
+        btnUnderstood: 'புரிந்தது',
+        downloadPayslip: '📄 சம்பள ரசீது',
+        payslipTitle: '📄 சம்பள ரசீது',
+        payslipDesc: 'உங்கள் சம்பள ரசீதைப் பதிவிறக்க மாதத்தைத் தேர்ந்தெடுக்கவும்.'
       },
       hi: {
         locale: 'hi-IN',
@@ -1028,7 +1061,7 @@
         notUpdatedYet: 'अभी अपडेट नहीं हुआ',
         pendingNote: '"जल्द" चिह्नित दिनों की उपस्थिति प्रक्रिया में है और अपडेट होते ही यहाँ दिखाई देगी। आज की उपस्थिति दिन पूरा होने के बाद जोड़ी जाएगी। आपके धैर्य के लिए धन्यवाद।',
         noRecordNote: '"रिकॉर्ड नहीं" चिह्नित दिनों के लिए आपकी उपस्थिति दर्ज नहीं है। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgCycleMismatch: 'इस उपस्थिति फ़ाइल की तारीखें इस अवधि से मेल ক্যাম नहीं खातीं। कृपया HR / एडमिन विभाग से संपर्क करें।',
+        msgCycleMismatch: 'इस उपस्थिति फ़ाइल की तारीखें इस अवधि से मेल नहीं खातीं। कृपया HR / एडमिन विभाग से संपर्क करें।',
         msgFileProtocol: 'इस पेज को वेब सर्वर (होस्टिंग) से खोलें। कंप्यूटर की फ़ाइल के रूप में खोलने पर डेटा पढ़ा नहीं जा सकता।',
         msgIdColumn: 'Master Data फ़ाइल में कर्मचारी ID कॉलम नहीं मिला। कृपया HR / एडमिन विभाग से संपर्क करें।',
         msgFileNotFound: 'Master Data फ़ाइल नहीं मिली। कृपया HR / एडमिन विभाग से संपर्क करें।',
@@ -1038,7 +1071,10 @@
         msgLoadMonth: 'इस महीने का डेटा लोड नहीं हो सका। कृपया फिर से प्रयास करें।',
         msgPdf: 'PDF नहीं बन सका। कृपया फिर से प्रयास करें।',
         announcementLabel: 'घोषणा',
-        btnUnderstood: 'समझ गया'
+        btnUnderstood: 'समझ गया',
+        downloadPayslip: '📄 वेतन पर्ची',
+        payslipTitle: '📄 वेतन पर्ची',
+        payslipDesc: 'अपनी वेतन पर्ची डाउनलोड करने के लिए महीना चुनें.'
       }
     };
 
@@ -1696,13 +1732,103 @@
     function pdfOverlayClick(e) { if (e.target.id === 'pdfModal') closePdfChoice(); }
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { closeStaffModal(); closePdfChoice(); closeAnnouncementPopup(); }
+      if (e.key === 'Escape') { closeStaffModal(); closePdfChoice(); closeAnnouncementPopup(); closePayslipModal(); }
     });
 
     function toggleAccount() {
       accountVisible = !accountVisible;
       document.getElementById('modalAccNo').textContent = accountVisible ? currentAccountFull : currentAccountMasked;
       document.getElementById('toggleAccBtn').textContent = accountVisible ? t('hideAcc') : t('showAcc');
+    }
+
+    // ============================================================
+    // PAYSLIP DOWNLOAD LOGIC 📄
+    // ============================================================
+    function openPayslipModal() { 
+      document.getElementById('payslipModal').style.display = 'flex'; 
+      document.getElementById('payslipErrorMsg').style.display = 'none'; 
+      loadPayslipMonths(); 
+    }
+    
+    function closePayslipModal() { 
+      document.getElementById('payslipModal').style.display = 'none'; 
+    }
+
+    async function loadPayslipMonths() {
+      const selectEl = document.getElementById('payslipMonthSelect');
+      const btnEl = document.getElementById('btnDownloadPayslip');
+      selectEl.innerHTML = '<option value="">Loading...</option>';
+      btnEl.disabled = true;
+
+      try {
+        const snap = await dbPayslipMeta.once('value');
+        const data = snap.val() || {};
+        const months = Object.keys(data);
+        
+        const publishedMonths = [];
+        months.forEach(k => {
+          if (data[k].published) {
+            publishedMonths.push({ key: k, display: data[k].monthDisplay, date: data[k].lastUpdated });
+          }
+        });
+
+        if (publishedMonths.length === 0) {
+          selectEl.innerHTML = '<option value="">' + (currentLang === 'ta' ? 'ரசீதுகள் எதுவும் இல்லை' : currentLang === 'hi' ? 'कोई पर्ची उपलब्ध नहीं है' : 'No payslips available yet') + '</option>';
+          return;
+        }
+
+        publishedMonths.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        selectEl.innerHTML = '<option value="">' + (currentLang === 'ta' ? '-- மாதத்தைத் தேர்ந்தெடுக்கவும் --' : currentLang === 'hi' ? '-- महीना चुनें --' : '-- Select Month --') + '</option>';
+        publishedMonths.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.key;
+          opt.textContent = m.display;
+          selectEl.appendChild(opt);
+        });
+        
+        selectEl.onchange = () => { btnEl.disabled = !selectEl.value; };
+      } catch (e) {
+        console.error(e);
+        selectEl.innerHTML = '<option value="">Error loading data</option>';
+      }
+    }
+
+    async function downloadEmployeePayslip() {
+      const monthKey = document.getElementById('payslipMonthSelect').value;
+      if (!monthKey || !currentData) return;
+      
+      const empId = currentData.empId;
+      const btn = document.getElementById('btnDownloadPayslip');
+      const errMsg = document.getElementById('payslipErrorMsg');
+      
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Fetching...';
+      errMsg.style.display = 'none';
+
+      try {
+        const snap = await dbPayslipMeta.child(monthKey).once('value');
+        const meta = snap.val();
+        if(!meta) throw new Error("Metadata missing");
+        
+        const folderPath = meta.folderPath;
+        const exactFileName = empId + ".pdf";
+        
+        const fileRef = storageRef.child(`${folderPath}/${exactFileName}`);
+        const url = await fileRef.getDownloadURL();
+        
+        window.open(url, '_blank');
+        closePayslipModal();
+      } catch (e) {
+        console.error("Payslip fetch error:", e);
+        errMsg.textContent = currentLang === 'ta' ? "மன்னிக்கவும், இந்த மாதத்திற்கான உங்கள் சம்பள ரசீது கிடைக்கவில்லை அல்லது பதிவேற்றப்படவில்லை." : 
+                             currentLang === 'hi' ? "क्षमा करें, इस महीने के लिए आपकी वेतन पर्ची उपलब्ध नहीं है।" : 
+                             "Sorry, your payslip for this month is not available or not uploaded yet.";
+        errMsg.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '⬇️ Download PDF';
+      }
     }
 
     // ============================================================
