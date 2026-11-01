@@ -1061,7 +1061,7 @@
         notUpdatedYet: 'अभी अपडेट नहीं हुआ',
         pendingNote: '"जल्द" चिह्नित दिनों की उपस्थिति प्रक्रिया में है और अपडेट होते ही यहाँ दिखाई देगी। आज की उपस्थिति दिन पूरा होने के बाद जोड़ी जाएगी। आपके धैर्य के लिए धन्यवाद।',
         noRecordNote: '"रिकॉर्ड नहीं" चिह्नित दिनों के लिए आपकी उपस्थिति दर्ज नहीं है। कृपया HR / एडमिन विभाग से संपर्क करें।',
-        msgCycleMismatch: 'इस उपस्थिति फ़ाइल की तारीखें इस अवधि से मेल नहीं खातीं। कृपया HR / एडमिन विभाग से संपर्क करें।',
+        msgCycleMismatch: 'इस उपस्थिति फ़ाइल की तारीखें इस अवधि से मेल ক্যাম खातीं। कृपया HR / एडमिन विभाग से संपर्क करें।',
         msgFileProtocol: 'इस पेज को वेब सर्वर (होस्टिंग) से खोलें। कंप्यूटर की फ़ाइल के रूप में खोलने पर डेटा पढ़ा नहीं जा सकता।',
         msgIdColumn: 'Master Data फ़ाइल में कर्मचारी ID कॉलम नहीं मिला। कृपया HR / एडमिन विभाग से संपर्क करें।',
         msgFileNotFound: 'Master Data फ़ाइल नहीं मिली। कृपया HR / एडमिन विभाग से संपर्क करें।',
@@ -1742,8 +1742,10 @@
     }
 
     // ============================================================
-    // PAYSLIP DOWNLOAD LOGIC 📄
+    // PAYSLIP DOWNLOAD LOGIC 📄 (VIA APPS SCRIPT WEB APP)
     // ============================================================
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwUXA1vZpcwwdRLhx7BJcrfDEZybRhlmYD4Qvywu-hcgM7eP5HoTKAixIAUUS5PPfU_/exec"; 
+    
     function openPayslipModal() { 
       document.getElementById('payslipModal').style.display = 'flex'; 
       document.getElementById('payslipErrorMsg').style.display = 'none'; 
@@ -1796,6 +1798,9 @@
 
     async function downloadEmployeePayslip() {
       const monthKey = document.getElementById('payslipMonthSelect').value;
+      const pwdInput = prompt("For security, please enter your login password again to download the payslip:");
+      
+      if (!pwdInput) return; // User cancelled
       if (!monthKey || !currentData) return;
       
       const empId = currentData.empId;
@@ -1803,27 +1808,44 @@
       const errMsg = document.getElementById('payslipErrorMsg');
       
       btn.disabled = true;
-      btn.innerHTML = '⏳ Fetching...';
+      btn.innerHTML = '⏳ Securely Fetching...';
       errMsg.style.display = 'none';
 
       try {
-        const snap = await dbPayslipMeta.child(monthKey).once('value');
-        const meta = snap.val();
-        if(!meta) throw new Error("Metadata missing");
+        // Construct the GET request URL with parameters
+        const requestUrl = `${APPS_SCRIPT_WEB_APP_URL}?empId=${encodeURIComponent(empId)}&pwd=${encodeURIComponent(pwdInput)}&month=${encodeURIComponent(monthKey)}`;
         
-        const folderPath = meta.folderPath;
-        const exactFileName = empId + ".pdf";
+        // Fetch from Apps Script
+        const response = await fetch(requestUrl);
+        const result = await response.json();
         
-        const fileRef = storageRef.child(`${folderPath}/${exactFileName}`);
-        const url = await fileRef.getDownloadURL();
-        
-        window.open(url, '_blank');
-        closePayslipModal();
+        if (result.success) {
+          // Convert Base64 back to Blob and Download
+          const byteCharacters = atob(result.data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], {type: result.mimeType});
+          
+          // Create download link
+          const link = document.createElement('a');
+          link.href = window.URL.createObjectURL(blob);
+          link.download = result.fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          closePayslipModal();
+        } else {
+           throw new Error(result.error || "Unknown Error");
+        }
       } catch (e) {
         console.error("Payslip fetch error:", e);
-        errMsg.textContent = currentLang === 'ta' ? "மன்னிக்கவும், இந்த மாதத்திற்கான உங்கள் சம்பள ரசீது கிடைக்கவில்லை அல்லது பதிவேற்றப்படவில்லை." : 
-                             currentLang === 'hi' ? "क्षमा करें, इस महीने के लिए आपकी वेतन पर्ची उपलब्ध नहीं है।" : 
-                             "Sorry, your payslip for this month is not available or not uploaded yet.";
+        errMsg.textContent = e.message.includes("Invalid") ? 
+          "Incorrect password." : 
+          "Sorry, your payslip is not available or server is busy. Please try again.";
         errMsg.style.display = 'block';
       } finally {
         btn.disabled = false;
