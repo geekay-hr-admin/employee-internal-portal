@@ -104,6 +104,23 @@
     }
     .btn-primary:hover { background: #2f855a; }
 
+    .btn-danger {
+      background: #e53e3e;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 13px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .btn-danger:hover { background: #c53030; }
+
     /* Dashboard Layout */
     .dashboard-section { 
       padding: 30px; 
@@ -128,6 +145,7 @@
       display: flex;
       align-items: center;
       gap: 15px;
+      flex-wrap: wrap;
     }
 
     .floating-input-group { 
@@ -144,11 +162,55 @@
       background: #f8fafc; 
       outline: none; 
       min-width: 150px;
+      font-family: inherit;
     }
 
     .floating-input-group input:focus {
       border-color: #3182ce;
       background: white;
+    }
+
+    /* Modal Form Inputs specific */
+    .modal-input-group {
+      position: relative;
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    
+    .modal-input-group input {
+      width: 100%;
+      padding: 15px 5px 10px 5px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a202c;
+      border: none;
+      border-bottom: 2px solid #cbd5e1;
+      background: transparent;
+      outline: none;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+    
+    .modal-input-group label {
+      position: absolute;
+      top: 15px;
+      left: 5px;
+      font-size: 14px;
+      color: #718096;
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+    
+    .modal-input-group input:focus {
+      border-bottom-color: #e53e3e;
+    }
+    
+    .modal-input-group input:focus ~ label, 
+    .modal-input-group input:not(:placeholder-shown) ~ label {
+      top: -10px;
+      font-size: 12px;
+      color: #e53e3e;
+      font-weight: 600;
     }
 
     .stat-summary {
@@ -226,6 +288,91 @@
       font-weight: 500;
     }
 
+    /* Modals System */
+    .modal-overlay { 
+      display: none; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0,0,0,0.6); 
+      backdrop-filter: blur(4px); 
+      z-index: 2000; 
+      justify-content: center; 
+      align-items: center; 
+    }
+    
+    .modal-content { 
+      background: white; 
+      width: 90%; 
+      max-width: 500px; 
+      border-radius: 12px; 
+      padding: 30px; 
+      text-align: left; 
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); 
+      position: relative; 
+      animation: popIn 0.3s ease; 
+      border-top: 5px solid #e53e3e;
+    }
+
+    @keyframes popIn { 
+      0% { transform: scale(0.95); opacity: 0; } 
+      100% { transform: scale(1); opacity: 1; } 
+    }
+
+    .fs-close-btn { 
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #edf2f7; 
+      color: #4a5568; 
+      border: none; 
+      width: 32px; 
+      height: 32px; 
+      border-radius: 50%; 
+      font-size: 16px; 
+      font-weight: 700; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      transition: background 0.2s; 
+    }
+    
+    .fs-close-btn:hover { 
+      background: #e2e8f0;
+      color: #e53e3e; 
+    }
+
+    .radio-group { 
+      display: flex; 
+      flex-direction: column;
+      gap: 15px; 
+      margin-bottom: 25px; 
+      margin-top: 15px;
+      background: #f8fafc;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #edf2f7;
+    }
+    
+    .radio-label { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      font-size: 14px; 
+      font-weight: 500; 
+      cursor: pointer; 
+      color: #2d3748; 
+    }
+    
+    .radio-label input { 
+      width: 16px; 
+      height: 16px; 
+      cursor: pointer; 
+    }
+
     /* Loading Overlay */
     .loading-overlay { 
       position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
@@ -244,6 +391,14 @@
       margin-bottom: 15px;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .filter-card { flex-direction: column; align-items: flex-start; }
+      .filter-group { width: 100%; flex-wrap: wrap; }
+      .filter-group .btn-outline, .filter-group .btn-primary, .filter-group .btn-danger { flex: 1; justify-content: center; }
+      .floating-input-group { flex: 1; min-width: 100%; }
+    }
 
   </style>
 </head>
@@ -283,6 +438,8 @@
       <div class="filter-group">
         <div class="stat-summary" id="recordCountMsg">Showing <strong>0</strong> logins</div>
         <button type="button" class="btn-primary" onclick="exportToExcel()">⬇️ Download Multi-Sheet Excel</button>
+        <!-- NEW: Clear Logs Button -->
+        <button type="button" class="btn-danger" onclick="openClearLogsModal()">🗑️ Clear Logs</button>
       </div>
     </div>
 
@@ -307,6 +464,63 @@
 
   </div>
 
+  <!-- NEW: Clear Logs Modal -->
+  <div class="modal-overlay" id="clearLogsModal" onclick="if(event.target.id==='clearLogsModal') closeClearLogsModal()">
+    <div class="modal-content">
+      <button class="fs-close-btn" onclick="closeClearLogsModal()">&times;</button>
+      
+      <div style="font-size: 20px; font-weight: 700; color: #1a202c; margin-bottom: 5px;">🗑️ Delete Activity Logs</div>
+      <div style="font-size: 13.5px; color: #4a5568; margin-bottom: 10px;">Select the logs you want to permanently delete from the database. This action cannot be undone.</div>
+      
+      <div class="radio-group">
+        <label class="radio-label">
+          <input type="radio" name="deleteType" value="specific_date" checked onchange="toggleDeleteType()"> 
+          Delete a Specific Date
+        </label>
+        <div id="divSpecificDate" style="margin-left: 26px; margin-top: 5px;">
+          <input type="date" id="delSpecificDate" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-family: inherit;">
+        </div>
+
+        <label class="radio-label" style="margin-top: 10px;">
+          <input type="radio" name="deleteType" value="date_range" onchange="toggleDeleteType()"> 
+          Delete a Date Range
+        </label>
+        <div id="divDateRange" style="display: none; margin-left: 26px; margin-top: 5px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div style="font-size: 11px; color: #718096; margin-bottom: 2px;">From Date:</div>
+            <input type="date" id="delFromDate" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-family: inherit;">
+          </div>
+          <div>
+            <div style="font-size: 11px; color: #718096; margin-bottom: 2px;">To Date:</div>
+            <input type="date" id="delToDate" style="padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; font-family: inherit;">
+          </div>
+        </div>
+
+        <label class="radio-label" style="margin-top: 10px; color: #e53e3e; font-weight: 600;">
+          <input type="radio" name="deleteType" value="all" onchange="toggleDeleteType()"> 
+          Delete ALL Logs Completely
+        </label>
+      </div>
+
+      <div style="background: #fff5f5; border-left: 3px solid #e53e3e; padding: 10px; margin-bottom: 20px; border-radius: 0 4px 4px 0;">
+        <div style="font-size: 12px; color: #c53030; font-weight: 500;">
+          * Security Verification: Please enter your Admin Password to confirm deletion.
+        </div>
+      </div>
+
+      <div class="modal-input-group">
+        <input type="password" id="delAdminPwd" placeholder=" " autocomplete="new-password">
+        <label>Admin Password</label>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
+        <button type="button" class="btn-outline" style="color: #4a5568; border-color: #cbd5e1;" onclick="closeClearLogsModal()">Cancel</button>
+        <button type="button" class="btn-danger" onclick="executeDeleteLogs()">Confirm & Delete</button>
+      </div>
+
+    </div>
+  </div>
+
   <script>
     // ============================================================
     // FIREBASE INITIALIZATION & SECURITY
@@ -323,27 +537,49 @@
     
     firebase.initializeApp(firebaseConfig);
     const dbLogs = firebase.database().ref('geekay_login_logs');
+    const dbAdmins = firebase.database().ref('geekay_admins'); // For Admin verification
     
     let allLogs = [];
     let currentFilteredLogs = [];
+    let loggedInAdminObj = null;
 
     // Security Check: Only allow logged-in admins
     window.addEventListener('DOMContentLoaded', async function () {
       const loggedInId = sessionStorage.getItem('geekay_emp_id');
       
-      // We check if it's admin view (or if it's accessed via admin dashboard)
-      // Since this is a standalone tool, we assume basic admin validation.
       if(!loggedInId) {
         alert("Security Alert: Unauthorized access.");
         window.close();
         return;
       }
       
-      // Set today's date as default
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('dateFilter').value = today;
+      try {
+        // Fetch Admin Object for verification
+        const snap = await dbAdmins.once('value');
+        const adminData = snap.val() || {};
+        const adminDB = Object.values(adminData);
+        loggedInAdminObj = adminDB.find(a => a.id.toLowerCase() === loggedInId.toLowerCase());
+        
+        if (!loggedInAdminObj && loggedInId === "000000123") {
+            // Fallback for default master
+            loggedInAdminObj = { id: "000000123", pwd: "Admin0000" };
+        }
+        
+        if (!loggedInAdminObj) {
+            alert("Security Alert: Unauthorized access.");
+            window.close();
+            return;
+        }
 
-      await fetchLogs();
+        // Set today's date as default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('dateFilter').value = today;
+
+        await fetchLogs();
+      } catch (e) {
+        console.error("Auth init failed", e);
+        document.getElementById('loadingOverlay').classList.remove('show');
+      }
     });
 
     // ============================================================
@@ -356,6 +592,11 @@
         
         // Convert to array and sort by timestamp (newest first)
         allLogs = Object.values(data).sort((a, b) => b.timestamp - a.timestamp);
+        // Add DB Key to each log object so we can delete them specifically
+        Object.keys(data).forEach(k => {
+           const logObj = allLogs.find(l => l.timestamp === data[k].timestamp && l.empId === data[k].empId);
+           if (logObj) logObj.dbKey = k;
+        });
         
         filterDataByDate();
       } catch (e) {
@@ -430,7 +671,7 @@
     }
 
     // ============================================================
-    // EXCEL MULTI-SHEET EXPORT (CORE LOGIC)
+    // EXCEL MULTI-SHEET EXPORT
     // ============================================================
     function exportToExcel() {
       if (allLogs.length === 0) {
@@ -444,54 +685,30 @@
         try {
           const wb = XLSX.utils.book_new();
           
-          // Group all logs by Date (ISO format YYYY-MM-DD for key)
           const groupedData = {};
-          
           allLogs.forEach(log => {
             const dKey = log.dateISO;
-            if (!groupedData[dKey]) {
-              groupedData[dKey] = [];
-            }
+            if (!groupedData[dKey]) groupedData[dKey] = [];
             groupedData[dKey].push(log);
           });
 
-          // Sort dates descending (newest day first)
           const sortedDates = Object.keys(groupedData).sort((a, b) => new Date(b) - new Date(a));
 
-          // Create a worksheet for each date
           sortedDates.forEach(dateStr => {
             const dayLogs = groupedData[dateStr];
-            
-            // Format sheet name (Excel limits to 31 chars, e.g., "Oct 25, 2026")
             const displayDate = dayLogs[0].dateString.replace(/,/g, ''); 
             const safeSheetName = displayDate.substring(0, 31);
             
-            // Prepare Data Array for this sheet
             const aoa = [
-              ["Employee ID", "Employee Name", "Login Date", "Login Time", "Device Used"] // Headers
+              ["Employee ID", "Employee Name", "Login Date", "Login Time", "Device Used"] 
             ];
             
             dayLogs.forEach(log => {
-              aoa.push([
-                log.empId,
-                log.empName,
-                log.dateString,
-                log.timeString,
-                log.deviceType
-              ]);
+              aoa.push([ log.empId, log.empName, log.dateString, log.timeString, log.deviceType ]);
             });
 
             const ws = XLSX.utils.aoa_to_sheet(aoa);
-            
-            // Set Column Widths for better readability
-            ws['!cols'] = [
-              { wch: 15 }, // ID
-              { wch: 30 }, // Name
-              { wch: 15 }, // Date
-              { wch: 15 }, // Time
-              { wch: 15 }  // Device
-            ];
-
+            ws['!cols'] = [ { wch: 15 }, { wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 } ];
             XLSX.utils.book_append_sheet(wb, ws, safeSheetName);
           });
           
@@ -504,7 +721,98 @@
         } finally {
           document.getElementById('loadingOverlay').classList.remove('show');
         }
-      }, 300); // UI delay
+      }, 300);
+    }
+
+    // ============================================================
+    // NEW: CLEAR LOGS / DELETION LOGIC (SECURE)
+    // ============================================================
+    function openClearLogsModal() {
+      document.getElementById('clearLogsModal').style.display = 'flex';
+      document.getElementById('delAdminPwd').value = '';
+      
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('delSpecificDate').value = today;
+      document.getElementById('delFromDate').value = '';
+      document.getElementById('delToDate').value = today;
+      
+      document.querySelector('input[name="deleteType"][value="specific_date"]').checked = true;
+      toggleDeleteType();
+    }
+
+    function closeClearLogsModal() { 
+      document.getElementById('clearLogsModal').style.display = 'none'; 
+    }
+
+    function toggleDeleteType() {
+      const type = document.querySelector('input[name="deleteType"]:checked').value;
+      document.getElementById('divSpecificDate').style.display = (type === 'specific_date') ? 'block' : 'none';
+      document.getElementById('divDateRange').style.display = (type === 'date_range') ? 'flex' : 'none';
+    }
+
+    async function executeDeleteLogs() {
+      const type = document.querySelector('input[name="deleteType"]:checked').value;
+      const pwd = document.getElementById('delAdminPwd').value.trim();
+
+      if (!loggedInAdminObj || pwd !== loggedInAdminObj.pwd) {
+          return alert("Security Error: Incorrect Admin Password!");
+      }
+
+      if (allLogs.length === 0) return alert("There are no logs in the database to delete.");
+
+      let keysToDelete = [];
+
+      if (type === 'all') {
+          keysToDelete = allLogs.map(l => l.dbKey);
+      } 
+      else if (type === 'specific_date') {
+          const specDate = document.getElementById('delSpecificDate').value;
+          if (!specDate) return alert("Please select a date to delete.");
+          keysToDelete = allLogs.filter(l => l.dateISO === specDate).map(l => l.dbKey);
+      } 
+      else if (type === 'date_range') {
+          const fromD = document.getElementById('delFromDate').value;
+          const toD = document.getElementById('delToDate').value;
+          if (!fromD || !toD) return alert("Please select both From and To dates.");
+          if (fromD > toD) return alert("From Date cannot be greater than To Date.");
+          
+          keysToDelete = allLogs.filter(l => l.dateISO >= fromD && l.dateISO <= toD).map(l => l.dbKey);
+      }
+
+      if (keysToDelete.length === 0) {
+          return alert("No log entries match your selected criteria. Nothing to delete.");
+      }
+
+      // Final Warning
+      if(!confirm(`Are you absolutely sure? You are about to permanently delete ${keysToDelete.length} login records.`)) {
+          return;
+      }
+
+      document.getElementById('loadingOverlay').classList.add('show');
+      closeClearLogsModal();
+
+      try {
+          // If it's ALL, just wipe the node for speed
+          if (type === 'all') {
+              await dbLogs.remove();
+          } else {
+              // Delete specifically filtered keys
+              const updates = {};
+              keysToDelete.forEach(k => { updates[k] = null; });
+              await dbLogs.update(updates);
+          }
+          
+          alert(`${keysToDelete.length} records successfully deleted.`);
+          
+          // Re-fetch and re-render
+          await fetchLogs();
+
+      } catch (e) {
+          console.error("Deletion Error:", e);
+          alert("An error occurred while deleting data.");
+      } finally {
+          document.getElementById('loadingOverlay').classList.remove('show');
+      }
     }
 
   </script>
