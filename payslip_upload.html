@@ -793,7 +793,9 @@
           (snap) => {
             lastActivity = Date.now();
             const pct = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
-            $('progressSub').textContent = `Connected. Sending ${item.storedName}: ${pct}%`;
+            $('progressSub').textContent = snap.bytesTransferred > 0
+              ? `Sending ${item.storedName}: ${pct}%`
+              : `Waiting for Firebase Storage to respond for ${item.storedName}...`;
           },
           (err) => {
             finish();
