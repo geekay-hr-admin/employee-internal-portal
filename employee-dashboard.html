@@ -488,6 +488,12 @@
     <button type="button" class="admin-close-btn" id="adminCloseBtn" onclick="window.close()" title="Close Tab">&times;</button>
   </div>
 
+  <!-- NEW: Scrolling Announcement Bar -->
+  <div id="scrollingNoticeContainer" style="display: none; background: #ebf8ff; border-bottom: 1px solid #bee3f8; padding: 8px 16px; color: #2b6cb0; font-size: 14px; font-weight: 600; align-items: center; gap: 10px; z-index: 400; position: relative;">
+    <span style="flex-shrink: 0;">📢 <span data-i18n="announcementLabel">Announcement</span>:</span>
+    <marquee id="scrollingNoticeText" style="flex: 1;" scrollamount="5"></marquee>
+  </div>
+
   <!-- Dashboard -->
   <div class="dashboard-section" id="dashboardSection">
 
@@ -662,6 +668,20 @@
     </div>
   </div>
 
+  <!-- NEW: Announcement Popup Modal -->
+  <div class="modal-overlay" id="announcementPopupModal" style="z-index: 2500;" onclick="if(event.target.id==='announcementPopupModal') closeAnnouncementPopup()">
+    <div class="modal-content" style="max-width: 500px; border-top: 5px solid #dd6b20;">
+      <button type="button" class="close-modal" onclick="closeAnnouncementPopup()" aria-label="Close">&times;</button>
+      <div class="modal-header" id="popupNoticeTitle" style="color: #dd6b20; border-bottom: none; margin-bottom: 10px; padding-bottom: 0;">Notice</div>
+      <div class="modal-section" style="margin-bottom: 0;">
+        <div id="popupNoticeMessage" style="font-size: 15px; color: #2d3748; line-height: 1.6; text-align: left; padding: 10px 0; white-space: pre-wrap;"></div>
+      </div>
+      <div style="text-align: right; margin-top: 20px;">
+        <button type="button" class="btn btn-primary" style="background: #3182ce; color: white; padding: 8px 20px; border-radius: 6px;" onclick="closeAnnouncementPopup()" data-i18n="btnUnderstood">Understood</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Loading screen (shown on start) -->
   <div class="loading-overlay" id="loadingOverlay" role="status" aria-live="polite">
     <div class="rainbow-ring"></div>
@@ -699,6 +719,7 @@
     firebase.initializeApp(firebaseConfig);
     const dbMaster = firebase.database().ref('geekay_master_data');
     const dbAttendance = firebase.database().ref('geekay_attendance');
+    const dbAnnouncements = firebase.database().ref('geekay_announcements'); // NEW DB Ref for Announcements
 
     // ============================================================
     // Settings
@@ -803,7 +824,9 @@
         msgSystem: 'System error. Data could not be loaded. Please try again.',
         msgNoPassword: 'Your password could not be created because your name or date of birth is missing. Please contact HR / Admin.',
         msgLoadMonth: 'This month could not be loaded. Please try again.',
-        msgPdf: 'PDF could not be created. Please try again.'
+        msgPdf: 'PDF could not be created. Please try again.',
+        announcementLabel: 'Announcement',
+        btnUnderstood: 'Understood'
       },
       ta: {
         locale: 'ta-IN',
@@ -891,7 +914,9 @@
         msgSystem: 'கணினிப் பிழை. தரவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
         msgNoPassword: 'உங்கள் பெயர் அல்லது பிறந்த தேதி இல்லாததால் password உருவாக்க முடியவில்லை. தயவுசெய்து HR / நிர்வாகத் துறையைத் தொடர்பு கொள்ளவும்.',
         msgLoadMonth: 'இந்த மாதத்தின் பதிவை ஏற்ற முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
-        msgPdf: 'PDF உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.'
+        msgPdf: 'PDF உருவாக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+        announcementLabel: 'அறிவிப்பு',
+        btnUnderstood: 'புரிந்தது'
       },
       hi: {
         locale: 'hi-IN',
@@ -979,7 +1004,9 @@
         msgSystem: 'सिस्टम में त्रुटि। डेटा लोड नहीं हो सका। कृपया फिर से प्रयास करें।',
         msgNoPassword: 'आपका नाम या जन्म तिथि उपलब्ध न होने से पासवर्ड नहीं बन सका। कृपया HR / एडमिन विभाग से संपर्क करें।',
         msgLoadMonth: 'इस महीने का डेटा लोड नहीं हो सका। कृपया फिर से प्रयास करें।',
-        msgPdf: 'PDF नहीं बन सका। कृपया फिर से प्रयास करें।'
+        msgPdf: 'PDF नहीं बन सका। कृपया फिर से प्रयास करें।',
+        announcementLabel: 'घोषणा',
+        btnUnderstood: 'समझ गया'
       }
     };
 
@@ -1038,6 +1065,7 @@
     let existingCycles = new Set();  
     let preloadPromise = null;
     const monthCache = new Map();
+    let currentPopupNoticeId = null; // NEW: For announcement dismissal cache
 
     // ============================================================
     // Small helpers
@@ -1469,6 +1497,68 @@
     }
 
     // ============================================================
+    // NEW: ANNOUNCEMENTS RECEIVER LOGIC 📢
+    // ============================================================
+    async function loadAnnouncements() {
+      try {
+        const snap = await dbAnnouncements.once('value');
+        const data = snap.val() || {};
+        const notices = Object.values(data);
+        const now = new Date();
+
+        let scrollingTexts = [];
+        let popupToShow = null;
+
+        // Sort so newest notices process first
+        notices.sort((a, b) => b.id.localeCompare(a.id));
+
+        notices.forEach(n => {
+          const expiryDate = new Date(n.expiry);
+          if (expiryDate > now) { // Notice is Active
+            if (n.type === 'marquee') {
+              scrollingTexts.push(n.title + ": " + n.message);
+            } else if (n.type === 'popup') {
+              // Smart Cache: Check if user already closed it
+              const dismissKey = 'dismissed_' + currentData.empId + '_' + n.id;
+              if (!localStorage.getItem(dismissKey)) {
+                 if (!popupToShow) popupToShow = n; // Show the most recent un-dismissed popup
+              }
+            }
+          }
+        });
+
+        // 1. Process Marquee (Top Scrolling Bar)
+        const marqueeContainer = document.getElementById('scrollingNoticeContainer');
+        const marqueeText = document.getElementById('scrollingNoticeText');
+        if (scrollingTexts.length > 0) {
+           marqueeText.textContent = scrollingTexts.join('   ✦   ');
+           marqueeContainer.style.display = 'flex';
+        } else {
+           marqueeContainer.style.display = 'none';
+        }
+
+        // 2. Process Popup Modal
+        if (popupToShow) {
+           currentPopupNoticeId = popupToShow.id;
+           document.getElementById('popupNoticeTitle').textContent = popupToShow.title;
+           document.getElementById('popupNoticeMessage').textContent = popupToShow.message;
+           document.getElementById('announcementPopupModal').style.display = 'flex';
+        }
+
+      } catch (e) {
+        console.error("Error loading announcements from Cloud", e);
+      }
+    }
+
+    function closeAnnouncementPopup() {
+       if (currentPopupNoticeId && currentData && currentData.empId) {
+          const dismissKey = 'dismissed_' + currentData.empId + '_' + currentPopupNoticeId;
+          localStorage.setItem(dismissKey, 'true'); // Save strictly so it never shows again
+       }
+       document.getElementById('announcementPopupModal').style.display = 'none';
+    }
+
+    // ============================================================
     // Language, greeting and background animation
     // ============================================================
     function updateDynamicGreeting() {
@@ -1555,7 +1645,7 @@
     function pdfOverlayClick(e) { if (e.target.id === 'pdfModal') closePdfChoice(); }
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') { closeStaffModal(); closePdfChoice(); }
+      if (e.key === 'Escape') { closeStaffModal(); closePdfChoice(); closeAnnouncementPopup(); }
     });
 
     function toggleAccount() {
@@ -2162,6 +2252,9 @@
             console.error("Attendance file missing, showing empty dashboard.");
           }
         }
+
+        // NEW: Load announcements for the employee before showing dashboard
+        await loadAnnouncements();
 
         hideLoadingOverlay();
         showDashboard();
