@@ -425,6 +425,9 @@
           <button type="button" class="btn-primary" id="btnStartUpload" style="flex: 1; justify-content: center; padding: 12px; font-size: 15px;">
             🚀 Start Upload
           </button>
+          <button type="button" class="btn-outline" id="btnTestStorage" style="flex: 1; justify-content: center; padding: 12px; font-size: 15px;">
+            🔧 Test Storage Connection
+          </button>
           <button type="button" class="btn-outline" id="btnRetryFailed" style="display: none; flex: 1; justify-content: center; padding: 12px; font-size: 15px;">
             🔁 Retry Failed Files
           </button>
@@ -474,6 +477,7 @@
     // ============================================================
     const UPLOAD_CONCURRENCY = 4;      // files uploaded at the same time
     const MAX_RETRIES = 3;             // retries per file on network errors
+    const STALL_TIMEOUT_MS = 30000;    // abort a file if no data moves for this long
     const MAX_FILE_MB = 10;            // reject PDFs larger than this
     const DELETE_CONCURRENCY = 6;      // files deleted at the same time
     const AUTH_TIMEOUT_MS = 15000;     // give up if Firebase does not answer
@@ -564,8 +568,8 @@
       dbAdmins = firebase.database().ref('geekay_admins');
       dbPayslipMeta = firebase.database().ref('geekay_payslip_meta');
       const storage = firebase.storage();
-      storage.setMaxUploadRetryTime(120000);
-      storage.setMaxOperationRetryTime(60000);
+      storage.setMaxUploadRetryTime(30000);
+      storage.setMaxOperationRetryTime(30000);
       storageRef = storage.ref();
     }
 
@@ -649,6 +653,7 @@
       $('uploadMonthInput').disabled = uploading;
       $('pdfFilesInput').disabled = uploading;
       $('fileDropBox').classList.toggle('disabled', uploading);
+      $('btnTestStorage').style.display = uploading ? 'none' : 'flex';
       if (uploading) $('btnRetryFailed').style.display = 'none';
     }
 
@@ -738,39 +743,87 @@
       activeTasks.forEach((task) => { try { task.cancel(); } catch (e) { /* ignore */ } });
     }
 
+    const FATAL_CODES = [
+      'storage/unauthorized', 'storage/unauthenticated', 'storage/quota-exceeded',
+      'storage/bucket-not-found', 'storage/project-not-found',
+      'storage/invalid-default-bucket', 'storage/no-default-bucket'
+    ];
+    const CONNECTION_CODES = ['upload-timeout', 'storage/retry-limit-exceeded', 'storage/unknown', 'unknown'];
+
+    function friendlyError(code) {
+      switch (code) {
+        case 'storage/unauthorized':
+          return 'Permission denied: Firebase Storage Rules are blocking uploads (change the Storage Rules).';
+        case 'storage/unauthenticated':
+          return 'Storage requires Firebase login, but this page does not sign in (change the Storage Rules).';
+        case 'storage/bucket-not-found':
+        case 'storage/project-not-found':
+        case 'storage/invalid-default-bucket':
+        case 'storage/no-default-bucket':
+          return 'Storage bucket not found: Storage is not set up / not enabled, or the bucket name in firebaseConfig is wrong.';
+        case 'storage/quota-exceeded':
+          return 'Storage quota exceeded (free limit reached or billing plan problem).';
+        case 'upload-timeout':
+          return 'No data moved for ' + Math.round(STALL_TIMEOUT_MS / 1000) + ' seconds: Storage is not responding (network, firewall, ad-blocker or Storage not enabled).';
+        case 'storage/retry-limit-exceeded':
+          return 'Could not reach Firebase Storage in time (network, firewall, ad-blocker or Storage not enabled).';
+        default:
+          return 'Upload failed (' + code + ').';
+      }
+    }
+
     function uploadOnce(item, folderPath) {
       return new Promise((resolve, reject) => {
         const fileRef = storageRef.child(`${folderPath}/${item.storedName}`);
         const task = fileRef.put(item.file, { contentType: 'application/pdf' });
+        let lastActivity = Date.now();
+        let timedOut = false;
         activeTasks.add(task);
+
+        const watchdog = setInterval(() => {
+          if (Date.now() - lastActivity > STALL_TIMEOUT_MS) {
+            timedOut = true;
+            try { task.cancel(); } catch (e) { /* ignore */ }
+          }
+        }, 3000);
+        const finish = () => { clearInterval(watchdog); activeTasks.delete(task); };
+
         task.on(
           'state_changed',
-          null,
-          (err) => { activeTasks.delete(task); reject(err); },
-          () => { activeTasks.delete(task); resolve(); }
+          (snap) => {
+            lastActivity = Date.now();
+            const pct = snap.totalBytes ? Math.round((snap.bytesTransferred / snap.totalBytes) * 100) : 0;
+            $('progressSub').textContent = `Connected. Sending ${item.storedName}: ${pct}%`;
+          },
+          (err) => {
+            finish();
+            if (timedOut) reject({ code: 'upload-timeout' });
+            else reject(err);
+          },
+          () => { finish(); resolve(); }
         );
       });
     }
 
-    // returns: 'ok' | 'cancelled' | error message string
+    // returns: 'ok' | 'cancelled' | { code, fatal }
     async function uploadWithRetry(item, folderPath) {
-      let lastError = 'Unknown error';
+      let lastCode = 'unknown';
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         if (isUploadCancelled) return 'cancelled';
         try {
           await uploadOnce(item, folderPath);
           return 'ok';
         } catch (err) {
-          if (isUploadCancelled || (err && err.code === 'storage/canceled')) return 'cancelled';
-          lastError = (err && (err.code || err.message)) || 'Unknown error';
-          // Permission / quota errors will not fix themselves: stop retrying
-          if (err && (err.code === 'storage/unauthorized' || err.code === 'storage/quota-exceeded' || err.code === 'storage/unauthenticated')) {
-            return lastError;
-          }
+          if (isUploadCancelled) return 'cancelled';
+          const code = (err && (err.code || err.message)) || 'unknown';
+          if (code === 'storage/canceled') return 'cancelled';
+          console.error(`Upload attempt ${attempt} failed for ${item.storedName}:`, err);
+          lastCode = code;
+          if (FATAL_CODES.indexOf(code) >= 0) return { code: code, fatal: true };
           if (attempt < MAX_RETRIES) await sleep(800 * attempt);
         }
       }
-      return lastError;
+      return { code: lastCode, fatal: false };
     }
 
     async function runUpload(queue, monthKey, monthDisplay) {
@@ -780,7 +833,9 @@
       let done = 0;
       let successCount = 0;
       let nextIndex = 0;
+      let abortReason = '';
       const failures = [];
+      const okSet = new Set();
 
       const progressBar = $('uploadProgressBar');
       const updateProgress = (currentName) => {
@@ -795,6 +850,7 @@
       $('uploadProgressContainer').style.display = 'block';
       clearPanel($('resultPanel'));
       updateProgress('starting...');
+      $('progressSub').textContent = 'Connecting to Firebase Storage...';
 
       async function worker() {
         while (!isUploadCancelled) {
@@ -807,11 +863,19 @@
           if (result === 'ok') {
             successCount++;
             done++;
+            okSet.add(item.storedName);
           } else if (result === 'cancelled') {
             return;
           } else {
-            failures.push({ item: item, reason: result });
+            failures.push({ item: item, reason: friendlyError(result.code) });
             done++;
+            const connectionDead = successCount === 0 && CONNECTION_CODES.indexOf(result.code) >= 0;
+            if (result.fatal || connectionDead) {
+              abortReason = friendlyError(result.code);
+              isUploadCancelled = true;
+              activeTasks.forEach((task) => { try { task.cancel(); } catch (e) { /* ignore */ } });
+              return;
+            }
           }
           updateProgress(item.storedName);
         }
@@ -851,32 +915,31 @@
       }
 
       // Result summary
-      const wasCancelled = isUploadCancelled;
-      failedItems = failures.map((f) => f.item);
+      const wasStopped = isUploadCancelled;
+      failedItems = queue.filter((it) => !okSet.has(it.storedName));   // failed + cancelled + not started
 
-      const lines = [`Uploaded: ${successCount} | Failed: ${failures.length} | Total selected: ${total}`];
-      if (wasCancelled) lines.push(`Upload was stopped. ${total - done} file(s) were not uploaded.`);
-      if (metaError) lines.push('Files were uploaded, but the database record could not be updated. Please upload one file again or contact the developer.');
-      failures.slice(0, 50).forEach((f) => lines.push(`${f.item.storedName} - ${f.reason}`));
-      if (failures.length > 50) lines.push(`...and ${failures.length - 50} more`);
+      const notTried = total - successCount - failures.length;
+      const lines = [`Uploaded: ${successCount} | Failed: ${failures.length} | Not uploaded: ${Math.max(notTried, 0)} | Total selected: ${total}`];
+      if (abortReason) {
+        lines.push('STOPPED AUTOMATICALLY: ' + abortReason);
+        lines.push('Tip: click "Test Storage Connection" to see the exact cause.');
+      } else if (wasStopped) {
+        lines.push('Upload was stopped by you.');
+      }
+      if (metaError) lines.push('Files were uploaded, but the database record could not be updated (check Realtime Database Rules).');
+      failures.slice(0, 20).forEach((f) => lines.push(`${f.item.storedName} - ${f.reason}`));
+      if (failures.length > 20) lines.push(`...and ${failures.length - 20} more`);
 
-      const type = (failures.length === 0 && !wasCancelled && !metaError) ? 'ok' : (successCount > 0 ? 'warn' : 'err');
-      const title = wasCancelled ? 'Upload stopped' : (failures.length === 0 && !metaError ? 'Upload complete' : 'Upload finished with problems');
+      const allGood = failedItems.length === 0 && !metaError;
+      const type = allGood ? 'ok' : (successCount > 0 ? 'warn' : 'err');
+      const title = allGood ? 'Upload complete' : (abortReason ? 'Upload aborted' : (wasStopped ? 'Upload stopped' : 'Upload finished with problems'));
       setPanel($('resultPanel'), type, title, lines);
 
       // Reset the UI
       $('uploadProgressContainer').style.display = 'none';
       progressBar.style.width = '0%';
       setUploadingUI(false);
-
-      if (failedItems.length > 0 || (wasCancelled && done < total)) {
-        // keep not-yet-uploaded files + failed files for a quick retry
-        const remaining = queue.slice(nextIndex > total ? total : Math.min(nextIndex, total));
-        const retryMap = new Map();
-        failedItems.forEach((it) => retryMap.set(it.storedName, it));
-        if (wasCancelled) remaining.forEach((it) => { if (!retryMap.has(it.storedName)) retryMap.set(it.storedName, it); });
-        failedItems = Array.from(retryMap.values());
-      }
+      isUploadCancelled = false;
 
       if (failedItems.length > 0) {
         $('btnRetryFailed').textContent = `🔁 Retry ${failedItems.length} Remaining File(s)`;
@@ -888,6 +951,41 @@
         $('fileUploadLabel').textContent = DEFAULT_LABEL;
         $('fileUploadLabel').style.color = '#4a5568';
         selectedFiles = [];
+      }
+    }
+
+    // Quick self-test: uploads a tiny text file and shows the exact error if it fails
+    async function testStorageConnection() {
+      if (isUploading) return;
+      const btn = $('btnTestStorage');
+      const panel = $('resultPanel');
+      btn.disabled = true;
+      setPanel(panel, 'warn', 'Testing connection to Firebase Storage (up to 30 seconds)...', ['Bucket: ' + firebaseConfig.storageBucket]);
+
+      const lines = ['Bucket: ' + firebaseConfig.storageBucket];
+      const testRef = storageRef.child('_connection_test/test.txt');
+      try {
+        await Promise.race([
+          testRef.putString('connection test ' + new Date().toISOString()),
+          new Promise((_, reject) => setTimeout(() => reject({ code: 'upload-timeout' }), 30000))
+        ]);
+        lines.push('Upload test: SUCCESS');
+        try {
+          await testRef.delete();
+          lines.push('Cleanup: test file deleted.');
+        } catch (e) {
+          lines.push('Cleanup: test file left in _connection_test/ (harmless).');
+        }
+        lines.push('Storage is working. If PDF uploads still fail, the problem is in the Rules for the Payslips/ folder.');
+        setPanel(panel, 'ok', 'Storage connection is working', lines);
+      } catch (err) {
+        const code = (err && (err.code || err.message)) || 'unknown';
+        console.error('Storage test failed:', err);
+        lines.push('Upload test: FAILED (' + code + ')');
+        lines.push(friendlyError(code));
+        setPanel(panel, 'err', 'Storage connection problem', lines);
+      } finally {
+        btn.disabled = false;
       }
     }
 
@@ -1110,6 +1208,7 @@
       $('btnStartUpload').addEventListener('click', startBulkUpload);
       $('btnStopUpload').addEventListener('click', stopBulkUpload);
       $('btnRetryFailed').addEventListener('click', retryFailedUploads);
+      $('btnTestStorage').addEventListener('click', testStorageConnection);
 
       const dropBox = $('fileDropBox');
       ['dragenter', 'dragover'].forEach((evt) => dropBox.addEventListener(evt, (e) => {
