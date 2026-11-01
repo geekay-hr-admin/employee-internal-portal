@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Geekay Human Resources Pvt. Ltd. - Employee Login Activity Log</title>
+  
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Excel Export Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <!-- Firebase (V8 Compat for Global Scope Integration) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body { 
+      font-family: 'Poppins', 'Noto Sans Tamil', 'Noto Sans Devanagari', Arial, sans-serif; 
+      background: #f4f7f9; 
+      color: #2d3748; 
+      margin: 0; 
+      padding: 0; 
+      line-height: 1.5; 
+    }
+    
+    button { font-family: inherit; }
+
+    /* Navbar */
+    .navbar { 
+      position: sticky; 
+      top: 0; 
+      z-index: 500; 
+      background: #ffffff; 
+      padding: 12px 24px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+    }
+
+    .nav-title-row { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+    }
+
+    .admin-badge { 
+      background: #3182ce; 
+      color: white; 
+      padding: 3px 10px; 
+      border-radius: 6px; 
+      font-size: 11.5px; 
+      font-weight: 700; 
+      letter-spacing: 0.5px; 
+      text-transform: uppercase; 
+    }
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a202c;
+    }
+
+    .nav-right-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .btn-outline { 
+      background: white; 
+      color: #3182ce; 
+      border: 1px solid #3182ce; 
+      padding: 8px 16px; 
+      font-size: 13px; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: 600; 
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-outline:hover { background: #ebf8ff; }
+
+    .btn-primary { 
+      background: #38a169; 
+      color: white; 
+      border: none; 
+      padding: 8px 16px; 
+      font-size: 13px; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: 600; 
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .btn-primary:hover { background: #2f855a; }
+
+    /* Dashboard Layout */
+    .dashboard-section { 
+      padding: 30px; 
+      max-width: 1200px; 
+      margin: 0 auto; 
+    }
+
+    .filter-card {
+      background: white;
+      padding: 20px 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .floating-input-group { 
+      position: relative; 
+    }
+    
+    .floating-input-group input { 
+      padding: 10px 10px 8px 10px; 
+      font-size: 14px; 
+      font-weight: 600; 
+      color: #1a202c; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 6px;
+      background: #f8fafc; 
+      outline: none; 
+      min-width: 150px;
+    }
+
+    .floating-input-group input:focus {
+      border-color: #3182ce;
+      background: white;
+    }
+
+    .stat-summary {
+      font-size: 14px;
+      color: #4a5568;
+      font-weight: 500;
+    }
+
+    .stat-summary strong {
+      color: #1a202c;
+      font-size: 16px;
+    }
+
+    /* Table Design */
+    .table-container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    th, td {
+      padding: 15px 20px;
+      text-align: left;
+      border-bottom: 1px solid #edf2f7;
+    }
+
+    th {
+      background: #f8fafc;
+      color: #4a5568;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    tr:hover {
+      background: #fbfbfc;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .id-col { font-weight: 700; color: #3182ce; }
+    .name-col { font-weight: 600; color: #2d3748; }
+    .time-col { color: #718096; font-weight: 500; }
+    
+    .device-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .device-mobile { background: #fff5f5; color: #c53030; }
+    .device-desktop { background: #ebf8ff; color: #2b6cb0; }
+
+    .empty-state {
+      padding: 50px 20px;
+      text-align: center;
+      color: #718096;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay { 
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
+      z-index: 3000; background: #ffffff; 
+      display: flex; flex-direction: column; justify-content: center; align-items: center; 
+      opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease; 
+    }
+    .loading-overlay.show { opacity: 1; visibility: visible; }
+    
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3182ce;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 15px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  </style>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div class="loading-overlay show" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div style="font-size: 15px; font-weight: 600; color: #4a5568;">Loading Activity Logs...</div>
+  </div>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="nav-title-row">
+      <span class="admin-badge">Admin Tracker</span>
+      <span class="page-title">Employee Login Activity Log</span>
+    </div>
+    <div class="nav-right-container">
+      <button type="button" class="btn-outline" onclick="window.close()">✖ Close Tab</button>
+    </div>
+  </div>
+
+  <div class="dashboard-section">
+    
+    <!-- Controls & Filters -->
+    <div class="filter-card">
+      <div class="filter-group">
+        <div class="floating-input-group">
+          <input type="date" id="dateFilter" onchange="filterDataByDate()">
+        </div>
+        <div class="floating-input-group">
+          <input type="text" id="searchInput" placeholder="Search by ID or Name..." autocomplete="off" oninput="filterDataByDate()">
+        </div>
+        <button type="button" class="btn-outline" style="border-color:#cbd5e1; color:#718096;" onclick="resetFilters()">🔄 Reset</button>
+      </div>
+
+      <div class="filter-group">
+        <div class="stat-summary" id="recordCountMsg">Showing <strong>0</strong> logins</div>
+        <button type="button" class="btn-primary" onclick="exportToExcel()">⬇️ Download Multi-Sheet Excel</button>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 15%;">Employee ID</th>
+            <th style="width: 35%;">Employee Name</th>
+            <th style="width: 20%;">Date</th>
+            <th style="width: 15%;">Time</th>
+            <th style="width: 15%;">Device</th>
+          </tr>
+        </thead>
+        <tbody id="logsTableBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display: none;">No login activity found for the selected criteria.</div>
+    </div>
+
+  </div>
+
+  <script>
+    // ============================================================
+    // FIREBASE INITIALIZATION & SECURITY
+    // ============================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyC9mE0Xo1GWBin2ERwJOskd8Z8QUhRAmrw",
+      authDomain: "geekay-hr-portal.firebaseapp.com",
+      databaseURL: "https://geekay-hr-portal-default-rtdb.firebaseio.com",
+      projectId: "geekay-hr-portal",
+      storageBucket: "geekay-hr-portal.firebasestorage.app",
+      messagingSenderId: "1069583469203",
+      appId: "1:1069583469203:web:ba7505ca7c024251b7db66"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const dbLogs = firebase.database().ref('geekay_login_logs');
+    
+    let allLogs = [];
+    let currentFilteredLogs = [];
+
+    // Security Check: Only allow logged-in admins
+    window.addEventListener('DOMContentLoaded', async function () {
+      const loggedInId = sessionStorage.getItem('geekay_emp_id');
+      
+      // We check if it's admin view (or if it's accessed via admin dashboard)
+      // Since this is a standalone tool, we assume basic admin validation.
+      if(!loggedInId) {
+        alert("Security Alert: Unauthorized access.");
+        window.close();
+        return;
+      }
+      
+      // Set today's date as default
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('dateFilter').value = today;
+
+      await fetchLogs();
+    });
+
+    // ============================================================
+    // DATA FETCHING & RENDERING
+    // ============================================================
+    async function fetchLogs() {
+      try {
+        const snap = await dbLogs.once('value');
+        const data = snap.val() || {};
+        
+        // Convert to array and sort by timestamp (newest first)
+        allLogs = Object.values(data).sort((a, b) => b.timestamp - a.timestamp);
+        
+        filterDataByDate();
+      } catch (e) {
+        console.error("Error fetching logs", e);
+        document.getElementById('emptyState').style.display = 'block';
+        document.getElementById('emptyState').textContent = 'Error connecting to Cloud Database.';
+      } finally {
+        document.getElementById('loadingOverlay').classList.remove('show');
+      }
+    }
+
+    function filterDataByDate() {
+      const dateVal = document.getElementById('dateFilter').value;
+      const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      currentFilteredLogs = allLogs.filter(log => {
+        let matchDate = true;
+        let matchSearch = true;
+
+        if (dateVal) {
+          matchDate = log.dateISO === dateVal;
+        }
+
+        if (searchVal) {
+          matchSearch = log.empId.toLowerCase().includes(searchVal) || 
+                        log.empName.toLowerCase().includes(searchVal);
+        }
+
+        return matchDate && matchSearch;
+      });
+
+      renderTable();
+    }
+
+    function resetFilters() {
+      document.getElementById('dateFilter').value = '';
+      document.getElementById('searchInput').value = '';
+      filterDataByDate();
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('logsTableBody');
+      const emptyState = document.getElementById('emptyState');
+      const countMsg = document.getElementById('recordCountMsg');
+      
+      tbody.textContent = '';
+      
+      if (currentFilteredLogs.length === 0) {
+        emptyState.style.display = 'block';
+        countMsg.innerHTML = `Showing <strong>0</strong> logins`;
+        return;
+      }
+
+      emptyState.style.display = 'none';
+      countMsg.innerHTML = `Showing <strong>${currentFilteredLogs.length}</strong> logins`;
+
+      currentFilteredLogs.forEach(log => {
+        const tr = document.createElement('tr');
+        
+        let deviceIcon = log.deviceType === 'Mobile' ? '📱 Mobile' : '💻 Desktop';
+        let deviceClass = log.deviceType === 'Mobile' ? 'device-mobile' : 'device-desktop';
+
+        tr.innerHTML = `
+          <td class="id-col">${log.empId}</td>
+          <td class="name-col">${log.empName}</td>
+          <td class="time-col">${log.dateString}</td>
+          <td class="time-col" style="color:#1a202c; font-weight:600;">${log.timeString}</td>
+          <td><span class="device-badge ${deviceClass}">${deviceIcon}</span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ============================================================
+    // EXCEL MULTI-SHEET EXPORT (CORE LOGIC)
+    // ============================================================
+    function exportToExcel() {
+      if (allLogs.length === 0) {
+        alert("No activity data available to export.");
+        return;
+      }
+
+      document.getElementById('loadingOverlay').classList.add('show');
+      
+      setTimeout(() => {
+        try {
+          const wb = XLSX.utils.book_new();
+          
+          // Group all logs by Date (ISO format YYYY-MM-DD for key)
+          const groupedData = {};
+          
+          allLogs.forEach(log => {
+            const dKey = log.dateISO;
+            if (!groupedData[dKey]) {
+              groupedData[dKey] = [];
+            }
+            groupedData[dKey].push(log);
+          });
+
+          // Sort dates descending (newest day first)
+          const sortedDates = Object.keys(groupedData).sort((a, b) => new Date(b) - new Date(a));
+
+          // Create a worksheet for each date
+          sortedDates.forEach(dateStr => {
+            const dayLogs = groupedData[dateStr];
+            
+            // Format sheet name (Excel limits to 31 chars, e.g., "Oct 25, 2026")
+            const displayDate = dayLogs[0].dateString.replace(/,/g, ''); 
+            const safeSheetName = displayDate.substring(0, 31);
+            
+            // Prepare Data Array for this sheet
+            const aoa = [
+              ["Employee ID", "Employee Name", "Login Date", "Login Time", "Device Used"] // Headers
+            ];
+            
+            dayLogs.forEach(log => {
+              aoa.push([
+                log.empId,
+                log.empName,
+                log.dateString,
+                log.timeString,
+                log.deviceType
+              ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(aoa);
+            
+            // Set Column Widths for better readability
+            ws['!cols'] = [
+              { wch: 15 }, // ID
+              { wch: 30 }, // Name
+              { wch: 15 }, // Date
+              { wch: 15 }, // Time
+              { wch: 15 }  // Device
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, safeSheetName);
+          });
+          
+          const todayStr = new Date().toISOString().split('T')[0];
+          XLSX.writeFile(wb, `Employee_Login_Activity_${todayStr}.xlsx`);
+          
+        } catch (e) {
+          console.error(e);
+          alert("Error generating Excel report.");
+        } finally {
+          document.getElementById('loadingOverlay').classList.remove('show');
+        }
+      }, 300); // UI delay
+    }
+
+  </script>
+</body>
+</html>
