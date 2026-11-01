@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>Geekay Human Resources Pvt. Ltd. - Payslip Upload</title>
-  
+
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
+
   <!-- Firebase (V8 Compat for Global Scope Integration) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -16,68 +16,52 @@
   <style>
     * { box-sizing: border-box; }
 
-    body { 
-      font-family: 'Poppins', 'Noto Sans Tamil', 'Noto Sans Devanagari', Arial, sans-serif; 
-      background: #f4f7f9; 
-      color: #2d3748; 
-      margin: 0; 
-      padding: 0; 
-      line-height: 1.5; 
+    body {
+      font-family: 'Poppins', 'Noto Sans Tamil', 'Noto Sans Devanagari', Arial, sans-serif;
+      background: #f4f7f9;
+      color: #2d3748;
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
     }
-    
+
     button { font-family: inherit; }
 
     /* Navbar */
-    .navbar { 
-      position: sticky; 
-      top: 0; 
-      z-index: 500; 
-      background: #ffffff; 
-      padding: 12px 24px; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-    }
-
-    .nav-title-row { 
-      display: flex; 
-      align-items: center; 
-      gap: 12px; 
-    }
-
-    .admin-badge { 
-      background: #3182ce; 
-      color: white; 
-      padding: 3px 10px; 
-      border-radius: 6px; 
-      font-size: 11.5px; 
-      font-weight: 700; 
-      letter-spacing: 0.5px; 
-      text-transform: uppercase; 
-    }
-
-    .page-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #1a202c;
-    }
-
-    .nav-right-container {
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 500;
+      background: #ffffff;
+      padding: 12px 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 15px;
     }
+    .nav-title-row { display: flex; align-items: center; gap: 12px; }
+    .admin-badge {
+      background: #3182ce;
+      color: white;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .page-title { font-size: 18px; font-weight: 700; color: #1a202c; }
+    .nav-right-container { display: flex; align-items: center; gap: 15px; }
 
-    .btn-outline { 
-      background: white; 
-      color: #3182ce; 
-      border: 1px solid #3182ce; 
-      padding: 8px 16px; 
-      font-size: 13px; 
-      border-radius: 6px; 
-      cursor: pointer; 
-      font-weight: 600; 
+    .btn-outline {
+      background: white;
+      color: #3182ce;
+      border: 1px solid #3182ce;
+      padding: 8px 16px;
+      font-size: 13px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
       transition: all 0.2s;
       display: flex;
       align-items: center;
@@ -85,15 +69,15 @@
     }
     .btn-outline:hover { background: #ebf8ff; }
 
-    .btn-primary { 
-      background: #38a169; 
-      color: white; 
-      border: none; 
-      padding: 8px 16px; 
-      font-size: 13px; 
-      border-radius: 6px; 
-      cursor: pointer; 
-      font-weight: 600; 
+    .btn-primary {
+      background: #38a169;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      font-size: 13px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
       transition: background 0.2s;
       display: flex;
       align-items: center;
@@ -112,17 +96,18 @@
       cursor: pointer;
       font-weight: 600;
       transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     .btn-danger:hover { background: #c53030; }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-primary:disabled,
+    .btn-danger:disabled,
+    .btn-outline:disabled { opacity: 0.6; cursor: not-allowed; }
 
     /* Dashboard Layout */
-    .dashboard-section { 
-      padding: 30px; 
-      max-width: 900px; 
-      margin: 0 auto; 
-    }
-
+    .dashboard-section { padding: 30px; max-width: 900px; margin: 0 auto; }
     .content-card {
       background: white;
       padding: 30px;
@@ -132,197 +117,163 @@
     }
 
     /* Mode Tabs */
-    .mode-tabs { 
-      display: flex; 
-      background: #edf2f7; 
-      padding: 4px; 
-      border-radius: 8px; 
-      gap: 4px; 
-      margin-bottom: 25px; 
-      width: fit-content; 
+    .mode-tabs {
+      display: flex;
+      background: #edf2f7;
+      padding: 4px;
+      border-radius: 8px;
+      gap: 4px;
+      margin-bottom: 25px;
+      width: fit-content;
+      max-width: 100%;
     }
-    
-    .mode-tab-btn { 
-      background: transparent; 
-      border: none; 
-      padding: 8px 16px; 
-      font-size: 13.5px; 
-      font-weight: 600; 
-      color: #4a5568; 
-      border-radius: 6px; 
-      cursor: pointer; 
-      transition: all 0.2s; 
+    .mode-tab-btn {
+      background: transparent;
+      border: none;
+      padding: 8px 16px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #4a5568;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    
-    .mode-tab-btn.active { 
-      background: white; 
-      color: #3182ce; 
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+    .mode-tab-btn.active {
+      background: white;
+      color: #3182ce;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
     /* Inputs */
-    .floating-input-group { 
-      position: relative; 
-      margin-bottom: 25px; 
-    }
-    
-    .floating-input-group input { 
+    .floating-input-group { position: relative; margin-bottom: 25px; }
+    .floating-input-group input {
       width: 100%;
-      padding: 15px 5px 10px 5px; 
-      font-size: 15px; 
-      font-weight: 600; 
-      color: #1a202c; 
+      padding: 15px 5px 10px 5px;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a202c;
       border: none;
       border-bottom: 2px solid #cbd5e1;
-      background: transparent; 
-      outline: none; 
+      background: transparent;
+      outline: none;
       transition: all 0.3s ease;
       font-family: inherit;
     }
-
-    .floating-input-group label { 
-      position: absolute; 
-      top: 15px; 
-      left: 5px; 
-      font-size: 14px; 
-      color: #718096; 
-      transition: all 0.3s ease; 
-      pointer-events: none; 
-    }
-
-    .floating-input-group input:focus {
-      border-bottom-color: #3182ce;
-    }
-
-    .floating-input-group input:focus ~ label, 
-    .floating-input-group input:not(:placeholder-shown) ~ label { 
-      top: -10px; 
-      font-size: 12px; 
-      color: #3182ce; 
-      font-weight: 600; 
-    }
-
-    /* File Upload Box */
-    .file-upload-box { 
-      border: 2px dashed #cbd5e1; 
-      padding: 30px 20px; 
-      text-align: center; 
-      border-radius: 8px; 
-      background: #f8fafc; 
-      margin-bottom: 20px; 
-      transition: all 0.2s ease; 
-      cursor: pointer; 
-      display: block;
-    }
-    .file-upload-box:hover { 
-      border-color: #3182ce; 
-      background: #ebf8ff; 
-    }
-    .file-upload-box input[type="file"] { 
-      display: none; 
-    }
-    .file-upload-label { 
-      font-size: 14px; 
-      font-weight: 600; 
-      color: #4a5568; 
-      cursor: pointer; 
+    .floating-input-group label {
+      position: absolute;
+      top: 15px;
+      left: 5px;
+      font-size: 14px;
+      color: #718096;
+      transition: all 0.3s ease;
       pointer-events: none;
     }
+    .floating-input-group input:focus { border-bottom-color: #3182ce; }
+    .floating-input-group input:focus ~ label,
+    .floating-input-group input:not(:placeholder-shown) ~ label {
+      top: -10px;
+      font-size: 12px;
+      color: #3182ce;
+      font-weight: 600;
+    }
+    .floating-input-group input:disabled { opacity: 0.6; }
+
+    /* File Upload Box */
+    .file-upload-box {
+      border: 2px dashed #cbd5e1;
+      padding: 30px 20px;
+      text-align: center;
+      border-radius: 8px;
+      background: #f8fafc;
+      margin-bottom: 20px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: block;
+    }
+    .file-upload-box:hover,
+    .file-upload-box.drag-over { border-color: #3182ce; background: #ebf8ff; }
+    .file-upload-box.disabled { opacity: 0.6; pointer-events: none; }
+    .file-upload-box input[type="file"] { display: none; }
+    .file-upload-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: #4a5568;
+      cursor: pointer;
+      pointer-events: none;
+    }
+    .file-hint { font-size: 11px; color: #718096; margin-top: 5px; }
+
+    /* Selection / Result Panels */
+    .info-panel {
+      display: none;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+    .info-panel.warn { background: #fffaf0; border: 1px solid #fbd38d; color: #744210; }
+    .info-panel.ok { background: #f0fff4; border: 1px solid #9ae6b4; color: #22543d; }
+    .info-panel.err { background: #fff5f5; border: 1px solid #feb2b2; color: #742a2a; }
+    .info-panel ul { margin: 6px 0 0 0; padding-left: 18px; max-height: 140px; overflow-y: auto; }
 
     /* Progress Bar */
-    .progress-container {
-      display: none;
-      margin-top: 15px;
-      margin-bottom: 25px;
-    }
+    .progress-container { display: none; margin-top: 15px; margin-bottom: 25px; }
     .progress-text {
       font-size: 13px;
       font-weight: 600;
       color: #4a5568;
       display: flex;
       justify-content: space-between;
+      gap: 10px;
       margin-bottom: 5px;
     }
-    .progress-bar-bg {
-      background: #edf2f7; 
-      height: 8px; 
-      border-radius: 10px; 
+    .progress-text span:first-child {
       overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
-    .progress-bar-fill { 
-      background: #3182ce; 
-      height: 100%; 
-      width: 0%; 
-      transition: width 0.2s ease; 
-    }
+    .progress-bar-bg { background: #edf2f7; height: 8px; border-radius: 10px; overflow: hidden; }
+    .progress-bar-fill { background: #3182ce; height: 100%; width: 0%; transition: width 0.2s ease; }
+    .progress-sub { font-size: 12px; color: #718096; margin-top: 6px; }
 
     /* List Items */
-    .list-container { 
-      max-height: 400px; 
-      overflow-y: auto; 
-      border: 1px solid #e2e8f0; 
-      border-radius: 8px; 
+    .list-container {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
     }
-    
-    .list-item { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      padding: 15px 20px; 
-      border-bottom: 1px solid #edf2f7; 
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 20px;
+      border-bottom: 1px solid #edf2f7;
       background: white;
     }
-    
-    .list-item:last-child { 
-      border-bottom: none; 
-    }
-    
-    .item-info { 
-      display: flex; 
-      flex-direction: column; 
-      gap: 4px; 
-    }
-    
-    .item-title { 
-      font-size: 15px; 
-      font-weight: 700; 
-      color: #1a202c; 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-    }
-    
-    .item-sub { 
-      font-size: 13px; 
-      color: #718096; 
-      font-weight: 500; 
-    }
-
-    .item-actions {
+    .list-item:last-child { border-bottom: none; }
+    .item-info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .item-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a202c;
       display: flex;
-      gap: 10px;
       align-items: center;
+      gap: 8px;
     }
+    .item-sub { font-size: 13px; color: #718096; font-weight: 500; word-break: break-all; }
+    .item-actions { display: flex; gap: 10px; align-items: center; }
+    .toggle-wrap { display: flex; flex-direction: column; align-items: center; margin-right: 15px; }
 
     /* Toggle Switch */
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 44px;
-      height: 24px;
-    }
-    .switch input { 
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
     .slider {
       position: absolute;
       cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       background-color: #cbd5e1;
       transition: .3s;
       border-radius: 24px;
@@ -338,83 +289,55 @@
       transition: .3s;
       border-radius: 50%;
     }
-    input:checked + .slider {
-      background-color: #38a169;
-    }
-    input:checked + .slider:before {
-      transform: translateX(20px);
-    }
-    
-    .status-text {
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
+    input:checked + .slider { background-color: #38a169; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    .status-text { font-size: 12px; font-weight: 700; text-transform: uppercase; margin-top: 5px; }
     .text-pub { color: #38a169; }
     .text-unpub { color: #718096; }
 
-    /* Modals System */
-    .modal-overlay { 
-      display: none; 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: rgba(0,0,0,0.6); 
-      backdrop-filter: blur(4px); 
-      z-index: 2000; 
-      justify-content: center; 
-      align-items: center; 
+    /* Modals */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
     }
-    
-    .modal-content { 
-      background: white; 
-      width: 90%; 
-      max-width: 400px; 
-      border-radius: 12px; 
-      padding: 30px; 
-      text-align: center; 
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2); 
-      position: relative; 
-      animation: popIn 0.3s ease; 
+    .modal-content {
+      background: white;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      position: relative;
+      animation: popIn 0.3s ease;
     }
-
-    @keyframes popIn { 
-      0% { transform: scale(0.95); opacity: 0; } 
-      100% { transform: scale(1); opacity: 1; } 
+    @keyframes popIn {
+      0% { transform: scale(0.95); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
     }
-
-    .modal-icon { 
-      font-size: 48px; 
-      margin-bottom: 15px; 
-      line-height: 1; 
-    }
-    
-    .modal-title { 
-      font-size: 20px; 
-      font-weight: 700; 
-      margin-bottom: 10px; 
-    }
-    
+    .modal-icon { font-size: 48px; margin-bottom: 15px; line-height: 1; }
+    .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
     .modal-title.red { color: #e53e3e; }
-    
-    .modal-desc { 
-      font-size: 14px; 
-      color: #4a5568; 
-      margin-bottom: 25px; 
-      line-height: 1.6; 
-    }
+    .modal-desc { font-size: 14px; color: #4a5568; margin-bottom: 25px; line-height: 1.6; }
 
     /* Loading Overlay */
-    .loading-overlay { 
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0; 
-      z-index: 3000; background: #ffffff; 
-      display: flex; flex-direction: column; justify-content: center; align-items: center; 
-      opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease; 
+    .loading-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 3000; background: #ffffff;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 20px; text-align: center;
+      opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0.4s ease;
     }
     .loading-overlay.show { opacity: 1; visibility: visible; }
-    
+    .loading-text { font-size: 15px; font-weight: 600; color: #4a5568; }
     .spinner {
       width: 40px; height: 40px;
       border: 4px solid #f3f3f3;
@@ -423,16 +346,27 @@
       animation: spin 1s linear infinite;
       margin-bottom: 15px;
     }
+    .spinner.hidden { display: none; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+    /* Mobile */
+    @media (max-width: 600px) {
+      .navbar { padding: 10px 14px; }
+      .dashboard-section { padding: 14px; }
+      .content-card { padding: 18px; }
+      .list-item { flex-direction: column; align-items: flex-start; }
+      .item-actions { width: 100%; justify-content: space-between; }
+      .toggle-wrap { flex-direction: row; gap: 10px; margin-right: 0; }
+      .toggle-wrap .status-text { margin-top: 0; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Loading Screen -->
+  <!-- Loading / Status Screen -->
   <div class="loading-overlay show" id="loadingOverlay">
-    <div class="spinner"></div>
-    <div style="font-size: 15px; font-weight: 600; color: #4a5568;">Authorizing...</div>
+    <div class="spinner" id="loadingSpinner"></div>
+    <div class="loading-text" id="loadingText">Authorizing...</div>
   </div>
 
   <!-- Navbar -->
@@ -442,34 +376,37 @@
       <span class="page-title">Payslip Upload</span>
     </div>
     <div class="nav-right-container">
-      <button type="button" class="btn-outline" onclick="window.close()">✖ Close Tab</button>
+      <button type="button" class="btn-outline" id="btnCloseTab">✖ Close Tab</button>
     </div>
   </div>
 
   <div class="dashboard-section">
     <div class="content-card">
-        
+
       <!-- Mode Tabs -->
       <div class="mode-tabs">
-        <button type="button" class="mode-tab-btn active" id="tabUpload" onclick="switchTab('upload')">Bulk Upload Payslips</button>
-        <button type="button" class="mode-tab-btn" id="tabManage" onclick="switchTab('manage')">Manage & Publish</button>
+        <button type="button" class="mode-tab-btn active" id="tabUpload">Bulk Upload Payslips</button>
+        <button type="button" class="mode-tab-btn" id="tabManage">Manage &amp; Publish</button>
       </div>
 
       <!-- Upload Section -->
       <div id="viewUpload">
-        
+
         <div class="floating-input-group">
           <input type="text" id="uploadMonthInput" placeholder=" " autocomplete="off">
-          <label>Month & Year (e.g. Oct-2026)</label>
+          <label for="uploadMonthInput">Month &amp; Year (e.g. Oct-2026)</label>
         </div>
 
-        <label class="file-upload-box">
-          <input type="file" id="pdfFilesInput" accept=".pdf" multiple>
-          <div class="file-upload-label" id="fileUploadLabel">📄 Click here to select Employee Payslip PDFs (Bulk)</div>
-          <div style="font-size: 11px; color: #718096; margin-top: 5px;">* File name must be the exact Employee ID (e.g., EMP101.pdf)</div>
+        <label class="file-upload-box" id="fileDropBox">
+          <input type="file" id="pdfFilesInput" accept=".pdf,application/pdf" multiple>
+          <div class="file-upload-label" id="fileUploadLabel">📄 Click here or drag &amp; drop Employee Payslip PDFs (Bulk)</div>
+          <div class="file-hint">* File name must be the exact Employee ID (e.g., EMP101.pdf). Allowed characters: letters, numbers, - and _</div>
         </label>
 
-        <!-- Progress Bar (Hidden initially) -->
+        <!-- Selection check result -->
+        <div class="info-panel" id="selectionPanel"></div>
+
+        <!-- Progress Bar (hidden initially) -->
         <div class="progress-container" id="uploadProgressContainer">
           <div class="progress-text">
             <span id="progressStatus">Uploading...</span>
@@ -478,13 +415,20 @@
           <div class="progress-bar-bg">
             <div class="progress-bar-fill" id="uploadProgressBar"></div>
           </div>
+          <div class="progress-sub" id="progressSub"></div>
         </div>
-        
-        <div style="display: flex; gap: 10px;">
-          <button type="button" class="btn-primary" id="btnStartUpload" style="flex: 1; justify-content: center; padding: 12px; font-size: 15px;" onclick="startBulkUpload()">
+
+        <!-- Upload result -->
+        <div class="info-panel" id="resultPanel"></div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="btn-primary" id="btnStartUpload" style="flex: 1; justify-content: center; padding: 12px; font-size: 15px;">
             🚀 Start Upload
           </button>
-          <button type="button" class="btn-danger" id="btnStopUpload" style="display: none; flex: 1; justify-content: center; padding: 12px; font-size: 15px;" onclick="stopBulkUpload()">
+          <button type="button" class="btn-outline" id="btnRetryFailed" style="display: none; flex: 1; justify-content: center; padding: 12px; font-size: 15px;">
+            🔁 Retry Failed Files
+          </button>
+          <button type="button" class="btn-danger" id="btnStopUpload" style="display: none; flex: 1; justify-content: center; padding: 12px; font-size: 15px;">
             🛑 Stop / Cancel Upload
           </button>
         </div>
@@ -495,10 +439,7 @@
         <div style="font-size: 13.5px; color: #4a5568; margin-bottom: 15px; line-height: 1.6;">
           Toggle the switch to make payslips visible to employees. You can also delete older folders to free up cloud storage.
         </div>
-        
-        <div class="list-container" id="manageListContainer">
-          <!-- Dynamically populated by JS -->
-        </div>
+        <div class="list-container" id="manageListContainer"></div>
       </div>
 
     </div>
@@ -512,24 +453,93 @@
       <div class="modal-desc" style="margin-bottom: 20px;">
         Are you sure you want to permanently delete all payslips for <strong id="deleteTargetMonth"></strong>? This action cannot be undone.
       </div>
-      
+
       <input type="hidden" id="deleteTargetId">
-      
+
       <div class="floating-input-group" style="text-align: left; margin-bottom: 25px;">
         <input type="password" id="deleteAdminPwd" placeholder=" " autocomplete="new-password">
-        <label>Admin Password to Confirm</label>
+        <label for="deleteAdminPwd">Admin Password to Confirm</label>
       </div>
-      
+
       <div style="display: flex; gap: 15px; justify-content: center;">
-        <button class="btn-outline" style="flex: 1; justify-content: center;" onclick="document.getElementById('deleteConfirmModal').style.display='none'">Cancel</button>
-        <button class="btn-danger" style="flex: 1; justify-content: center;" onclick="executeDeleteFolder()">Yes, Delete All</button>
+        <button type="button" class="btn-outline" id="btnCancelDelete" style="flex: 1; justify-content: center;">Cancel</button>
+        <button type="button" class="btn-danger" id="btnConfirmDelete" style="flex: 1; justify-content: center;">Yes, Delete All</button>
       </div>
     </div>
   </div>
 
   <script>
     // ============================================================
-    // FIREBASE INITIALIZATION & SECURITY
+    // CONFIGURATION
+    // ============================================================
+    const UPLOAD_CONCURRENCY = 4;      // files uploaded at the same time
+    const MAX_RETRIES = 3;             // retries per file on network errors
+    const MAX_FILE_MB = 10;            // reject PDFs larger than this
+    const DELETE_CONCURRENCY = 6;      // files deleted at the same time
+    const AUTH_TIMEOUT_MS = 15000;     // give up if Firebase does not answer
+    const ADMIN_HOME_PAGE = 'admin-dashboard.html';
+
+    const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const MONTH_FULL = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+
+    // ============================================================
+    // SMALL HELPERS
+    // ============================================================
+    const $ = (id) => document.getElementById(id);
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    function showOverlay(text, withSpinner) {
+      $('loadingText').textContent = text;
+      $('loadingSpinner').classList.toggle('hidden', withSpinner === false);
+      $('loadingOverlay').classList.add('show');
+    }
+    function hideOverlay() {
+      $('loadingOverlay').classList.remove('show');
+    }
+
+    function setPanel(panel, type, title, lines) {
+      panel.className = 'info-panel ' + type;
+      panel.textContent = '';
+      const strong = document.createElement('strong');
+      strong.textContent = title;
+      panel.appendChild(strong);
+      if (lines && lines.length) {
+        const ul = document.createElement('ul');
+        lines.forEach((line) => {
+          const li = document.createElement('li');
+          li.textContent = line;
+          ul.appendChild(li);
+        });
+        panel.appendChild(ul);
+      }
+      panel.style.display = 'block';
+    }
+    function clearPanel(panel) {
+      panel.style.display = 'none';
+      panel.textContent = '';
+    }
+
+    // Accepts "Oct-2026", "October 2026", "oct 2026", "10-2026" and returns "Oct-2026"
+    function normalizeMonth(raw) {
+      const s = String(raw || '').trim().toLowerCase().replace(/[\s_\/.]+/g, '-');
+      let m = s.match(/^([a-z]+)-(\d{4})$/);
+      if (m) {
+        let idx = MONTH_FULL.indexOf(m[1]);
+        if (idx < 0) idx = MONTH_ABBR.findIndex((a) => a.toLowerCase() === m[1]);
+        if (idx < 0 && m[1] === 'sept') idx = 8;
+        if (idx >= 0) return MONTH_ABBR[idx] + '-' + m[2];
+        return null;
+      }
+      m = s.match(/^(\d{1,2})-(\d{4})$/);
+      if (m) {
+        const n = parseInt(m[1], 10);
+        if (n >= 1 && n <= 12) return MONTH_ABBR[n - 1] + '-' + m[2];
+      }
+      return null;
+    }
+
+    // ============================================================
+    // FIREBASE INITIALIZATION
     // ============================================================
     const firebaseConfig = {
       apiKey: "AIzaSyC9mE0Xo1GWBin2ERwJOskd8Z8QUhRAmrw",
@@ -540,221 +550,457 @@
       messagingSenderId: "1069583469203",
       appId: "1:1069583469203:web:ba7505ca7c024251b7db66"
     };
-    
-    firebase.initializeApp(firebaseConfig);
-    const dbAdmins = firebase.database().ref('geekay_admins');
-    const dbPayslipMeta = firebase.database().ref('geekay_payslip_meta'); 
-    const storageRef = firebase.storage().ref();
-    
+
+    let dbAdmins = null;
+    let dbPayslipMeta = null;
+    let storageRef = null;
     let loggedInAdminObj = null;
 
-    // Security Check: Only allow logged-in admins
-    window.addEventListener('DOMContentLoaded', async function () {
-      const loggedInId = sessionStorage.getItem('geekay_emp_id');
-      
-      if(!loggedInId) {
-        alert("Security Alert: Unauthorized access.");
-        window.close();
+    function initFirebase() {
+      if (typeof firebase === 'undefined') {
+        throw new Error('Firebase library could not be loaded. Check your internet connection.');
+      }
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      dbAdmins = firebase.database().ref('geekay_admins');
+      dbPayslipMeta = firebase.database().ref('geekay_payslip_meta');
+      const storage = firebase.storage();
+      storage.setMaxUploadRetryTime(120000);
+      storage.setMaxOperationRetryTime(60000);
+      storageRef = storage.ref();
+    }
+
+    // ============================================================
+    // SECURITY CHECK (fails closed: no access unless verified admin)
+    // ============================================================
+    function denyAccess(message) {
+      showOverlay(message, false);
+      setTimeout(() => { closeTab(); }, 1500);
+    }
+
+    function closeTab() {
+      window.close();
+      setTimeout(() => {
+        if (!window.closed) window.location.href = ADMIN_HOME_PAGE;
+      }, 300);
+    }
+
+    async function authorizeAdmin() {
+      let loggedInId = null;
+      try { loggedInId = sessionStorage.getItem('geekay_emp_id'); } catch (e) { loggedInId = null; }
+
+      if (!loggedInId) {
+        denyAccess('Security Alert: Unauthorized access.');
         return;
       }
-      
+
       try {
-        const snap = await dbAdmins.once('value');
+        initFirebase();
+
+        const snap = await Promise.race([
+          dbAdmins.once('value'),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), AUTH_TIMEOUT_MS))
+        ]);
+
         const adminData = snap.val() || {};
-        const adminDB = Object.values(adminData);
-        loggedInAdminObj = adminDB.find(a => a.id.toLowerCase() === loggedInId.toLowerCase());
-        
-        if (!loggedInAdminObj && loggedInId === "000000123") {
-            loggedInAdminObj = { id: "000000123", pwd: "Admin0000" };
-        }
-        
+        const wanted = String(loggedInId).trim().toLowerCase();
+        loggedInAdminObj = Object.values(adminData).find(
+          (a) => a && String(a.id || '').trim().toLowerCase() === wanted
+        ) || null;
+
         if (!loggedInAdminObj) {
-            alert("Security Alert: Unauthorized access.");
-            window.close();
-            return;
+          denyAccess('Security Alert: Unauthorized access.');
+          return;
         }
 
-        document.getElementById('loadingOverlay').classList.remove('show');
+        hideOverlay();
       } catch (e) {
-        console.error("Auth init failed", e);
-        document.getElementById('loadingOverlay').classList.remove('show');
-      }
-    });
-
-    // ============================================================
-    // UI TAB SWITCHING
-    // ============================================================
-    function switchTab(tab) {
-      if (tab === 'upload') {
-        document.getElementById('tabUpload').classList.add('active'); 
-        document.getElementById('tabManage').classList.remove('active');
-        document.getElementById('viewUpload').style.display = 'block'; 
-        document.getElementById('viewManage').style.display = 'none';
-      } else {
-        document.getElementById('tabUpload').classList.remove('active'); 
-        document.getElementById('tabManage').classList.add('active');
-        document.getElementById('viewUpload').style.display = 'none'; 
-        document.getElementById('viewManage').style.display = 'block';
-        loadManageData();
+        console.error('Auth init failed', e);
+        showOverlay('Could not verify admin access. Please check your internet connection and reload this page.', false);
       }
     }
 
     // ============================================================
-    // BULK UPLOAD LOGIC 🚀 (WITH EMERGENCY STOP & MICRO-DELAY)
+    // TAB SWITCHING
     // ============================================================
-    let selectedFiles = [];
-    let isUploadCancelled = false;
+    function switchTab(tab) {
+      const isUpload = tab === 'upload';
+      $('tabUpload').classList.toggle('active', isUpload);
+      $('tabManage').classList.toggle('active', !isUpload);
+      $('viewUpload').style.display = isUpload ? 'block' : 'none';
+      $('viewManage').style.display = isUpload ? 'none' : 'block';
+      if (!isUpload) loadManageData();
+    }
 
-    document.getElementById('pdfFilesInput').addEventListener('change', function(e) {
-      selectedFiles = Array.from(e.target.files);
-      const label = document.getElementById('fileUploadLabel');
-      
-      if (selectedFiles.length === 0) {
-        label.textContent = "📄 Click here to select Employee Payslip PDFs (Bulk)";
-        label.style.color = "#4a5568";
-      } else {
-        label.textContent = `✓ ${selectedFiles.length} PDF files selected ready for upload.`;
-        label.style.color = "#3182ce";
+    // ============================================================
+    // BULK UPLOAD LOGIC
+    // ============================================================
+    let selectedFiles = [];        // validated files ready to upload: { file, storedName }
+    let failedItems = [];          // files that failed in the last run
+    let isUploadCancelled = false;
+    let isUploading = false;
+    let activeTasks = new Set();   // running Firebase upload tasks (for instant cancel)
+
+    const DEFAULT_LABEL = '📄 Click here or drag & drop Employee Payslip PDFs (Bulk)';
+
+    function setUploadingUI(uploading) {
+      isUploading = uploading;
+      $('btnStartUpload').style.display = uploading ? 'none' : 'flex';
+      $('btnStopUpload').style.display = uploading ? 'flex' : 'none';
+      $('uploadMonthInput').disabled = uploading;
+      $('pdfFilesInput').disabled = uploading;
+      $('fileDropBox').classList.toggle('disabled', uploading);
+      if (uploading) $('btnRetryFailed').style.display = 'none';
+    }
+
+    window.addEventListener('beforeunload', (e) => {
+      if (isUploading) {
+        e.preventDefault();
+        e.returnValue = '';
       }
     });
+
+    async function looksLikePdf(file) {
+      try {
+        const head = await file.slice(0, 5).text();
+        return head === '%PDF-';
+      } catch (e) {
+        return true; // if the browser cannot read the header, do not block the file
+      }
+    }
+
+    async function handleSelectedFiles(fileList) {
+      const incoming = Array.from(fileList || []);
+      const label = $('fileUploadLabel');
+      const panel = $('selectionPanel');
+      clearPanel(panel);
+      clearPanel($('resultPanel'));
+      $('btnRetryFailed').style.display = 'none';
+      failedItems = [];
+      selectedFiles = [];
+
+      if (incoming.length === 0) {
+        label.textContent = DEFAULT_LABEL;
+        label.style.color = '#4a5568';
+        return;
+      }
+
+      const rejected = [];
+      const seen = new Set();
+
+      for (const file of incoming) {
+        const name = file.name.trim();
+        const match = name.match(/^([A-Za-z0-9_-]+)\.pdf$/i);
+
+        if (!match) {
+          rejected.push(`${file.name} - invalid name (use only the Employee ID, e.g. EMP101.pdf)`);
+          continue;
+        }
+        if (file.size === 0) {
+          rejected.push(`${file.name} - file is empty`);
+          continue;
+        }
+        if (file.size > MAX_FILE_MB * 1024 * 1024) {
+          rejected.push(`${file.name} - larger than ${MAX_FILE_MB} MB`);
+          continue;
+        }
+
+        const storedName = match[1] + '.pdf';        // extension is always lowercase
+        const dupKey = storedName.toLowerCase();
+        if (seen.has(dupKey)) {
+          rejected.push(`${file.name} - duplicate Employee ID in the selection`);
+          continue;
+        }
+        if (!(await looksLikePdf(file))) {
+          rejected.push(`${file.name} - not a real PDF file`);
+          continue;
+        }
+
+        seen.add(dupKey);
+        selectedFiles.push({ file: file, storedName: storedName });
+      }
+
+      if (selectedFiles.length > 0) {
+        label.textContent = `✓ ${selectedFiles.length} PDF file(s) ready for upload.`;
+        label.style.color = '#3182ce';
+      } else {
+        label.textContent = DEFAULT_LABEL;
+        label.style.color = '#4a5568';
+      }
+
+      if (rejected.length > 0) {
+        setPanel(panel, 'warn', `${rejected.length} file(s) skipped:`, rejected);
+      }
+    }
 
     function stopBulkUpload() {
       isUploadCancelled = true;
-      document.getElementById('progressStatus').textContent = "Stopping upload...";
+      $('progressStatus').textContent = 'Stopping upload...';
+      activeTasks.forEach((task) => { try { task.cancel(); } catch (e) { /* ignore */ } });
+    }
+
+    function uploadOnce(item, folderPath) {
+      return new Promise((resolve, reject) => {
+        const fileRef = storageRef.child(`${folderPath}/${item.storedName}`);
+        const task = fileRef.put(item.file, { contentType: 'application/pdf' });
+        activeTasks.add(task);
+        task.on(
+          'state_changed',
+          null,
+          (err) => { activeTasks.delete(task); reject(err); },
+          () => { activeTasks.delete(task); resolve(); }
+        );
+      });
+    }
+
+    // returns: 'ok' | 'cancelled' | error message string
+    async function uploadWithRetry(item, folderPath) {
+      let lastError = 'Unknown error';
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        if (isUploadCancelled) return 'cancelled';
+        try {
+          await uploadOnce(item, folderPath);
+          return 'ok';
+        } catch (err) {
+          if (isUploadCancelled || (err && err.code === 'storage/canceled')) return 'cancelled';
+          lastError = (err && (err.code || err.message)) || 'Unknown error';
+          // Permission / quota errors will not fix themselves: stop retrying
+          if (err && (err.code === 'storage/unauthorized' || err.code === 'storage/quota-exceeded' || err.code === 'storage/unauthenticated')) {
+            return lastError;
+          }
+          if (attempt < MAX_RETRIES) await sleep(800 * attempt);
+        }
+      }
+      return lastError;
+    }
+
+    async function runUpload(queue, monthKey, monthDisplay) {
+      const folderPath = `Payslips/${monthKey}`;
+      const total = queue.length;
+
+      let done = 0;
+      let successCount = 0;
+      let nextIndex = 0;
+      const failures = [];
+
+      const progressBar = $('uploadProgressBar');
+      const updateProgress = (currentName) => {
+        $('progressCount').textContent = `${done} / ${total}`;
+        $('progressStatus').textContent = isUploadCancelled ? 'Stopping upload...' : `Uploading: ${currentName}`;
+        progressBar.style.width = `${Math.round((done / total) * 100)}%`;
+        $('progressSub').textContent = `Uploaded: ${successCount} | Failed: ${failures.length}`;
+      };
+
+      isUploadCancelled = false;
+      setUploadingUI(true);
+      $('uploadProgressContainer').style.display = 'block';
+      clearPanel($('resultPanel'));
+      updateProgress('starting...');
+
+      async function worker() {
+        while (!isUploadCancelled) {
+          const i = nextIndex++;
+          if (i >= total) return;
+          const item = queue[i];
+          updateProgress(item.storedName);
+
+          const result = await uploadWithRetry(item, folderPath);
+          if (result === 'ok') {
+            successCount++;
+            done++;
+          } else if (result === 'cancelled') {
+            return;
+          } else {
+            failures.push({ item: item, reason: result });
+            done++;
+          }
+          updateProgress(item.storedName);
+        }
+      }
+
+      const workerCount = Math.min(UPLOAD_CONCURRENCY, total);
+      await Promise.all(Array.from({ length: workerCount }, () => worker()));
+
+      // Update metadata in the database
+      let metaError = null;
+      if (successCount > 0) {
+        try {
+          let fileCount = successCount;
+          try {
+            const listing = await storageRef.child(folderPath).listAll();
+            fileCount = listing.items.length;        // exact count, no double counting on re-upload
+          } catch (e) {
+            console.warn('Could not list folder, using fallback count', e);
+          }
+
+          const snap = await dbPayslipMeta.child(monthKey).once('value');
+          const existing = snap.val();
+
+          const payload = {
+            monthDisplay: monthDisplay,
+            folderPath: folderPath,
+            fileCount: fileCount,
+            lastUpdated: new Date().toISOString()
+          };
+          if (!existing || typeof existing.published !== 'boolean') payload.published = false;
+
+          await dbPayslipMeta.child(monthKey).update(payload);
+        } catch (e) {
+          console.error('Meta update failed:', e);
+          metaError = e;
+        }
+      }
+
+      // Result summary
+      const wasCancelled = isUploadCancelled;
+      failedItems = failures.map((f) => f.item);
+
+      const lines = [`Uploaded: ${successCount} | Failed: ${failures.length} | Total selected: ${total}`];
+      if (wasCancelled) lines.push(`Upload was stopped. ${total - done} file(s) were not uploaded.`);
+      if (metaError) lines.push('Files were uploaded, but the database record could not be updated. Please upload one file again or contact the developer.');
+      failures.slice(0, 50).forEach((f) => lines.push(`${f.item.storedName} - ${f.reason}`));
+      if (failures.length > 50) lines.push(`...and ${failures.length - 50} more`);
+
+      const type = (failures.length === 0 && !wasCancelled && !metaError) ? 'ok' : (successCount > 0 ? 'warn' : 'err');
+      const title = wasCancelled ? 'Upload stopped' : (failures.length === 0 && !metaError ? 'Upload complete' : 'Upload finished with problems');
+      setPanel($('resultPanel'), type, title, lines);
+
+      // Reset the UI
+      $('uploadProgressContainer').style.display = 'none';
+      progressBar.style.width = '0%';
+      setUploadingUI(false);
+
+      if (failedItems.length > 0 || (wasCancelled && done < total)) {
+        // keep not-yet-uploaded files + failed files for a quick retry
+        const remaining = queue.slice(nextIndex > total ? total : Math.min(nextIndex, total));
+        const retryMap = new Map();
+        failedItems.forEach((it) => retryMap.set(it.storedName, it));
+        if (wasCancelled) remaining.forEach((it) => { if (!retryMap.has(it.storedName)) retryMap.set(it.storedName, it); });
+        failedItems = Array.from(retryMap.values());
+      }
+
+      if (failedItems.length > 0) {
+        $('btnRetryFailed').textContent = `🔁 Retry ${failedItems.length} Remaining File(s)`;
+        $('btnRetryFailed').style.display = 'flex';
+        $('uploadMonthInput').value = monthDisplay;
+      } else {
+        $('uploadMonthInput').value = '';
+        $('pdfFilesInput').value = '';
+        $('fileUploadLabel').textContent = DEFAULT_LABEL;
+        $('fileUploadLabel').style.color = '#4a5568';
+        selectedFiles = [];
+      }
     }
 
     async function startBulkUpload() {
-      const monthInput = document.getElementById('uploadMonthInput').value.trim();
-      
-      if (!monthInput) return alert("Please enter the Month & Year (e.g. Oct-2026).");
-      if (selectedFiles.length === 0) return alert("Please select at least one PDF file to upload.");
-      
-      isUploadCancelled = false;
-      const safeMonthKey = monthInput.replace(/[.#$[\]\/]/g, '_'); 
-      const folderPath = `Payslips/${safeMonthKey}`;
+      if (isUploading) return;
 
-      document.getElementById('btnStartUpload').style.display = 'none';
-      document.getElementById('btnStopUpload').style.display = 'flex';
-      document.getElementById('uploadProgressContainer').style.display = 'block';
-      const progressCount = document.getElementById('progressCount');
-      const progressBar = document.getElementById('uploadProgressBar');
-      const progressStatus = document.getElementById('progressStatus');
-
-      let successCount = 0;
-      let errorCount = 0;
-
-      for (let i = 0; i < selectedFiles.length; i++) {
-        // Check if Admin clicked Stop
-        if (isUploadCancelled) {
-          alert(`Upload Stopped by Admin!\nSuccessfully uploaded: ${successCount} files before cancellation.`);
-          break;
-        }
-
-        const file = selectedFiles[i];
-        
-        progressCount.textContent = `${i + 1} / ${selectedFiles.length}`;
-        progressStatus.textContent = `Uploading: ${file.name}`;
-        const percentage = Math.round(((i + 1) / selectedFiles.length) * 100);
-        progressBar.style.width = `${percentage}%`;
-
-        const exactFileName = file.name; 
-        const fileRef = storageRef.child(`${folderPath}/${exactFileName}`);
-
-        try {
-          await fileRef.put(file);
-          successCount++;
-          // ⏳ Micro-delay (100ms) to let the browser breathe and prevent hanging on 700+ files
-          await new Promise(resolve => setTimeout(resolve, 100));
-        } catch (e) {
-          console.error("Failed to upload: " + exactFileName, e);
-          errorCount++;
-        }
+      const monthDisplay = normalizeMonth($('uploadMonthInput').value);
+      if (!monthDisplay) {
+        alert('Please enter a valid Month & Year (e.g. Oct-2026).');
+        return;
+      }
+      if (selectedFiles.length === 0) {
+        alert('Please select at least one valid PDF file to upload.');
+        return;
       }
 
-      // Update Metadata in Database if any files were successfully uploaded
-      if (successCount > 0) {
-        try {
-          const snap = await dbPayslipMeta.child(safeMonthKey).once('value');
-          const existingData = snap.val();
-          
-          const payload = {
-              monthDisplay: monthInput,
-              folderPath: folderPath,
-              fileCount: (existingData && existingData.fileCount ? existingData.fileCount : 0) + successCount,
-              published: existingData ? existingData.published : false, 
-              lastUpdated: new Date().toISOString()
-          };
-          
-          await dbPayslipMeta.child(safeMonthKey).update(payload);
-          if (!isUploadCancelled) {
-            alert(`Upload Complete!\nSuccess: ${successCount}\nFailed: ${errorCount}`);
-          }
-        } catch (e) {
-          console.error("Meta Update failed:", e);
-        }
-      }
+      $('uploadMonthInput').value = monthDisplay;
+      clearPanel($('selectionPanel'));
+      await runUpload(selectedFiles.slice(), monthDisplay, monthDisplay);
+    }
 
-      // Reset Upload UI
-      document.getElementById('uploadMonthInput').value = '';
-      document.getElementById('pdfFilesInput').value = '';
-      document.getElementById('fileUploadLabel').textContent = "📄 Click here to select Employee Payslip PDFs (Bulk)";
-      document.getElementById('fileUploadLabel').style.color = "#4a5568";
-      document.getElementById('uploadProgressContainer').style.display = 'none';
-      progressBar.style.width = `0%`;
-      document.getElementById('btnStartUpload').style.display = 'flex';
-      document.getElementById('btnStopUpload').style.display = 'none';
-      selectedFiles = [];
+    async function retryFailedUploads() {
+      if (isUploading || failedItems.length === 0) return;
+      const monthDisplay = normalizeMonth($('uploadMonthInput').value);
+      if (!monthDisplay) {
+        alert('Please enter a valid Month & Year (e.g. Oct-2026).');
+        return;
+      }
+      const queue = failedItems.slice();
+      failedItems = [];
+      $('btnRetryFailed').style.display = 'none';
+      await runUpload(queue, monthDisplay, monthDisplay);
     }
 
     // ============================================================
-    // MANAGE, PUBLISH & DELETE LOGIC 📂👁️
+    // MANAGE, PUBLISH & DELETE LOGIC
     // ============================================================
+    function updateStatusText(el, isPublished) {
+      el.textContent = isPublished ? 'Published' : 'Draft';
+      el.className = 'status-text ' + (isPublished ? 'text-pub' : 'text-unpub');
+    }
+
     async function loadManageData() {
-      const container = document.getElementById('manageListContainer');
+      const container = $('manageListContainer');
       container.textContent = 'Loading...';
 
       try {
         const snap = await dbPayslipMeta.once('value');
         const data = snap.val() || {};
-        
+
         container.textContent = '';
         const months = Object.keys(data);
-        
+
         if (months.length === 0) {
-           container.innerHTML = '<div style="padding: 20px; color:#718096; text-align:center;">No payslips uploaded yet.</div>';
-           return;
+          const empty = document.createElement('div');
+          empty.style.cssText = 'padding: 20px; color:#718096; text-align:center;';
+          empty.textContent = 'No payslips uploaded yet.';
+          container.appendChild(empty);
+          return;
         }
 
-        months.sort((a, b) => new Date(data[b].lastUpdated) - new Date(data[a].lastUpdated));
+        months.sort((a, b) => new Date(data[b].lastUpdated || 0) - new Date(data[a].lastUpdated || 0));
 
-        months.forEach(key => {
-          const itemData = data[key];
-          
-          const isPub = itemData.published;
-          const statusClass = isPub ? 'text-pub' : 'text-unpub';
-          const statusText = isPub ? 'Published' : 'Draft';
-          const checkedAttr = isPub ? 'checked' : '';
+        months.forEach((key) => {
+          const itemData = data[key] || {};
+          const isPub = itemData.published === true;
+          const display = itemData.monthDisplay || key;
 
           const item = document.createElement('div');
           item.className = 'list-item';
-          item.innerHTML = `
-            <div class="item-info">
-              <div class="item-title">📄 ${itemData.monthDisplay}</div>
-              <div class="item-sub">Files: ${itemData.fileCount} | Folder: /${itemData.folderPath}</div>
-            </div>
-            
-            <div class="item-actions">
-              <div style="display:flex; flex-direction:column; align-items:center; margin-right: 15px;">
-                <label class="switch">
-                  <input type="checkbox" onchange="togglePublishStatus('${key}', this.checked)" ${checkedAttr}>
-                  <span class="slider"></span>
-                </label>
-                <div class="status-text ${statusClass}" id="statustext_${key}" style="margin-top: 5px;">${statusText}</div>
-              </div>
-              
-              <button type="button" class="btn-danger" onclick="openDeleteModal('${key}', '${itemData.monthDisplay}')">🗑️ Delete</button>
-            </div>
-          `;
+
+          const info = document.createElement('div');
+          info.className = 'item-info';
+          const title = document.createElement('div');
+          title.className = 'item-title';
+          title.textContent = '📄 ' + display;
+          const sub = document.createElement('div');
+          sub.className = 'item-sub';
+          sub.textContent = `Files: ${itemData.fileCount || 0} | Folder: /${itemData.folderPath || ''}`;
+          info.appendChild(title);
+          info.appendChild(sub);
+
+          const actions = document.createElement('div');
+          actions.className = 'item-actions';
+
+          const toggleWrap = document.createElement('div');
+          toggleWrap.className = 'toggle-wrap';
+          const switchLabel = document.createElement('label');
+          switchLabel.className = 'switch';
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = isPub;
+          const slider = document.createElement('span');
+          slider.className = 'slider';
+          switchLabel.appendChild(checkbox);
+          switchLabel.appendChild(slider);
+          const statusEl = document.createElement('div');
+          updateStatusText(statusEl, isPub);
+          toggleWrap.appendChild(switchLabel);
+          toggleWrap.appendChild(statusEl);
+
+          checkbox.addEventListener('change', () => togglePublishStatus(key, checkbox, statusEl));
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'btn-danger';
+          delBtn.textContent = '🗑️ Delete';
+          delBtn.addEventListener('click', () => openDeleteModal(key, display));
+
+          actions.appendChild(toggleWrap);
+          actions.appendChild(delBtn);
+          item.appendChild(info);
+          item.appendChild(actions);
           container.appendChild(item);
         });
 
@@ -764,69 +1010,129 @@
       }
     }
 
-    async function togglePublishStatus(dbKey, isChecked) {
-      const txtEl = document.getElementById(`statustext_${dbKey}`);
+    async function togglePublishStatus(dbKey, checkbox, statusEl) {
+      const wanted = checkbox.checked;
+      checkbox.disabled = true;
       try {
-        await dbPayslipMeta.child(dbKey).update({ published: isChecked });
-        
-        if (isChecked) {
-            txtEl.textContent = "Published";
-            txtEl.className = "status-text text-pub";
-        } else {
-            txtEl.textContent = "Draft";
-            txtEl.className = "status-text text-unpub";
-        }
+        await dbPayslipMeta.child(dbKey).update({ published: wanted });
+        updateStatusText(statusEl, wanted);
       } catch (e) {
         console.error(e);
-        alert("Failed to update status. Please try again.");
-        loadManageData();
+        checkbox.checked = !wanted;
+        updateStatusText(statusEl, !wanted);
+        alert('Failed to update status. Please try again.');
+      } finally {
+        checkbox.disabled = false;
       }
     }
 
     function openDeleteModal(dbKey, displayMonth) {
-      document.getElementById('deleteTargetId').value = dbKey;
-      document.getElementById('deleteTargetMonth').textContent = displayMonth;
-      document.getElementById('deleteAdminPwd').value = '';
-      document.getElementById('deleteConfirmModal').style.display = 'flex';
+      if (isUploading) {
+        alert('Please wait for the current upload to finish (or stop it) before deleting.');
+        return;
+      }
+      $('deleteTargetId').value = dbKey;
+      $('deleteTargetMonth').textContent = displayMonth;
+      $('deleteAdminPwd').value = '';
+      $('deleteConfirmModal').style.display = 'flex';
+      setTimeout(() => $('deleteAdminPwd').focus(), 50);
+    }
+
+    function closeDeleteModal() {
+      $('deleteConfirmModal').style.display = 'none';
+      $('deleteAdminPwd').value = '';
+    }
+
+    async function deleteInBatches(refs) {
+      let failed = 0;
+      let index = 0;
+      async function worker() {
+        while (true) {
+          const i = index++;
+          if (i >= refs.length) return;
+          try { await refs[i].delete(); }
+          catch (e) {
+            if (!e || e.code !== 'storage/object-not-found') failed++;
+          }
+        }
+      }
+      await Promise.all(Array.from({ length: Math.min(DELETE_CONCURRENCY, refs.length) }, () => worker()));
+      return failed;
     }
 
     async function executeDeleteFolder() {
-      const dbKey = document.getElementById('deleteTargetId').value;
-      const pwd = document.getElementById('deleteAdminPwd').value.trim();
+      const dbKey = $('deleteTargetId').value;
+      const pwd = $('deleteAdminPwd').value.trim();
 
-      if (!loggedInAdminObj || pwd !== loggedInAdminObj.pwd) {
-          return alert("Security Error: Incorrect Admin Password!");
+      if (!loggedInAdminObj || !pwd || pwd !== String(loggedInAdminObj.pwd || '')) {
+        alert('Security Error: Incorrect Admin Password!');
+        return;
       }
 
-      document.getElementById('deleteConfirmModal').style.display = 'none';
-      document.getElementById('loadingOverlay').classList.add('show');
+      closeDeleteModal();
+      showOverlay('Deleting payslips, please wait...', true);
 
       try {
         const snap = await dbPayslipMeta.child(dbKey).once('value');
         const metaData = snap.val();
-        
-        if (!metaData) throw new Error("Metadata not found.");
+        if (!metaData || !metaData.folderPath) throw new Error('Metadata not found.');
 
-        const folderPath = metaData.folderPath;
-        const listRef = storageRef.child(folderPath);
-        const res = await listRef.listAll();
-        
-        const deletePromises = res.items.map(itemRef => itemRef.delete());
-        await Promise.all(deletePromises);
+        const listing = await storageRef.child(metaData.folderPath).listAll();
+        const failed = await deleteInBatches(listing.items);
 
-        await dbPayslipMeta.child(dbKey).remove();
-        
-        alert("Folder and all contained payslips deleted successfully.");
+        if (failed > 0) {
+          const left = await storageRef.child(metaData.folderPath).listAll();
+          await dbPayslipMeta.child(dbKey).update({ fileCount: left.items.length });
+          alert(`${failed} file(s) could not be deleted. The folder record was kept so you can try again.`);
+        } else {
+          await dbPayslipMeta.child(dbKey).remove();
+          alert('Folder and all contained payslips deleted successfully.');
+        }
         loadManageData();
 
       } catch (e) {
-        console.error("Deletion Error:", e);
-        alert("Error occurred during deletion.");
+        console.error('Deletion Error:', e);
+        alert('Error occurred during deletion. Please try again.');
       } finally {
-        document.getElementById('loadingOverlay').classList.remove('show');
+        hideOverlay();
       }
     }
 
+    // ============================================================
+    // EVENT WIRING
+    // ============================================================
+    window.addEventListener('DOMContentLoaded', function () {
+      $('btnCloseTab').addEventListener('click', closeTab);
+      $('tabUpload').addEventListener('click', () => switchTab('upload'));
+      $('tabManage').addEventListener('click', () => switchTab('manage'));
+
+      $('pdfFilesInput').addEventListener('change', (e) => handleSelectedFiles(e.target.files));
+      $('btnStartUpload').addEventListener('click', startBulkUpload);
+      $('btnStopUpload').addEventListener('click', stopBulkUpload);
+      $('btnRetryFailed').addEventListener('click', retryFailedUploads);
+
+      const dropBox = $('fileDropBox');
+      ['dragenter', 'dragover'].forEach((evt) => dropBox.addEventListener(evt, (e) => {
+        e.preventDefault();
+        if (!isUploading) dropBox.classList.add('drag-over');
+      }));
+      ['dragleave', 'drop'].forEach((evt) => dropBox.addEventListener(evt, (e) => {
+        e.preventDefault();
+        dropBox.classList.remove('drag-over');
+      }));
+      dropBox.addEventListener('drop', (e) => {
+        if (isUploading) return;
+        handleSelectedFiles(e.dataTransfer.files);
+      });
+
+      $('btnCancelDelete').addEventListener('click', closeDeleteModal);
+      $('btnConfirmDelete').addEventListener('click', executeDeleteFolder);
+      $('deleteAdminPwd').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') executeDeleteFolder();
+      });
+
+      authorizeAdmin();
+    });
   </script>
 </body>
 </html>
