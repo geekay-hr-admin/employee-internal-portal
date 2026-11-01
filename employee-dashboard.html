@@ -488,10 +488,10 @@
     <button type="button" class="admin-close-btn" id="adminCloseBtn" onclick="window.close()" title="Close Tab">&times;</button>
   </div>
 
-  <!-- NEW: Scrolling Announcement Bar -->
+  <!-- MODIFIED: Scrolling Announcement Bar (Clickable Marquee) -->
   <div id="scrollingNoticeContainer" style="display: none; background: #ebf8ff; border-bottom: 1px solid #bee3f8; padding: 8px 16px; color: #2b6cb0; font-size: 14px; font-weight: 600; align-items: center; gap: 10px; z-index: 400; position: relative;">
     <span style="flex-shrink: 0;">📢 <span data-i18n="announcementLabel">Announcement</span>:</span>
-    <marquee id="scrollingNoticeText" style="flex: 1;" scrollamount="5"></marquee>
+    <marquee id="scrollingNoticeText" style="flex: 1; cursor: pointer;" scrollamount="5" onclick="openMarqueePopup()"></marquee>
   </div>
 
   <!-- Dashboard -->
@@ -668,9 +668,9 @@
     </div>
   </div>
 
-  <!-- NEW: Announcement Popup Modal -->
-  <div class="modal-overlay" id="announcementPopupModal" style="z-index: 2500;" onclick="if(event.target.id==='announcementPopupModal') closeAnnouncementPopup()">
-    <div class="modal-content" style="max-width: 500px; border-top: 5px solid #dd6b20;">
+  <!-- MODIFIED: Announcement Popup Modal (Transparent Background & Drop Shadow) -->
+  <div class="modal-overlay" id="announcementPopupModal" style="z-index: 2500; background: transparent; backdrop-filter: none;" onclick="if(event.target.id==='announcementPopupModal') closeAnnouncementPopup()">
+    <div class="modal-content" style="max-width: 500px; border-top: 5px solid #dd6b20; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
       <button type="button" class="close-modal" onclick="closeAnnouncementPopup()" aria-label="Close">&times;</button>
       <div class="modal-header" id="popupNoticeTitle" style="color: #dd6b20; border-bottom: none; margin-bottom: 10px; padding-bottom: 0;">Notice</div>
       <div class="modal-section" style="margin-bottom: 0;">
@@ -1065,7 +1065,8 @@
     let existingCycles = new Set();  
     let preloadPromise = null;
     const monthCache = new Map();
-    let currentPopupNoticeId = null; // NEW: For announcement dismissal cache
+    let currentPopupNoticeId = null; 
+    let currentMarqueeTexts = []; // MODIFIED: Store marquee texts globally
 
     // ============================================================
     // Small helpers
@@ -1497,7 +1498,7 @@
     }
 
     // ============================================================
-    // NEW: ANNOUNCEMENTS RECEIVER LOGIC 📢
+    // MODIFIED: ANNOUNCEMENTS RECEIVER LOGIC 📢
     // ============================================================
     async function loadAnnouncements() {
       try {
@@ -1516,7 +1517,8 @@
           const expiryDate = new Date(n.expiry);
           if (expiryDate > now) { // Notice is Active
             if (n.type === 'marquee') {
-              scrollingTexts.push(n.title + ": " + n.message);
+              // Keep object for popup if clicked
+              scrollingTexts.push({ title: n.title, message: n.message });
             } else if (n.type === 'popup') {
               // Smart Cache: Check if user already closed it
               const dismissKey = 'dismissed_' + currentData.empId + '_' + n.id;
@@ -1531,7 +1533,9 @@
         const marqueeContainer = document.getElementById('scrollingNoticeContainer');
         const marqueeText = document.getElementById('scrollingNoticeText');
         if (scrollingTexts.length > 0) {
-           marqueeText.textContent = scrollingTexts.join('   ✦   ');
+           currentMarqueeTexts = scrollingTexts;
+           const displayTexts = scrollingTexts.map(st => st.title + ": " + st.message);
+           marqueeText.textContent = displayTexts.join('   ✦   ');
            marqueeContainer.style.display = 'flex';
         } else {
            marqueeContainer.style.display = 'none';
@@ -1550,10 +1554,25 @@
       }
     }
 
+    // NEW: Open Popup when Marquee is clicked
+    function openMarqueePopup() {
+      if (currentMarqueeTexts.length > 0) {
+        // Combine all marquee texts into one popup view
+        const combinedMessage = currentMarqueeTexts.map(st => `[${st.title}]\n${st.message}`).join('\n\n---\n\n');
+        document.getElementById('popupNoticeTitle').textContent = t('announcementLabel'); // Set title to generic "Announcement"
+        document.getElementById('popupNoticeMessage').textContent = combinedMessage;
+        
+        // Disable cache dismissal for marquee clicks (so they can click it again later)
+        currentPopupNoticeId = null; 
+        document.getElementById('announcementPopupModal').style.display = 'flex';
+      }
+    }
+
     function closeAnnouncementPopup() {
+       // Save strictly only for true Auto-Popups so it never shows again
        if (currentPopupNoticeId && currentData && currentData.empId) {
           const dismissKey = 'dismissed_' + currentData.empId + '_' + currentPopupNoticeId;
-          localStorage.setItem(dismissKey, 'true'); // Save strictly so it never shows again
+          localStorage.setItem(dismissKey, 'true'); 
        }
        document.getElementById('announcementPopupModal').style.display = 'none';
     }
